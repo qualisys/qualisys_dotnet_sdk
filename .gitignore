@@ -1,0 +1,14 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/obj/Debug/RTClientSDK.pdb
+/obj/Debug/RTClientSDK.Net.csproj.FileListAbsolute.txt
+/obj/Debug/RTClientSDK.dll
+/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
+/obj/Debug
+/bin/Debug/RTClientSDK.pdb
+/bin/Debug/RTClientSDK.dll.config
+/bin/Debug/RTClientSDK.dll
+/bin/Debug
+/.vs/RTClientSDK.Net/v14/.suo
