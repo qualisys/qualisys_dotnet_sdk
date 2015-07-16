@@ -1,4 +1,4 @@
-# [Qualisys](http://www.qualisys.com) Realtime SDK for .Net in c#
+# [Qualisys](http://www.qualisys.com) Realtime SDK for .Net
 
 This is C# package with SDK and examples that can help Qualisys users connect and stream data from [Qualisys Track Manager](http://www.qualisys.com/products/software/qtm) in realtime.
 This handles all kind of data that QTM can capture. This includes marker data, 6dof objects, user bones, analog, force and gaze vector settings and data.
