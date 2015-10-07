@@ -145,14 +145,7 @@ namespace QTMRealTimeSDK.Network
             }
         }
 
-        /// <summary>
-        /// Receive data from sockets. Order is TCP, UDP then broadcast.
-        /// </summary>
-        /// <param name="receivebuffer">received data</param>
-        /// <param name="onlyTCP">we only want to receive TCP packet, to avoid getting realtime packets</param>
-        /// <param name="timeout">timeout for receiving data on sockets, default is 1 000 000 microseconds (one second)</param>
-        /// <returns>number of bytes received on socket, 0 on timeout and -1 on socket error</returns>
-        internal int Receive(ref byte[] receivebuffer, bool onlyTCP = false, int timeout = 1000000)
+        internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header = false, int timeout = 1000000)
         {
             List<Socket> receiveList = new List<Socket>();
             List<Socket> errorList = new List<Socket>();
@@ -163,13 +156,13 @@ namespace QTMRealTimeSDK.Network
                 errorList.Add(mTCPClient.Client);
             }
 
-            if (mUDPClient != null && !onlyTCP)
+            if (mUDPClient != null)
             {
                 receiveList.Add(mUDPClient.Client);
                 errorList.Add(mUDPClient.Client);
             }
 
-            if (mUDPBroadcastClient != null && !onlyTCP)
+            if (mUDPBroadcastClient != null)
             {
                 receiveList.Add(mUDPBroadcastClient.Client);
                 errorList.Add(mUDPBroadcastClient.Client);
@@ -191,8 +184,7 @@ namespace QTMRealTimeSDK.Network
             else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
             {
                 // Receive data from TCP socket
-                int receiveddata = mTCPClient.Client.Receive(receivebuffer);
-                return receiveddata;
+                return mTCPClient.Client.Receive(receivebuffer, header ? 8 : bufferSize, SocketFlags.None);
             }
             else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
             {
@@ -202,8 +194,7 @@ namespace QTMRealTimeSDK.Network
             else if (mUDPClient != null && receiveList.Contains(mUDPClient.Client))
             {
                 // Receive data from UDP socket
-                int receiveddata = mUDPClient.Client.Receive(receivebuffer);
-                return receiveddata;
+                return mUDPClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
             }
             else if (mUDPBroadcastClient != null && errorList.Contains(mUDPBroadcastClient.Client))
             {
@@ -213,8 +204,7 @@ namespace QTMRealTimeSDK.Network
             else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
             {
                 // Receive data from broadcast socket
-                int receiveddata = mUDPBroadcastClient.Client.Receive(receivebuffer);
-                return receiveddata;
+                return mUDPBroadcastClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
             }
             else
             {
@@ -313,9 +303,13 @@ namespace QTMRealTimeSDK.Network
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposed)
             {
-                Disconnect();
+                if (disposing)
+                {
+                    Disconnect();
+                }
+                disposed = true;
             }
         }
 
@@ -324,6 +318,8 @@ namespace QTMRealTimeSDK.Network
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        private bool disposed = false;
     }
 
     internal static class IPAddressExtensions

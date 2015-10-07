@@ -319,7 +319,6 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="majorVersion">Major version of packet, default is latest version.</param>
         /// <param name="minorVersion">Minor version of packet, default is latest version.</param>
-        /// <param name="bigEndian">if packet should use big endianess, default is false.</param>
 		public RTPacket(int majorVersion = RTProtocol.Constants.MAJOR_VERSION,
                         int minorVersion = RTProtocol.Constants.MINOR_VERSION)
 		{
@@ -503,10 +502,7 @@ namespace QTMRealTimeSDK.Data
                                 analogDeviceData.Channels = new AnalogChannelData[analogDeviceData.ChannelCount];
 
                                 uint sampleCount = BitConvert.GetUInt32(mData, ref position);
-                                if (sampleCount * analogDeviceData.ChannelCount * 4 > mData.Length)
-                                {
-                                }
-                                else if (sampleCount > 0)
+                                if (sampleCount > 0)
                                 {
                                     uint sampleNumber = BitConvert.GetUInt32(mData, ref position);
                                     for (uint j = 0; j < analogDeviceData.ChannelCount; j++)
@@ -969,7 +965,6 @@ namespace QTMRealTimeSDK.Data
         /// <param name="data">byte data for packet</param>
         /// <param name="size">returns size of packet</param>
         /// <param name="type">returns type of packet</param>
-        /// <param name="bigEndian">if packet is big endian or not, default is false</param>
         /// <returns>true if header was retrieved successfully </returns>
         internal static bool GetPacketHeader(byte[] data, out int size, out PacketType type)
         {
@@ -982,7 +977,6 @@ namespace QTMRealTimeSDK.Data
         /// Get number of bytes in packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not, default is false</param>
         /// <returns>Size of packet.</returns>
         internal static int GetSize(byte[] data)
         {
@@ -993,7 +987,6 @@ namespace QTMRealTimeSDK.Data
         /// Get the packet type of packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>packet type</returns>
         internal static PacketType GetPacketType(byte[] data)
         {
@@ -1007,7 +1000,6 @@ namespace QTMRealTimeSDK.Data
         /// Get time stamp in a data packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>time stamp from packet</returns>
         internal static long GetTimeStamp(byte[] data)
         {
@@ -1022,7 +1014,6 @@ namespace QTMRealTimeSDK.Data
         /// Get frame number from a data packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>frame number from packet</returns>
         internal static int GetFrameNumber(byte[] data)
         {
@@ -1037,7 +1028,6 @@ namespace QTMRealTimeSDK.Data
         /// Get count of different component types from a datapacket
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>number of component types in packet</returns>
         internal static int GetComponentCount(byte[] data)
         {
@@ -1054,7 +1044,6 @@ namespace QTMRealTimeSDK.Data
         /// <param name="data">byte data for packet</param>
         /// <param name="size">returns size of packet</param>
         /// <param name="type">returns type of packet</param>
-        /// <param name="bigEndian">if packet is big endian or not, default is false</param>
         /// <returns>true if header was retrieved successfully </returns>
         internal bool GetPacketHeader(out int size, out PacketType type)
         {
@@ -1081,7 +1070,6 @@ namespace QTMRealTimeSDK.Data
         /// Get the packet type of packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>packet type</returns>
         internal PacketType GetPacketType()
         {
@@ -1098,7 +1086,6 @@ namespace QTMRealTimeSDK.Data
         /// Get time stamp in a data packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>time stamp from packet</returns>
         internal long GetTimeStamp()
         {
@@ -1116,7 +1103,6 @@ namespace QTMRealTimeSDK.Data
         /// Get frame number from a data packet.
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>frame number from packet</returns>
         internal int GetFrameNumber()
         {
@@ -1134,7 +1120,6 @@ namespace QTMRealTimeSDK.Data
         /// Get count of different component types from a datapacket
         /// </summary>
         /// <param name="data">bytes from packet.</param>
-        /// <param name="bigEndian">if packet is big endian or not. default is false</param>
         /// <returns>number of component types in packet</returns>
         internal int GetComponentCount()
         {
@@ -1183,8 +1168,8 @@ namespace QTMRealTimeSDK.Data
 		public string GetErrorString()
 		{
 			if (mPacketType == PacketType.PacketError)
-                return System.Text.Encoding.Default.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE,GetSize()-RTProtocol.Constants.PACKET_HEADER_SIZE-1);
-			return null;
+                return System.Text.Encoding.Default.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+            return null;
 		}
 
         /// <summary>
@@ -1314,7 +1299,6 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="data">packet data</param>
         /// <param name="position">position in packet where the component starts</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>Component type.</returns>
         internal static ComponentType GetComponentType(byte[] data, int position)
         {
@@ -1326,7 +1310,6 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="data">packet data</param>
         /// <param name="position">position in packet where the component starts</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>size of component.</returns>
         internal static int GetComponentSize(byte[] data, int position, bool bigEndian)
         {
@@ -1340,7 +1323,6 @@ namespace QTMRealTimeSDK.Data
         /// Get error string from a packet.
         /// </summary>
         /// <param name="data">packet data</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>error string, null if the packet is not an error packet.</returns>
         internal static string GetErrorString(byte[] data)
         {
@@ -1353,7 +1335,6 @@ namespace QTMRealTimeSDK.Data
         /// Get command string from a packet.
         /// </summary>
         /// <param name="data">packet data</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>command string, null if the packet is not a command packet.</returns>
         internal static string GetCommandString(byte[] data)
         {
@@ -1366,7 +1347,6 @@ namespace QTMRealTimeSDK.Data
         /// Get XML string from a packet.
         /// </summary>
         /// <param name="data">packet data</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>XML string, null if the packet is not a XML packet.</returns>
         internal string GetXMLString(byte[] data)
 		{
@@ -1379,7 +1359,6 @@ namespace QTMRealTimeSDK.Data
         /// Get event type of a event packet
         /// </summary>
         /// <param name="data">packet data</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>event type of packet</returns>
         internal static QTMEvent GetEvent(byte[] data)
         {
@@ -1394,7 +1373,6 @@ namespace QTMRealTimeSDK.Data
         /// Get base port from Discovery response packet
         /// </summary>
         /// <param name="data">packet data</param>
-        /// <param name="bigEndian">if packet is big endian, default is false</param>
         /// <returns>port from response</returns>
         internal static short GetDiscoverResponseBasePort(byte[] data)
         {

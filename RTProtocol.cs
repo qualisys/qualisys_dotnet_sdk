@@ -185,9 +185,9 @@ namespace QTMRealTimeSDK
             /// <summary>Size of component header, component size and component type</summary>
             public const int COMPONENT_HEADER = 8;
             /// <summary>Default base port used by QTM</summary>
-            public const ushort STANDARD_BASE_PORT = 22222;
+            public const int STANDARD_BASE_PORT = 22222;
             /// <summary>Port QTM listens to for discovery requests</summary>
-            public const ushort STANDARD_BROADCAST_PORT = 22226;
+            public const int STANDARD_BROADCAST_PORT = 22226;
 
         }
 
@@ -261,13 +261,13 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Create connection to server
         ///</summary>
-        /// <param name="serverAddr">Adress to server</param>
+        /// <param name="serverAddr">address to server</param>
         /// <param name="serverPortUDP">port to use if UDP socket is desired, set to 0 for automatic port selection</param>
         /// <param name="majorVersion">Major protocol version to use, default is latest</param>
         /// <param name="minorVersion">Minor protocol version to use, default is latest</param>
         /// <param name="port">base port for QTM server, default is 22222</param>
         /// <returns>true if connection was successful, otherwise false</returns>
-        public bool Connect(string serverAddr, short serverPortUDP = -1,
+        public bool Connect(string serverAddr, int serverPortUDP = -1,
                             int majorVersion = Constants.MAJOR_VERSION, int minorVersion = Constants.MINOR_VERSION,
                             int port = Constants.STANDARD_BASE_PORT)
         {
@@ -321,10 +321,9 @@ namespace QTMRealTimeSDK
                         string response = mPacket.GetCommandString();
                         if (response == "QTM RT Interface connected")
                         {
-                            if (SetVersion(mMajorVersion, mMinorVersion))
+                            if (SetVersion(mMajorVersion, mMinorVersion, out response))
                             {
                                 string expectedResponse = String.Format("Version set to {0}.{1}", mMajorVersion, mMinorVersion);
-                                response = mPacket.GetCommandString();
                                 if (response == expectedResponse)
                                 {
                                     return true;
@@ -387,7 +386,7 @@ namespace QTMRealTimeSDK
         /// <param name="majorVersion">Major protocol version to use, default is latest</param>
         /// <param name="minorVersion">Minor protocol version to use, default is latest</param>
         /// <returns>true if connection was successful, otherwise false</returns>
-        public bool Connect(DiscoveryResponse host, short serverPortUDP = -1, int majorVersion = Constants.MAJOR_VERSION, int minorVersion = Constants.MINOR_VERSION)
+        public bool Connect(DiscoveryResponse host, int serverPortUDP = -1, int majorVersion = Constants.MAJOR_VERSION, int minorVersion = Constants.MINOR_VERSION)
         {
             return Connect(host.IpAddress, serverPortUDP, majorVersion, minorVersion, host.Port);
         }
@@ -408,6 +407,7 @@ namespace QTMRealTimeSDK
         ///</summary>
         public void Disconnect()
         {
+            mThreadActive = false;
             mBroadcastSocketCreated = false;
             if (mProcessStreamthread != null)
             {
@@ -426,31 +426,89 @@ namespace QTMRealTimeSDK
             return mNetwork.IsConnected();
         }
 
-        byte[] data = null;
+        byte[] data;
 
-        /// <summary>
-        /// Receive data from sockets and save to protocol packet.
-        ///</summary>
-        /// <param name="packetType">type of packet received from sockets. </param>
-        /// <returns>number of bytes received</returns>
-        private int ReceiveRTPacket(out PacketType packetType)
+        private int ReceiveRTPacket(out PacketType packetType, bool bSkipEvents = true, int nTimeout = 2000000)
         {
             if (data == null)
                 data = new byte[65536];
 
-            int recvBytes = mNetwork.Receive(ref data);
-            if (recvBytes > 0)
-            {
-                mPacket.SetData(data);
-                packetType = mPacket.PacketType;
-            }
-            else
-            {
-                packetType = PacketType.PacketNone;
-            }
+            int nRecvedTotal = 0;
+            int nFrameSize;
 
-            return recvBytes;
+            packetType = PacketType.PacketNone;
+
+            do
+            {
+                nRecvedTotal = 0;
+
+                int nRecved = mNetwork.Receive(ref data, data.Length, true, nTimeout);
+                if (nRecved == 0)
+                {
+                    return 0; // Receive timeout
+                }
+                if (nRecved < sizeof(int) * 2)
+                {
+                    // QTM header not received.
+                    return -1;
+                }
+                if (nRecved == -1)
+                {
+                    if (!mNetwork.IsConnected())
+                    {
+                        mErrorString = "Disconnected from server.";
+                    }
+                    else
+                    {
+                        mErrorString = "Socket Error.";
+                    }
+                    return -1;
+                }
+                nRecvedTotal += nRecved;
+
+                nFrameSize = RTPacket.GetSize(data);
+                packetType = RTPacket.GetPacketType(data);
+
+                if (nFrameSize > data.Length)
+                {
+                    mErrorString = "Receive buffer overflow.";
+                    return -1;
+                }
+
+                // Receive more data until we have read the whole packet
+                while (nRecvedTotal < nFrameSize)
+                {
+                    // As long as we haven't received enough data, wait for more
+                    byte[] buffer = new byte[nFrameSize - nRecvedTotal];
+                    nRecved = mNetwork.Receive(ref buffer, nFrameSize - nRecvedTotal, false, nTimeout);
+                    buffer.CopyTo(data, nRecvedTotal);
+                    if (nRecved <= 0)
+                    {
+                        if (!mNetwork.IsConnected())
+                        {
+                            mErrorString = "Disconnected from server.";
+                        }
+                        else
+                        {
+                            mErrorString = "Socket Error.";
+                        }
+                        return -1;
+                    }
+                    nRecvedTotal += nRecved;
+                }
+
+                mPacket.SetData(data);
+            }
+            while (bSkipEvents && packetType == PacketType.PacketEvent);
+
+            if (nRecvedTotal == nFrameSize)
+            {
+                return nRecvedTotal;
+            }
+            mErrorString = "Packet truncated.";
+            return -1;
         }
+
 
         /// <summary>
         /// Send discovery packet to network to find available QTM Servers.
@@ -458,7 +516,7 @@ namespace QTMRealTimeSDK
         /// <param name="replyPort">port for servers to reply.</param>
         /// <param name="discoverPort">port to send discovery packet.</param>
         /// <returns>true if discovery packet was sent successfully</returns>
-        public bool DiscoverRTServers(ushort replyPort, ushort discoverPort = Constants.STANDARD_BROADCAST_PORT)
+        public bool DiscoverRTServers(ushort replyPort, int discoverPort = Constants.STANDARD_BROADCAST_PORT)
         {
             byte[] port = BitConverter.GetBytes(replyPort);
             byte[] size = BitConverter.GetBytes(10);
@@ -518,30 +576,33 @@ namespace QTMRealTimeSDK
         ///</summary>
         private void ThreadedStreamFunction()
         {
-            PacketType packetType;
-
-            while (mThreadActive)
+            try
             {
-				ReceiveRTPacket(out packetType);
-
-                var packet = mPacket;
-				if (packet != null)
+                while (mThreadActive)
                 {
-					if (packetType == PacketType.PacketData)
-					{
-                        var realtimeDataCallback = RealTimeDataCallback;
-                        if (realtimeDataCallback != null)
-                            realtimeDataCallback(packet);
-					}
-					else if (packetType == PacketType.PacketEvent)
-					{
-                        var eventDataCallback = EventDataCallback;
-                        if (eventDataCallback != null)
-                            eventDataCallback(packet);
-					}
+                    PacketType packetType;
+                    ReceiveRTPacket(out packetType, false);
 
+                    var packet = mPacket;
+                    if (packet != null)
+                    {
+                        if (packetType == PacketType.PacketData)
+                        {
+                            var realtimeDataCallback = RealTimeDataCallback;
+                            if (realtimeDataCallback != null)
+                                realtimeDataCallback(packet);
+                        }
+                        else if (packetType == PacketType.PacketEvent)
+                        {
+                            var eventDataCallback = EventDataCallback;
+                            if (eventDataCallback != null)
+                                eventDataCallback(packet);
+                        }
+                    }
                 }
-
+            }
+            catch (Exception)
+            {
             }
         }
 
@@ -550,11 +611,11 @@ namespace QTMRealTimeSDK
         ///</summary>
         public void StopStreamListen()
         {
-            mThreadActive = false;
             if (mProcessStreamthread != null)
 			{
-				mProcessStreamthread.Join(new TimeSpan(0,1,0));
-			}
+                mThreadActive = false;
+                mProcessStreamthread.Join();
+            }
         }
 
         #region get set functions
@@ -567,18 +628,15 @@ namespace QTMRealTimeSDK
         /// <returns>true if command and response was successful</returns>
         public bool GetVersion(out int majorVersion, out int minorVersion)
         {
-            if (SendCommand("Version"))
+            string response;
+            if (SendCommandExpectCommandResponse("Version", out response))
             {
-                PacketType responsePacket = mPacket.PacketType;
-                if (responsePacket != PacketType.PacketError)
-                {
-                    string versionString = mPacket.GetCommandString();
-                    versionString = versionString.Substring(11);
-                    Version ver = new Version(versionString);
-                    majorVersion = ver.Major;
-                    minorVersion = ver.Minor;
-                    return true;
-                }
+                var versionString = response;
+                versionString = versionString.Substring(11);
+                Version ver = new Version(versionString);
+                majorVersion = ver.Major;
+                minorVersion = ver.Minor;
+                return true;
             }
             majorVersion = 0;
             minorVersion = 0;
@@ -591,15 +649,16 @@ namespace QTMRealTimeSDK
         /// <param name="majorVersion">Major version of protocol used</param>
         /// <param name="minorVersion">Minor version of protocol used</param>
         /// <returns>true if command was successful</returns>
-        public bool SetVersion(int majorVersion, int minorVersion)
+        public bool SetVersion(int majorVersion, int minorVersion, out string response)
         {
+            response = "";
             if (majorVersion < 0 || majorVersion > Constants.MAJOR_VERSION || minorVersion < 0)
             {
                 mErrorString = "Incorrect version of protocol";
                 return false;
             }
 
-            if (SendCommand("Version " + majorVersion + "." + minorVersion))
+            if (SendCommandExpectCommandResponse("Version " + majorVersion + "." + minorVersion, out response))
             {
                 return true;
             }
@@ -614,40 +673,13 @@ namespace QTMRealTimeSDK
         /// <returns>true if command was sent successfully</returns>
         public bool GetQTMVersion(out string version)
         {
-            if (SendCommand("QTMVersion"))
+            string response;
+            if (SendCommandExpectCommandResponse("QTMVersion", out response))
             {
-				PacketType responsePacketType = mPacket.PacketType;
-                if (responsePacketType == PacketType.PacketCommand)
-                {
-                    version = mPacket.GetCommandString();
-					return true;
-                }
+                version = response;
+				return true;
             }
             version = "";
-            return false;
-        }
-
-        /// <summary>
-        /// Get byte order used by server
-        ///</summary>
-        /// <param name="bigEndian">response from server if it uses big endian or not</param>
-        /// <returns>true if command was sent successfully</returns>
-        public bool GetByteOrder(out bool bigEndian)
-        {
-			if (SendCommand("ByteOrder"))
-			{
-				PacketType responsePacketType = mPacket.PacketType;
-				if (responsePacketType == PacketType.PacketCommand)
-				{
-					string response = mPacket.GetCommandString();
-					if (response == "Byte order is big endian")
-						bigEndian = true;
-					else
-						bigEndian = false;
-					return true;
-				}
-			}
-            bigEndian = false;
             return false;
         }
 
@@ -658,27 +690,17 @@ namespace QTMRealTimeSDK
         /// <returns>true if command was successfully sent AND License passed, otherwise false</returns>
         public bool CheckLicense(string licenseCode)
         {
-			if (SendCommand("CheckLicense " + licenseCode))
+            string response;
+			if (SendCommandExpectCommandResponse("CheckLicense " + licenseCode, out response))
 			{
-				PacketType responsePacketType = mPacket.PacketType;
-				if (responsePacketType == PacketType.PacketCommand)
-				{
-					string response = mPacket.GetCommandString();
-					if (response == "License pass")
-					{
-						return true;
-
-					}
-					else
-					{
-						mErrorString = "Wrong license code.";
-						return false;
-					}
-				}
+                if (response == "License pass")
+                {
+                    return true;
+                }
 			}
             return false;
         }
-
+#if apa
         /// <summary>
         /// Get current frame from server
         ///</summary>
@@ -694,7 +716,7 @@ namespace QTMRealTimeSDK
             else
                 command += BuildStreamString(components);
 
-            if (SendCommand(command))
+            if (SendCommandExpectCommandResponse(command))
             {
                 PacketType responsePacketType = mPacket.PacketType;
                 if (responsePacketType == PacketType.PacketData)
@@ -723,7 +745,7 @@ namespace QTMRealTimeSDK
         /// <param name="packet">packet with data returned from server</param>
         /// <param name="components">list of specific component types to stream, ignored if streamAll is set to true</param>
         /// <returns>true if command was sent successfully and response was a datapacket with frame</returns>
-        public bool GetCurrentFrame(out RTPacket packet,bool streamAll, List<ComponentType> components = null)
+        public bool GetCurrentFrame(out RTPacket packet, bool streamAll, List<ComponentType> components = null)
         {
             bool status;
             if (components != null)
@@ -746,6 +768,12 @@ namespace QTMRealTimeSDK
                 return false;
             }
         }
+#endif
+
+        public bool StreamAllFrames(ComponentType component, int port = -1, string ipAddress = "")
+        {
+            return StreamFrames(StreamRate.RateAllFrames, 1, false, component, port, ipAddress);
+        }
 
         /// <summary>
         /// Stream frames from QTM server
@@ -754,13 +782,13 @@ namespace QTMRealTimeSDK
         /// <param name="streamValue">related to streamrate, not used if all frames are streamed</param>
         /// <param name="streamAllComponents">If all component types should be streamed</param>
         /// <param name="components">List of all component types deisred to stream</param>
-        /// <param name="port">if set, streaming will be done by UDP on this port. Has to be set if ipadress is specified</param>
-        /// <param name="ipAdress">if UDP streaming should occur to other ip adress,
+        /// <param name="port">if set, streaming will be done by UDP on this port. Has to be set if ip address is specified</param>
+        /// <param name="ipAddress">if UDP streaming should occur to other ip address,
         /// if not set streaming occurs on same ip as command came from</param>
         /// <returns></returns>
         public bool StreamFrames(StreamRate streamRate, int streamValue,
                                 bool streamAllComponents, List<ComponentType> components = null,
-                                short port = -1, string ipAdress = "")
+                                int port = -1, string ipAddress = "")
         {
             string command = "streamframes";
 
@@ -777,15 +805,15 @@ namespace QTMRealTimeSDK
                     break;
             }
 
-            if (ipAdress != "")
+            if (ipAddress != "")
             {
                 if (port > 0)
                 {
-                    command += " UDP:" + ipAdress + ":" + port;
+                    command += " UDP:" + ipAddress + ":" + port;
                 }
                 else
                 {
-                    mErrorString = "If an IP-adress was specified for UDP streaming, a port must be specified aswell";
+                    mErrorString = "If an IP-address was specified for UDP streaming, a port must be specified as well";
                     return false;
                 }
             }
@@ -803,13 +831,11 @@ namespace QTMRealTimeSDK
         }
 
 
-        public bool StreamFrames(StreamRate streamRate, int streamValue,
-                                bool streamAllComponents, ComponentType component,
-                                short port = -1, string ipAdress = "")
+        public bool StreamFrames(StreamRate streamRate, int streamValue, bool streamAllComponents, ComponentType component, int port = -1, string ipaddress = "")
         {
             List<ComponentType> list = new List<ComponentType>();
             list.Add(component);
-            return StreamFrames(streamRate, streamValue, streamAllComponents, list, port, ipAdress);
+            return StreamFrames(streamRate, streamValue, streamAllComponents, list, port, ipaddress);
         }
 
         /// <summary>
@@ -828,10 +854,20 @@ namespace QTMRealTimeSDK
         /// <returns>true if command was sent successfully</returns>
         public bool GetState(out QTMEvent respondedEvent)
         {
-            if (SendCommand("GetState"))
+            if (SendString("GetState", PacketType.PacketCommand))
             {
-                respondedEvent = mPacket.GetEvent();
-                return true;
+                int nReceived;
+                PacketType packetType;
+                do
+                {
+                    nReceived = ReceiveRTPacket(out packetType, false, 2000000);
+                    if (nReceived > 0)
+                    {
+                        respondedEvent = mPacket.GetEvent();
+                        return true;
+                    }
+                }
+                while (nReceived > 0);
             }
             respondedEvent = QTMEvent.EventNone;
             return false;
@@ -843,16 +879,12 @@ namespace QTMRealTimeSDK
         /// <returns>True if command and trigger was received successfully</returns>
         public bool SendTrigger()
         {
-            if (SendCommand("Trig"))
+            string response;
+            if (SendCommandExpectCommandResponse("Trig", out response))
             {
-                if (mPacket.GetCommandString() == "Trig ok")
+                if (response == "Trig ok")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = mPacket.GetCommandString();
-                    return false;
                 }
             }
             return false;
@@ -865,17 +897,12 @@ namespace QTMRealTimeSDK
         /// <returns>true if event was set successfully</returns>
         public bool SetQTMEvent(string label)
         {
-            if (SendCommand("setQTMEvent " + label))
+            string response;
+            if (SendCommandExpectCommandResponse("setQTMEvent " + label, out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Event set")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -888,9 +915,9 @@ namespace QTMRealTimeSDK
         /// <returns>True if you become the master</returns>
         public bool TakeControl(string password = "")
         {
-            if (SendCommand("TakeControl " + password))
+            string response;
+            if (SendCommandExpectCommandResponse("TakeControl " + password, out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "You are now master")
                 {
                     return true;
@@ -910,17 +937,12 @@ namespace QTMRealTimeSDK
         /// <returns>true if control was released or if client already is a regular client</returns>
         public bool ReleaseControl()
         {
-            if (SendCommand("releaseControl"))
+            string response;
+            if (SendCommandExpectCommandResponse("releaseControl", out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "You are now a regular client" || response == "You are already a regular client")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -933,9 +955,9 @@ namespace QTMRealTimeSDK
         /// <returns></returns>
         public bool NewMeasurement()
         {
-            if (SendCommand("New"))
+            string response;
+            if (SendCommandExpectCommandResponse("New", out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Creating new connection" || response == "Already connected")
                 {
                     return true;
@@ -956,19 +978,14 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if measurement was closed or if there was nothing to close</returns>
         public bool CloseMeasurement()
         {
-            if (SendCommand("Close"))
+            string response;
+            if (SendCommandExpectCommandResponse("Close", out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Closing connection" ||
                     response == "No connection to close" ||
                     response == "Closing file")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -981,18 +998,13 @@ namespace QTMRealTimeSDK
         /// <returns>true if measurement was started</returns>
         public bool StartCapture(bool RTFromFile = false)
         {
+            string response;
             string command = (RTFromFile) ? "Start rtfromfile" : "Start";
-            if (SendCommand(command))
+            if (SendCommandExpectCommandResponse(command, out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Starting measurement")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -1005,17 +1017,12 @@ namespace QTMRealTimeSDK
         /// <returns>true if measurement was stopped</returns>
         public bool StopCapture()
         {
-            if (SendCommand("Stop"))
+            string response;
+            if (SendCommandExpectCommandResponse("Stop", out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Stopping measurement")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -1029,17 +1036,12 @@ namespace QTMRealTimeSDK
         /// <returns>true if measurement was loaded</returns>
         public bool LoadCapture(string filename)
         {
-            if (SendCommand("Load " + filename))
+            string response;
+            if (SendCommandExpectCommandResponse("Load " + filename, out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response == "Measurement loaded")
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -1057,10 +1059,12 @@ namespace QTMRealTimeSDK
         {
             string command = "Save " + filename;
             if (overwrite)
-                command += " overwrite";
-            if (SendCommand(command))
             {
-                string response = mPacket.GetCommandString();
+                command += " overwrite";
+            }
+            string response;
+            if (SendCommandExpectCommandResponse(command, out response))
+            {
                 if (response.Contains("Measurement saved"))
                 {
                     if(response.Contains("Measurement saved"))
@@ -1070,11 +1074,6 @@ namespace QTMRealTimeSDK
                         newFilename = match.Value.Replace("'",""); 
                     }
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -1088,17 +1087,12 @@ namespace QTMRealTimeSDK
         /// <returns>true if project was loaded</returns>
         public bool LoadProject(string projectPath)
         {
-            if (SendCommand("LoadProject " + projectPath ))
+            string response;
+            if (SendCommandExpectCommandResponse("LoadProject " + projectPath, out response))
             {
-                string response = mPacket.GetCommandString();
                 if (response.Contains("Project loaded"))
                 {
                     return true;
-                }
-                else
-                {
-                    mErrorString = response;
-                    return false;
                 }
             }
             return false;
@@ -1110,10 +1104,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool GetGeneralSettings()
         {
-            if (SendCommand("GetParameters general"))
+            string xml;
+            if (SendCommandExpectXMLResponse("GetParameters general", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                mGeneralSettings = ReadGeneralSettings(xmlString);
+                mGeneralSettings = ReadGeneralSettings(xml);
                 if (mGeneralSettings != null)
                     return true;
             }
@@ -1126,10 +1120,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool Get3Dsettings()
         {
-            if (SendCommand("GetParameters 3D"))
+            string xml;
+            if (SendCommandExpectXMLResponse("GetParameters 3D", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                m3DSettings = Read3DSettings(xmlString);
+                m3DSettings = Read3DSettings(xml);
                 if (m3DSettings != null)
                     return true;
             }
@@ -1142,10 +1136,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool Get6DSettings()
         {
-            if (SendCommand("GetParameters 6D"))
+            string xml;
+            if (SendCommandExpectXMLResponse("GetParameters 6D", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                m6DOFSettings = Read6DOFSettings(xmlString);
+                m6DOFSettings = Read6DOFSettings(xml);
                 if (m6DOFSettings != null)
                     return true;
             }
@@ -1158,10 +1152,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool GetAnalogSettings()
         {
-            if (SendCommand("GetParameters Analog"))
+            string xml;
+            if (SendCommandExpectXMLResponse("GetParameters Analog", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                mAnalogSettings = ReadAnalogSettings(xmlString);
+                mAnalogSettings = ReadAnalogSettings(xml);
                 if (mAnalogSettings != null)
                     return true;
             }
@@ -1174,10 +1168,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool GetForceSettings()
         {
-            if (SendCommand("GetParameters force"))
+            string xml;
+            if (SendCommandExpectCommandResponse("GetParameters force", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                mForceSettings = ReadForceSettings(xmlString);
+                mForceSettings = ReadForceSettings(xml);
                 if (mForceSettings != null)
                     return true;
             }
@@ -1190,10 +1184,11 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool GetImageSettings()
         {
-            if (SendCommand("GetParameters Image"))
+            string xml;
+            if (SendCommandExpectCommandResponse("GetParameters Image", out xml))
             {
                 string xmlString = mPacket.GetXMLString();
-                mImageSettings = ReadImageSettings(xmlString);
+                mImageSettings = ReadImageSettings(xml);
                 if (mImageSettings != null)
                     return true;
             }
@@ -1206,10 +1201,10 @@ namespace QTMRealTimeSDK
         /// <returns>returns true if settings was retrieved</returns>
         public bool GetGazeVectorSettings()
         {
-            if (SendCommand("GetParameters GazeVector"))
+            string xml;
+            if (SendCommandExpectCommandResponse("GetParameters GazeVector", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
-                mGazeVectorSettings = ReadGazeVectorSettings(xmlString);
+                mGazeVectorSettings = ReadGazeVectorSettings(xml);
                 if (mGazeVectorSettings != null)
                     return true;
             }
@@ -1219,6 +1214,13 @@ namespace QTMRealTimeSDK
         #endregion
 
         #region read settings
+
+        static string ReplaceBadXMLCharacters(string xmldata)
+        {
+            return xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1").Replace(",", ".");
+        }
+
+
         /// <summary>
         /// Read general settings from XML string
         ///</summary>
@@ -1226,7 +1228,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with general settings from QTM</returns>
         public static SettingsGeneral ReadGeneralSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False","false").Replace("None","-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(SettingsGeneral));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1255,7 +1257,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of 3D settings from QTM</returns>
         public static Settings3D Read3DSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(Settings3D));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1284,7 +1286,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of 6DOF settings from QTM</returns>
         public static Settings6D Read6DOFSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(Settings6D));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1313,7 +1315,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of Analog settings from QTM</returns>
         public static SettingsAnalog ReadAnalogSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(SettingsAnalog));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1342,7 +1344,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of Force settings from QTM</returns>
         public static SettingsForce ReadForceSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(SettingsForce));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1371,7 +1373,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of Image settings from QTM</returns>
         public static SettingsImage ReadImageSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(SettingsImage));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1390,7 +1392,6 @@ namespace QTMRealTimeSDK
             }
             red.Close();
 
-
             return settings;
         }
 
@@ -1402,7 +1403,7 @@ namespace QTMRealTimeSDK
         /// <returns>class with data of Gaze Vector settings from QTM</returns>
         public static SettingsGazeVector ReadGazeVectorSettings(string xmldata)
         {
-            xmldata = xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1");
+            xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(SettingsGazeVector));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
@@ -1423,9 +1424,9 @@ namespace QTMRealTimeSDK
 
             return settings;
         }
-        #endregion
+#endregion
 
-        #region set settings
+#region set settings
 
         /// <summary>
         /// Creates xml string from the general settings to send to QTM
@@ -1812,9 +1813,9 @@ namespace QTMRealTimeSDK
             return xmlString.ToString();
         }
 
-        #endregion
+#endregion
 
-        #region generic send functions
+#region generic send functions
 
         /// <summary>
         /// Send string to QTM server
@@ -1843,29 +1844,59 @@ namespace QTMRealTimeSDK
             return false;
         }
 
+        public bool SendCommandExpectXMLResponse(string command, out string xml)
+        {
+            if (SendString(command, PacketType.PacketCommand))
+            {
+                PacketType packetType;
+                while (ReceiveRTPacket(out packetType, true) > 0)
+                {
+                    if (packetType != PacketType.PacketXML)
+                    {
+                        if (packetType == PacketType.PacketError)
+                        {
+                            xml = "";
+                            mErrorString = mPacket.GetErrorString();
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        xml = mPacket.GetXMLString();
+                        return true;
+                    }
+                }
+            }
+            xml = "";
+            return false;
+        }
+
         /// <summary>
         /// Send command to QTM server that TCP socket is connected to
         ///</summary>
         /// <param name="command">command to send</param>
-        /// <returns>true if server doesnt reply with error packet</returns>
-        public bool SendCommand(string command)
+        /// <returns>true if server does not reply with error packet</returns>
+        public bool SendCommandExpectCommandResponse(string command, out string response)
         {
-            bool status = SendString(command, PacketType.PacketCommand);
-            if (status)
+            if (SendString(command, PacketType.PacketCommand))
             {
-                Thread.Sleep(20); //avoid missing packets
-                PacketType responsePacket;
-                ReceiveRTPacket(out responsePacket);
-                if (responsePacket != PacketType.PacketError)
+                PacketType packetType;
+                while (ReceiveRTPacket(out packetType, true) > 0)
                 {
-                    return true;
-                }
-                else
-                {
-                    mErrorString = mPacket.GetErrorString();
-                    return false;
+                    if (packetType == PacketType.PacketCommand)
+                    {
+                        response = mPacket.GetCommandString();
+                        return true;
+                    }
+                    if (packetType == PacketType.PacketError)
+                    {
+                        response = mPacket.GetErrorString();
+                        mErrorString = mPacket.GetErrorString();
+                        return false;
+                    }
                 }
             }
+            response = "Command failed";
             return false;
         }
 
@@ -1878,11 +1909,11 @@ namespace QTMRealTimeSDK
         {
             if (SendString(xmlString, PacketType.PacketXML))
             {
-                PacketType eType;
+                PacketType packetType;
 
-                if (ReceiveRTPacket(out eType) > 0)
+                if (ReceiveRTPacket(out packetType) > 0)
                 {
-                    if (eType == PacketType.PacketCommand)
+                    if (packetType == PacketType.PacketCommand)
                     {
                         return true;
                     }
@@ -1896,7 +1927,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Error reported by protocol or from server packet
@@ -1980,9 +2011,14 @@ namespace QTMRealTimeSDK
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (!disposed)
             {
-                Disconnect();
+                if (disposing)
+                {
+                    Disconnect();
+                    mNetwork.Dispose();
+                }
+                disposed = true;
             }
         }
 
@@ -1990,6 +2026,13 @@ namespace QTMRealTimeSDK
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private bool disposed = false;
+
+        ~RTProtocol()
+        {
+            Dispose(false);
         }
     }
 }
