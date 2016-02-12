@@ -145,7 +145,7 @@ namespace QTMRealTimeSDK.Network
             }
         }
 
-        internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header = false, int timeout = 1000000)
+        internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header = false, int timeout = 500000)
         {
             List<Socket> receiveList = new List<Socket>();
             List<Socket> errorList = new List<Socket>();
@@ -184,7 +184,7 @@ namespace QTMRealTimeSDK.Network
             else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
             {
                 // Receive data from TCP socket
-                return mTCPClient.Client.Receive(receivebuffer, header ? 8 : bufferSize, SocketFlags.None);
+                return mTCPClient.Client.Receive(receivebuffer, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
             }
             else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
             {
@@ -209,11 +209,8 @@ namespace QTMRealTimeSDK.Network
             else
             {
                 // General error
-                receivebuffer = null;
                 return -1;
             }
-
-            receivebuffer = null;
             return -1;
         }
 

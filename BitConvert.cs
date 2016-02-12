@@ -130,7 +130,7 @@ namespace QTMRealTimeSDK
         /// </summary>
         /// <param name="data">Data packet</param>
         /// <param name="position">position to convert, will be increased with the size of three floats in bytes</param>
-        /// <returns>struct of sPoint with 3 float values for x,y,z</returns>
+        /// <returns>struct of Point with 3 float values for x,y,z</returns>
 		public static Point GetPoint(byte [] data, ref int position)
 		{
 			Point point;
@@ -142,5 +142,23 @@ namespace QTMRealTimeSDK
 			position += sizeof(float) * 3;
 			return point;
 		}
+
+        /// <summary>
+        /// Convert bytes at position to a sPoint (3 float values)
+        /// </summary>
+        /// <param name="data">Data packet</param>
+        /// <param name="rotation">rotation to convert, will be increased with the size of three floats in bytes</param>
+        /// <returns>struct of Rotation with 3 float values for x,y,z</returns>
+		public static EulerRotation GetEulerRotation(byte[] data, ref int position)
+        {
+            EulerRotation rotation;
+            byte[] pointData = new byte[sizeof(float) * 3];
+            Array.Copy(data, position, pointData, 0, sizeof(float) * 3);
+            rotation.Roll = BitConverter.ToSingle(pointData, 0);
+            rotation.Pitch = BitConverter.ToSingle(pointData, 4);
+            rotation.Yaw = BitConverter.ToSingle(pointData, 8);
+            position += sizeof(float) * 3;
+            return rotation;
+        }
     }
 }

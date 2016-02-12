@@ -58,6 +58,12 @@ namespace QTMRealTimeSDK
         ModelQqus700,
         [XmlEnum("Oqus 700 Plus")]
         ModelQqus700Plus,
+        [XmlEnum("Miqus M1")]
+        ModelMiqusM1,
+        [XmlEnum("Miqus M3")]
+        ModelMiqusM3,
+        [XmlEnum("Miqus M5")]
+        ModelMiqusM5,
     }
 
     /// <summary>Camera modes</summary>
@@ -191,12 +197,6 @@ namespace QTMRealTimeSDK
 
         }
 
-		public delegate void ProcessStream(RTPacket packet);
-        /// <summary>Callback for processing real time data packets</summary>
-        public ProcessStream RealTimeDataCallback;
-        /// <summary>Callback for receiving events</summary>
-		public ProcessStream EventDataCallback;
-
         /// <summary>Packet received from QTM</summary>
         public RTPacket Packet { get { return mPacket; } }
 
@@ -229,13 +229,11 @@ namespace QTMRealTimeSDK
         public SettingsGazeVector GazeVectorSettings { get { return mGazeVectorSettings; } }
         
         private bool mBroadcastSocketCreated = false;
-        private Thread mProcessStreamthread;
         private RTNetwork mNetwork;
         private ushort mUDPport;
         private RTPacket mPacket;
         private int mMajorVersion;
         private int mMinorVersion;
-        private volatile bool mThreadActive;
         private string mErrorString;
 
         private HashSet<DiscoveryResponse> mDiscoveryResponses;
@@ -407,18 +405,12 @@ namespace QTMRealTimeSDK
         ///</summary>
         public void Disconnect()
         {
-            mThreadActive = false;
             mBroadcastSocketCreated = false;
-            if (mProcessStreamthread != null)
-            {
-                mProcessStreamthread.Abort();
-                mProcessStreamthread = null;
-            }
             mNetwork.Disconnect();
         }
 
         /// <summary>
-        /// Check it our TCP is connected
+        /// Check if our TCP is connected
         ///</summary>
         /// <returns>connection status of TCP socket </returns>
         public bool IsConnected()
@@ -426,63 +418,39 @@ namespace QTMRealTimeSDK
             return mNetwork.IsConnected();
         }
 
-        byte[] data;
-
-        private int ReceiveRTPacket(out PacketType packetType, bool bSkipEvents = true, int nTimeout = 2000000)
+        public RTPacket GetRTPacket()
         {
-            if (data == null)
-                data = new byte[65536];
+            return mPacket;
+        }
 
-            int nRecvedTotal = 0;
-            int nFrameSize;
+        private byte[] header = new byte[RTProtocol.Constants.PACKET_HEADER_SIZE];
+        private byte[] data;
+        private Object receiveLock = new Object();
 
-            packetType = PacketType.PacketNone;
-
-            do
+        public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 500000)
+        {
+            lock (receiveLock)
             {
-                nRecvedTotal = 0;
+                int receivedTotal = 0;
+                int frameSize;
 
-                int nRecved = mNetwork.Receive(ref data, data.Length, true, nTimeout);
-                if (nRecved == 0)
+                packetType = PacketType.PacketNone;
+
+                do
                 {
-                    return 0; // Receive timeout
-                }
-                if (nRecved < sizeof(int) * 2)
-                {
-                    // QTM header not received.
-                    return -1;
-                }
-                if (nRecved == -1)
-                {
-                    if (!mNetwork.IsConnected())
+                    receivedTotal = 0;
+
+                    int received = mNetwork.Receive(ref header, RTProtocol.Constants.PACKET_HEADER_SIZE, true, timeout);
+                    if (received == 0)
                     {
-                        mErrorString = "Disconnected from server.";
+                        return 0; // Receive timeout
                     }
-                    else
+                    if (received < sizeof(int) * 2)
                     {
-                        mErrorString = "Socket Error.";
+                        // QTM header not received.
+                        return -1;
                     }
-                    return -1;
-                }
-                nRecvedTotal += nRecved;
-
-                nFrameSize = RTPacket.GetSize(data);
-                packetType = RTPacket.GetPacketType(data);
-
-                if (nFrameSize > data.Length)
-                {
-                    mErrorString = "Receive buffer overflow.";
-                    return -1;
-                }
-
-                // Receive more data until we have read the whole packet
-                while (nRecvedTotal < nFrameSize)
-                {
-                    // As long as we haven't received enough data, wait for more
-                    byte[] buffer = new byte[nFrameSize - nRecvedTotal];
-                    nRecved = mNetwork.Receive(ref buffer, nFrameSize - nRecvedTotal, false, nTimeout);
-                    buffer.CopyTo(data, nRecvedTotal);
-                    if (nRecved <= 0)
+                    if (received == -1)
                     {
                         if (!mNetwork.IsConnected())
                         {
@@ -494,19 +462,51 @@ namespace QTMRealTimeSDK
                         }
                         return -1;
                     }
-                    nRecvedTotal += nRecved;
+                    receivedTotal += received;
+
+
+                    frameSize = RTPacket.GetSize(header);
+                    packetType = RTPacket.GetPacketType(header);
+
+                    if (data == null || frameSize > data.Length)
+                    {
+                        data = new byte[frameSize];
+                    }
+                    header.CopyTo(data, 0);
+
+                    // Receive more data until we have read the whole packet
+                    while (receivedTotal < frameSize)
+                    {
+                        // As long as we haven't received enough data, wait for more
+                        byte[] buffer = new byte[frameSize - receivedTotal];
+                        received = mNetwork.Receive(ref buffer, frameSize - receivedTotal, false, timeout);
+                        buffer.CopyTo(data, receivedTotal);
+                        if (received <= 0)
+                        {
+                            if (!mNetwork.IsConnected())
+                            {
+                                mErrorString = "Disconnected from server.";
+                            }
+                            else
+                            {
+                                mErrorString = "Socket Error.";
+                            }
+                            return -1;
+                        }
+                        receivedTotal += received;
+                    }
+
+                    mPacket.SetData(data);
                 }
+                while (skipEvents && packetType == PacketType.PacketEvent);
 
-                mPacket.SetData(data);
+                if (receivedTotal == frameSize)
+                {
+                    return receivedTotal;
+                }
+                mErrorString = "Packet truncated.";
+                return -1;
             }
-            while (bSkipEvents && packetType == PacketType.PacketEvent);
-
-            if (nRecvedTotal == nFrameSize)
-            {
-                return nRecvedTotal;
-            }
-            mErrorString = "Packet truncated.";
-            return -1;
         }
 
 
@@ -558,64 +558,6 @@ namespace QTMRealTimeSDK
             }
 
             return status;
-        }
-
-        /// <summary>
-        /// tell protocol to start a new thread that listens to real time stream and send data to callback functions
-        ///</summary>
-        /// <returns>always returns true</returns>
-        public void ListenToStream()
-        {
-            mProcessStreamthread = new Thread(ThreadedStreamFunction);
-            mThreadActive = true;
-            mProcessStreamthread.Start();
-        }
-
-        /// <summary>
-        /// Function used in thread to listen to real time data stream.
-        ///</summary>
-        private void ThreadedStreamFunction()
-        {
-            try
-            {
-                while (mThreadActive)
-                {
-                    PacketType packetType;
-                    ReceiveRTPacket(out packetType, false);
-
-                    var packet = mPacket;
-                    if (packet != null)
-                    {
-                        if (packetType == PacketType.PacketData)
-                        {
-                            var realtimeDataCallback = RealTimeDataCallback;
-                            if (realtimeDataCallback != null)
-                                realtimeDataCallback(packet);
-                        }
-                        else if (packetType == PacketType.PacketEvent)
-                        {
-                            var eventDataCallback = EventDataCallback;
-                            if (eventDataCallback != null)
-                                eventDataCallback(packet);
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
-        /// <summary>
-        /// Tell protocol to stop listening to stream and stop the thread.
-        ///</summary>
-        public void StopStreamListen()
-        {
-            if (mProcessStreamthread != null)
-			{
-                mThreadActive = false;
-                mProcessStreamthread.Join();
-            }
         }
 
         #region get set functions
@@ -677,7 +619,7 @@ namespace QTMRealTimeSDK
             if (SendCommandExpectCommandResponse("QTMVersion", out response))
             {
                 version = response;
-				return true;
+                return true;
             }
             version = "";
             return false;
@@ -691,13 +633,13 @@ namespace QTMRealTimeSDK
         public bool CheckLicense(string licenseCode)
         {
             string response;
-			if (SendCommandExpectCommandResponse("CheckLicense " + licenseCode, out response))
-			{
+            if (SendCommandExpectCommandResponse("CheckLicense " + licenseCode, out response))
+            {
                 if (response == "License pass")
                 {
                     return true;
                 }
-			}
+            }
             return false;
         }
 #if apa
@@ -1155,6 +1097,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters Analog", out xml))
             {
+                System.Diagnostics.Debug.WriteLine(xml);
                 mAnalogSettings = ReadAnalogSettings(xml);
                 if (mAnalogSettings != null)
                     return true;
@@ -1848,6 +1791,7 @@ namespace QTMRealTimeSDK
         {
             if (SendString(command, PacketType.PacketCommand))
             {
+                Thread.Sleep(50);
                 PacketType packetType;
                 while (ReceiveRTPacket(out packetType, true) > 0)
                 {

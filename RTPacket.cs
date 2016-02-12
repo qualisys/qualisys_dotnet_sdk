@@ -96,6 +96,16 @@ namespace QTMRealTimeSDK.Data
         public float Z;
 	}
 
+    /// <summary>Struct for RPY coordinates</summary>
+    public struct EulerRotation
+    {
+        [XmlElement("X")]
+        public float Roll;
+        [XmlElement("Y")]
+        public float Pitch;
+        [XmlElement("Z")]
+        public float Yaw;
+    }
     /// <summary>Data from a force plate, includes samples</summary>
 	public struct ForcePlate
 	{
@@ -147,21 +157,21 @@ namespace QTMRealTimeSDK.Data
 	/// <summary>Data for 6DOF (6 Degrees Of Freedom) Body</summary>
 	public struct Q6DOF
 	{
-		/// <summary>Position data for bod</summary>
+		/// <summary>Position data for body</summary>
 		public Point Position;
-		/// <summary>Rotation matrix for bod</summary>
+		/// <summary>Rotation matrix for body</summary>
 		public float[] Matrix;
 		/// <summary>Residual for body, -1 if residual was not requested</summary>
 		public float Residual;
 	}
 
-	/// <summary>Data for 6DOF (6 Degrees Of Freedom) Body, Euler angles instead of matri</summary>
+	/// <summary>Data for 6DOF (6 Degrees Of Freedom) Body, Euler angles instead of matrix</summary>
 	public struct Q6DOFEuler
 	{
-		/// <summary>Position data for bod</summary>
+		/// <summary>Position data for body</summary>
 		public Point Position;
-		/// <summary>Euler angles for bod</summary>
-		public Point Rotation;
+		/// <summary>Euler angles for body</summary>
+		public EulerRotation Rotation;
 		/// <summary>Residual for body, -1 if residual was not requested</summary>
 		public float Residual;
 	}
@@ -175,6 +185,8 @@ namespace QTMRealTimeSDK.Data
         public uint ChannelCount;
         /// <summary>Samples for all channels</summary>
         public AnalogChannelData[] Channels;
+        /// <summary>Start sample number for analog data packet</summary>
+        public uint SampleNumber;
     }
 
     /// <summary>Channel data from analog device</summary>
@@ -218,6 +230,7 @@ namespace QTMRealTimeSDK.Data
         public Point Gaze;
         /// <summary>Gaze vector position</summary>
         public Point Position;
+        /// <summary>Sample number</summary>
         public uint SampleNumber;
     }
 
@@ -492,7 +505,6 @@ namespace QTMRealTimeSDK.Data
                              *   Sample number - 4 bytes
                              *   Analog data - 4 * channelcount * sampleCount
 						     */
-
                             uint deviceCount = BitConvert.GetUInt32(mData, ref position);
                             for (int i = 0; i < deviceCount; i++)
                             {
@@ -504,14 +516,14 @@ namespace QTMRealTimeSDK.Data
                                 uint sampleCount = BitConvert.GetUInt32(mData, ref position);
                                 if (sampleCount > 0)
                                 {
-                                    uint sampleNumber = BitConvert.GetUInt32(mData, ref position);
+                                    analogDeviceData.SampleNumber = BitConvert.GetUInt32(mData, ref position);
                                     for (uint j = 0; j < analogDeviceData.ChannelCount; j++)
                                     {
                                         AnalogChannelData sample = new AnalogChannelData();
                                         sample.Samples = new float[sampleCount];
                                         for (uint k = 0; k < sampleCount; k++)
                                         {
-                                            sample.SampleNumber = sampleNumber + k;
+                                            sample.SampleNumber = analogDeviceData.SampleNumber + k;
                                             sample.Samples[k] = BitConvert.GetFloat(mData, ref position);
                                         }
 
@@ -605,7 +617,7 @@ namespace QTMRealTimeSDK.Data
                             {
                                 Q6DOFEuler body = new Q6DOFEuler();
                                 body.Position = BitConvert.GetPoint(mData, ref position);
-                                body.Rotation = BitConvert.GetPoint(mData, ref position);
+                                body.Rotation = BitConvert.GetEulerRotation(mData, ref position);
                                 body.Residual = -1;
                                 m6DOFEulerData.Add(body);
                             }
@@ -755,7 +767,7 @@ namespace QTMRealTimeSDK.Data
                             {
                                 Q6DOFEuler body = new Q6DOFEuler();
                                 body.Position = BitConvert.GetPoint(mData, ref position);
-                                body.Rotation = BitConvert.GetPoint(mData, ref position);
+                                body.Rotation = BitConvert.GetEulerRotation(mData, ref position);
                                 body.Residual = BitConvert.GetFloat(mData, ref position);
                                 m6DOFEulerResidualData.Add(body);
                             }
@@ -1168,7 +1180,7 @@ namespace QTMRealTimeSDK.Data
 		public string GetErrorString()
 		{
 			if (mPacketType == PacketType.PacketError)
-                return System.Text.Encoding.Default.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
 		}
 
@@ -1180,7 +1192,7 @@ namespace QTMRealTimeSDK.Data
 		{
             if (mPacketType == PacketType.PacketCommand)
                 //return BitConverter.ToString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE);
-                return System.Text.Encoding.Default.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE,GetSize()-RTProtocol.Constants.PACKET_HEADER_SIZE-1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
 		}
 
@@ -1191,8 +1203,8 @@ namespace QTMRealTimeSDK.Data
 		public string GetXMLString()
 		{
 			if (mPacketType == PacketType.PacketXML)
-                return System.Text.Encoding.Default.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE,GetSize()-RTProtocol.Constants.PACKET_HEADER_SIZE-1);
-			return null;
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+            return null;
 		}
 
         /// <summary>
@@ -1303,20 +1315,6 @@ namespace QTMRealTimeSDK.Data
         internal static ComponentType GetComponentType(byte[] data, int position)
         {
             return (ComponentType)BitConverter.ToInt32(data, position + 4);
-        }
-
-        /// <summary>
-        /// Get component type at position in a packet.
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <param name="position">position in packet where the component starts</param>
-        /// <returns>size of component.</returns>
-        internal static int GetComponentSize(byte[] data, int position, bool bigEndian)
-        {
-            if (bigEndian)
-                Array.Reverse(data, position, 4);
-
-            return BitConverter.ToInt32(data, position);
         }
 
         /// <summary>
@@ -1514,7 +1512,7 @@ namespace QTMRealTimeSDK.Data
             }
         }
 
-         /// <summary>
+        /// <summary>
         /// Get 6DOF data
         /// </summary>
         /// <returns>List of all 6DOF body data (orientation described with Euler angles)</returns>
@@ -1536,6 +1534,31 @@ namespace QTMRealTimeSDK.Data
             lock (packetLock)
             {
                 return m6DOFEulerData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get 6DOF euler residual data
+        /// </summary>
+        /// <returns>List of all 6DOF body data (orientation described with Euler angles)</returns>
+        public List<Q6DOFEuler> Get6DOFEulerResidualData()
+        {
+            lock (packetLock)
+            {
+                return m6DOFEulerResidualData.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Get 6DOF data of body at index
+        /// </summary>
+        /// <param name="index">index to get data from.</param>
+        /// <returns>6DOF body data (orientation described with Euler angles)</returns>
+        public Q6DOFEuler Get6DOFEulerResidualData(int index)
+        {
+            lock (packetLock)
+            {
+                return m6DOFEulerResidualData[index];
             }
         }
 
