@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
 //
 using System;
 using System.Text;
@@ -198,7 +198,7 @@ namespace QTMRealTimeSDK
         }
 
         /// <summary>Packet received from QTM</summary>
-        public RTPacket Packet { get { return mPacket; } }
+        protected RTPacket Packet { get { return mPacket; } }
 
         SettingsGeneral mGeneralSettings;
         /// <summary>General settings from QTM</summary>
@@ -464,8 +464,7 @@ namespace QTMRealTimeSDK
                     }
                     receivedTotal += received;
 
-
-                    frameSize = RTPacket.GetSize(header);
+                    frameSize = RTPacket.GetPacketSize(header);
                     packetType = RTPacket.GetPacketType(header);
 
                     if (data == null || frameSize > data.Length)
@@ -530,34 +529,42 @@ namespace QTMRealTimeSDK
             b.AddRange(port);
 
             byte[] msg = b.ToArray();
-            bool status = false;
 
             //if we don't have a udp broadcast socket, create one
             if (mBroadcastSocketCreated || mNetwork.CreateUDPSocket(ref replyPort, true))
             {
                 mBroadcastSocketCreated = true;
-                status = mNetwork.SendUDPBroadcast(msg, 10);
+                var status = mNetwork.SendUDPBroadcast(msg, 10);
+                if (!status)
+                {
+                    return false;
+                }
 
                 mDiscoveryResponses.Clear();
 
-                int receieved = 0;
-                PacketType packetType;
+                const int discoverBufferSize = 65535;
+                byte[] discoverBuffer = new byte[discoverBufferSize];
+                int received = 0;
                 do
                 {
-                     receieved = ReceiveRTPacket(out packetType);
-                     if (packetType == PacketType.PacketCommand)
-                     {
-                        DiscoveryResponse response;
-                        if (mPacket.GetDiscoverData(out response))
+                    received = mNetwork.Receive(ref discoverBuffer, discoverBufferSize, false, 100000);
+                    if (received != -1 && received > 8)
+                    {
+                        var packetType = RTPacket.GetPacketType(discoverBuffer);
+                        if (packetType == PacketType.PacketCommand)
                         {
-                            mDiscoveryResponses.Add(response);
+                            DiscoveryResponse response;
+                            if (RTPacket.GetDiscoverData(discoverBuffer, out response))
+                            {
+                                mDiscoveryResponses.Add(response);
+                            }
                         }
                     }
                 }
-                while (receieved > 0);
+                while (received != -1 && received > 8);
             }
 
-            return status;
+            return true;
         }
 
         #region get set functions
@@ -1130,7 +1137,6 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectCommandResponse("GetParameters Image", out xml))
             {
-                string xmlString = mPacket.GetXMLString();
                 mImageSettings = ReadImageSettings(xml);
                 if (mImageSettings != null)
                     return true;

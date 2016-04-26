@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
 //
 using System.Net;
 using System.Net.Sockets;
@@ -261,7 +261,38 @@ namespace QTMRealTimeSDK.Network
                     {
                         if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                         {
-                            IPAddress broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+							IPAddress broadcastAddress = null;
+
+							Type monoSpecificType = Type.GetType ("Mono.Runtime") ?? Type.GetType ("System.MonoType");
+							bool runningOnMono = monoSpecificType != null;
+							if (runningOnMono)
+							{
+	                            if (IPInfoTools.IsUnix)
+								{
+		                            string mask = null;
+		                            try
+		                            {
+										mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);  // Marc's function - nic.Name is eth0 or wlan1 etc.
+		                            }
+		                            catch (Exception ex)
+		                            {
+		                              Console.WriteLine("GetIPRangeInfoFromNetworkInterface failed: {0}", ex.Message);
+		                            }
+		                            
+									if (mask == null || IPAddress.TryParse(mask, out broadcastAddress) == false)
+									{
+										broadcastAddress = IPAddress.Parse("255.255.255.0"); // default to this
+		                            }
+								}
+								else
+								{
+									broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+								}
+							}
+							else
+							{
+								broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+							}
                             if (broadcastAddress == null)
                                 continue;
 

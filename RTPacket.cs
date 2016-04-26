@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
 //
 using System;
 using System.Linq;
@@ -899,7 +899,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         private void SetPacketHeader()
 		{
-            mPacketSize = GetSize();
+            mPacketSize = GetPacketSize();
             SetType();
 		}
 
@@ -990,7 +990,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="data">bytes from packet.</param>
         /// <returns>Size of packet.</returns>
-        internal static int GetSize(byte[] data)
+        internal static int GetPacketSize(byte[] data)
         {
             return BitConverter.ToInt32(data, 0);
         }
@@ -1071,7 +1071,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="data">bytes from packet.</param>
         /// <returns>Size of packet.</returns>
-        internal int GetSize()
+        internal int GetPacketSize()
         {
             byte[] data = new byte[4];
             Array.Copy(mData, 0, data, 0, 4);
@@ -1180,7 +1180,7 @@ namespace QTMRealTimeSDK.Data
 		public string GetErrorString()
 		{
 			if (mPacketType == PacketType.PacketError)
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
 		}
 
@@ -1192,7 +1192,7 @@ namespace QTMRealTimeSDK.Data
 		{
             if (mPacketType == PacketType.PacketCommand)
                 //return BitConverter.ToString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE);
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
 		}
 
@@ -1203,7 +1203,7 @@ namespace QTMRealTimeSDK.Data
 		public string GetXMLString()
 		{
 			if (mPacketType == PacketType.PacketXML)
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
 		}
 
@@ -1221,39 +1221,24 @@ namespace QTMRealTimeSDK.Data
         }
 
         /// <summary>
-        /// Get port from discovery packet
-        /// </summary>
-        /// <returns>port number, -1 if packet is not a response</returns>
-        public short GetDiscoverResponseBasePort()
-        {
-            if (mPacketType == PacketType.PacketCommand)
-            {
-                byte[] portData = new byte[2];
-                Array.Copy(mData, GetSize()-2, portData, 0, 2);
-                return BitConverter.ToInt16(portData, 0);
-            }
-
-            return -1;
-        }
-
-        /// <summary>
         /// get all data from discovery packet
         /// </summary>
         /// <param name="discoveryResponse">data from packet</param>
         /// <returns>true if </returns>
-        public bool GetDiscoverData(out DiscoveryResponse discoveryResponse)
+        public static bool GetDiscoverData(byte[] data, out DiscoveryResponse discoveryResponse)
         {
-            if (mPacketType == PacketType.PacketCommand)
+//             if (mPacketType == PacketType.PacketCommand)
             {
+                var packetSize = GetPacketSize(data);
                 byte[] portData = new byte[2];
-                Array.Copy(mData, GetSize() - 2, portData, 0, 2);
+                Array.Copy(data, packetSize - 2, portData, 0, 2);
                 Array.Reverse(portData);
                 discoveryResponse.Port = BitConverter.ToInt16(portData, 0);
 
-                byte[] stringData = new byte[GetSize() - 10];
-                Array.Copy(mData, 8, stringData, 0, GetSize() - 10);
-                string data = System.Text.Encoding.Default.GetString(stringData);
-                string[] splittedData = data.Split(',');
+                byte[] stringData = new byte[packetSize - 10];
+                Array.Copy(data, 8, stringData, 0, packetSize - 10);
+                string stringFromByteData = System.Text.Encoding.Default.GetString(stringData);
+                string[] splittedData = stringFromByteData.Split(',');
                 
                 discoveryResponse.HostName = splittedData[0].Trim();
                 discoveryResponse.InfoText = splittedData[1].Trim();
@@ -1293,13 +1278,13 @@ namespace QTMRealTimeSDK.Data
                 return true;
             }
 
-            discoveryResponse.CameraCount = -1;
-            discoveryResponse.HostName = "";
-            discoveryResponse.InfoText = "";
-            discoveryResponse.IpAddress = "";
-            discoveryResponse.Port = -1;
+            //discoveryResponse.CameraCount = -1;
+            //discoveryResponse.HostName = "";
+            //discoveryResponse.InfoText = "";
+            //discoveryResponse.IpAddress = "";
+            //discoveryResponse.Port = -1;
 
-            return false;
+            //return false;
         }
 
         //////////////////////////////////////////////////////////////////
@@ -1365,21 +1350,6 @@ namespace QTMRealTimeSDK.Data
                 return (QTMEvent)data[RTProtocol.Constants.PACKET_HEADER_SIZE + 1];
             }
             return QTMEvent.EventNone;
-        }
-
-        /// <summary>
-        /// Get base port from Discovery response packet
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <returns>port from response</returns>
-        internal static short GetDiscoverResponseBasePort(byte[] data)
-        {
-            if (GetPacketType(data) == PacketType.PacketCommand)
-            {
-                return BitConverter.ToInt16(data, GetSize(data) - 2);
-            }
-
-            return -1;
         }
 
  #endregion

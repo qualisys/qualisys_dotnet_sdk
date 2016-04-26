@@ -12,3 +12,7 @@
 /bin/Debug/RTClientSDK.dll
 /bin/Debug
 /.vs/RTClientSDK.Net/v14/.suo
+/bin/Release
+/obj/Release
+/RTClientSDK.Net.Example/bin
+/RTClientSDK.Net.Example/obj

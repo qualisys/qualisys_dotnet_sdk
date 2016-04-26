@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
 //
 using System;
 using System.Collections.Generic;

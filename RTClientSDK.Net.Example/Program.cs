@@ -1,19 +1,5 @@
-# [Qualisys](http://www.qualisys.com) Realtime SDK for .Net
-
-This is C# package with SDK and examples that can help Qualisys users connect and stream data from [Qualisys Track Manager](http://www.qualisys.com/products/software/qtm) in realtime.
-This handles all kind of data that QTM can capture. This includes marker data, 6dof objects, user bones, analog, force and gaze vector settings and data.
-
-* Use RTProtocol::DiscoverRTServers to find out which QTM servers that you can connect to on a network.
-* Use RTProtocol::IsConnected method to check if a connection to QTM already exists.
-* Use RTProtocol::Connect method to connect to QTM.
-* Use RTProtocol::StreamFrames to setup streaming from QTM (this lets you decide what to stream).
-* Use RTProtocol::ReceiveRTPacket to get data/event/error packets.
-* Use RTProtocol::StreamFramesStop to stop streaming data.
-* Use RTProtocol::Disconnect to disconnect.
-
-Below is a c# console application example on how to discover all QTM servers on the network. Connect to localhost, stream 6DOF position+euler+residual data.
-
-```csharp
+﻿// Realtime SDK Example for Qualisys Track Manager. Copyright 2016 Qualisys AB
+//
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -46,7 +32,7 @@ namespace RTSDKExample
     {
         RTProtocol rtProtocol = new RTProtocol();
 
-        public List<DiscoveryResponse> DiscoverQTMServers(ushort discoveryPort)
+        public void DiscoverQTMServers(ushort discoveryPort)
         {
             if (rtProtocol.DiscoverRTServers(discoveryPort))
             {
@@ -55,9 +41,7 @@ namespace RTSDKExample
                 {
                     Console.WriteLine("Host:{0,20}\tIP Adress:{1,15}\tInfo Text:{2,20}\tCamera count:{3,3}", discoveryResponse.HostName, discoveryResponse.IpAddress, discoveryResponse.InfoText, discoveryResponse.CameraCount);
                 }
-
             }
-            return null;
         }
 
         ~Example()
@@ -134,4 +118,3 @@ namespace RTSDKExample
         }
     }
 }
-```
