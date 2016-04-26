@@ -50,8 +50,13 @@ namespace QTMRealTimeSDK.Settings
         [XmlAttribute("To")]
         public string to;
 
+        /// <summary>Color of marker bone</summary>
+        [XmlAttribute("Color")]
+        public int color;
+
         SettingsBone()
         {
+            color = 0xEEEEEE;
         }
     }
 
