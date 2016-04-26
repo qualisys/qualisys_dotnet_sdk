@@ -270,7 +270,7 @@ namespace QTMRealTimeSDK.Network
                                     string mask = null;
                                     try
                                     {
-                                        mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);  // Marc's function - nic.Name is eth0 or wlan1 etc.
+                                        mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);
                                     }
                                     catch (Exception ex)
                                     {
