@@ -1191,8 +1191,9 @@ namespace QTMRealTimeSDK.Data
 		public string GetCommandString()
         {
             if (mPacketType == PacketType.PacketCommand)
-                //return BitConverter.ToString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE);
+            {
                 return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+            }
             return null;
         }
 
@@ -1203,7 +1204,9 @@ namespace QTMRealTimeSDK.Data
 		public string GetXMLString()
         {
             if (mPacketType == PacketType.PacketXML)
+            {
                 return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+            }
             return null;
         }
 
@@ -1227,129 +1230,52 @@ namespace QTMRealTimeSDK.Data
         /// <returns>true if </returns>
         public static bool GetDiscoverData(byte[] data, out DiscoveryResponse discoveryResponse)
         {
-            //             if (mPacketType == PacketType.PacketCommand)
+            var packetSize = GetPacketSize(data);
+            byte[] portData = new byte[2];
+            Array.Copy(data, packetSize - 2, portData, 0, 2);
+            Array.Reverse(portData);
+            discoveryResponse.Port = BitConverter.ToInt16(portData, 0);
+
+            byte[] stringData = new byte[packetSize - 10];
+            Array.Copy(data, 8, stringData, 0, packetSize - 10);
+            string stringFromByteData = System.Text.Encoding.Default.GetString(stringData);
+            string[] splittedData = stringFromByteData.Split(',');
+
+            discoveryResponse.HostName = splittedData[0].Trim();
+            discoveryResponse.InfoText = splittedData[1].Trim();
+
+            string camcount = splittedData[2].Trim();
+            Regex pattern = new Regex("\\d*");
+            Match camMatch = pattern.Match(camcount);
+
+            if (camMatch.Success)
             {
-                var packetSize = GetPacketSize(data);
-                byte[] portData = new byte[2];
-                Array.Copy(data, packetSize - 2, portData, 0, 2);
-                Array.Reverse(portData);
-                discoveryResponse.Port = BitConverter.ToInt16(portData, 0);
-
-                byte[] stringData = new byte[packetSize - 10];
-                Array.Copy(data, 8, stringData, 0, packetSize - 10);
-                string stringFromByteData = System.Text.Encoding.Default.GetString(stringData);
-                string[] splittedData = stringFromByteData.Split(',');
-
-                discoveryResponse.HostName = splittedData[0].Trim();
-                discoveryResponse.InfoText = splittedData[1].Trim();
-
-                string camcount = splittedData[2].Trim();
-                Regex pattern = new Regex("\\d*");
-                Match camMatch = pattern.Match(camcount);
-
-                if (camMatch.Success)
+                camcount = camMatch.Groups[0].Value;
+                discoveryResponse.CameraCount = int.Parse(camcount);
+            }
+            else
+            {
+                discoveryResponse.CameraCount = -1;
+            }
+            try
+            {
+                discoveryResponse.IpAddress = "";
+                IPAddress[] adresses = System.Net.Dns.GetHostAddresses(discoveryResponse.HostName);
+                foreach (IPAddress ip in adresses)
                 {
-                    camcount = camMatch.Groups[0].Value;
-                    discoveryResponse.CameraCount = int.Parse(camcount);
-                }
-                else
-                {
-                    discoveryResponse.CameraCount = -1;
-                }
-                try
-                {
-                    discoveryResponse.IpAddress = "";
-                    IPAddress[] adresses = System.Net.Dns.GetHostAddresses(discoveryResponse.HostName);
-                    foreach (IPAddress ip in adresses)
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        if (ip.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            discoveryResponse.IpAddress = ip.ToString();
-                            break;
-                        }
+                        discoveryResponse.IpAddress = ip.ToString();
+                        break;
                     }
                 }
-                catch
-                {
-                    discoveryResponse.IpAddress = "";
-
-                    return false;
-                }
-                return true;
             }
-
-            //discoveryResponse.CameraCount = -1;
-            //discoveryResponse.HostName = "";
-            //discoveryResponse.InfoText = "";
-            //discoveryResponse.IpAddress = "";
-            //discoveryResponse.Port = -1;
-
-            //return false;
-        }
-
-        //////////////////////////////////////////////////////////////////
-        ////////////////////     STATIC FUNCTIONS     ////////////////////
-        //////////////////////////////////////////////////////////////////
-
-        /// <summary>
-        /// Get component type at position in a packet.
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <param name="position">position in packet where the component starts</param>
-        /// <returns>Component type.</returns>
-        internal static ComponentType GetComponentType(byte[] data, int position)
-        {
-            return (ComponentType)BitConverter.ToInt32(data, position + 4);
-        }
-
-        /// <summary>
-        /// Get error string from a packet.
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <returns>error string, null if the packet is not an error packet.</returns>
-        internal static string GetErrorString(byte[] data)
-        {
-            if (GetPacketType(data) == PacketType.PacketError)
-                return BitConverter.ToString(data, RTProtocol.Constants.PACKET_HEADER_SIZE);
-            return null;
-        }
-
-        /// <summary>
-        /// Get command string from a packet.
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <returns>command string, null if the packet is not a command packet.</returns>
-        internal static string GetCommandString(byte[] data)
-        {
-            if (GetPacketType(data) == PacketType.PacketCommand)
-                return BitConverter.ToString(data, RTProtocol.Constants.PACKET_HEADER_SIZE);
-            return null;
-        }
-
-        /// <summary>
-        /// Get XML string from a packet.
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <returns>XML string, null if the packet is not a XML packet.</returns>
-        internal string GetXMLString(byte[] data)
-        {
-            if (GetPacketType(data) == PacketType.PacketXML)
-                return BitConverter.ToString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE);
-            return null;
-        }
-
-        /// <summary>
-        /// Get event type of a event packet
-        /// </summary>
-        /// <param name="data">packet data</param>
-        /// <returns>event type of packet</returns>
-        internal static QTMEvent GetEvent(byte[] data)
-        {
-            if (GetPacketType(data) == PacketType.PacketEvent)
+            catch
             {
-                return (QTMEvent)data[RTProtocol.Constants.PACKET_HEADER_SIZE + 1];
+                discoveryResponse.IpAddress = "";
+                return false;
             }
-            return QTMEvent.EventNone;
+            return true;
         }
 
         #endregion
@@ -1680,7 +1606,7 @@ namespace QTMRealTimeSDK.Data
                 return mGazeVector[index];
             }
         }
-        #endregion
 
+        #endregion
     }
 }

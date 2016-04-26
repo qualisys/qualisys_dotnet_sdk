@@ -134,9 +134,7 @@ namespace QTMRealTimeSDK.Network
                 {
                     mUDPClient = tempSocket;
                 }
-
                 return true;
-
             }
             else
             {
