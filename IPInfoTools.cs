@@ -77,16 +77,16 @@ namespace QTMRealTimeSDK.Network
         const int AF_PACKET = 17;
 
         [DllImport("libc")]
-        static extern int getifaddrs (out IntPtr ifap);
+        static extern int getifaddrs(out IntPtr ifap);
 
-        [DllImport ("libc")]
-        static extern void freeifaddrs (IntPtr ifap);
+        [DllImport("libc")]
+        static extern void freeifaddrs(IntPtr ifap);
 
         internal static bool IsUnix
         {
             get
             {
-                int p = (int) Environment.OSVersion.Platform;
+                int p = (int)Environment.OSVersion.Platform;
                 if ((p == 4) || (p == 6) || (p == 128))
                 {
                     return true;
@@ -116,34 +116,34 @@ namespace QTMRealTimeSDK.Network
                         var sockaddr = (sockaddr_in)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_in));
                         switch (sockaddr.sin_family)
                         {
-                        case AF_INET6:
-                            //sockaddr_in6 sockaddr6 = (sockaddr_in6)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_in6));
-                            break;
-                        case AF_INET:
-                            if (name == networkInterfaceName)
-                            {
-                                var interfaceIpAddress = (sockaddr_in)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_in));
-                                var interfaceIpAddr = new IPAddress(interfaceIpAddress.sin_addr);
-                                if (ipAddress.Equals(interfaceIpAddr))
+                            case AF_INET6:
+                                //sockaddr_in6 sockaddr6 = (sockaddr_in6)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_in6));
+                                break;
+                            case AF_INET:
+                                if (name == networkInterfaceName)
                                 {
-                                    var netmask = (sockaddr_in)Marshal.PtrToStructure(addr.ifa_netmask, typeof(sockaddr_in));
-                                    var ipAddr = new IPAddress(netmask.sin_addr);  // IPAddress to format into default string notation
-                                    return ipAddr.ToString();
+                                    var interfaceIpAddress = (sockaddr_in)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_in));
+                                    var interfaceIpAddr = new IPAddress(interfaceIpAddress.sin_addr);
+                                    if (ipAddress.Equals(interfaceIpAddr))
+                                    {
+                                        var netmask = (sockaddr_in)Marshal.PtrToStructure(addr.ifa_netmask, typeof(sockaddr_in));
+                                        var ipAddr = new IPAddress(netmask.sin_addr);  // IPAddress to format into default string notation
+                                        return ipAddr.ToString();
+                                    }
                                 }
-                            }
-                            break;
-                        case AF_PACKET:
-                            {
-                                var sockaddrll = (sockaddr_ll)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_ll));
-                                if (sockaddrll.sll_halen > sockaddrll.sll_addr.Length)
+                                break;
+                            case AF_PACKET:
                                 {
-                                    Console.Error.WriteLine("Got a bad hardware address length for an AF_PACKET {0} {1}",
-                                        sockaddrll.sll_halen, sockaddrll.sll_addr.Length);
-                                    next = addr.ifa_next;
-                                    continue;
+                                    var sockaddrll = (sockaddr_ll)Marshal.PtrToStructure(addr.ifa_addr, typeof(sockaddr_ll));
+                                    if (sockaddrll.sll_halen > sockaddrll.sll_addr.Length)
+                                    {
+                                        Console.Error.WriteLine("Got a bad hardware address length for an AF_PACKET {0} {1}",
+                                            sockaddrll.sll_halen, sockaddrll.sll_addr.Length);
+                                        next = addr.ifa_next;
+                                        continue;
+                                    }
                                 }
-                            }
-                            break;
+                                break;
                         }
                     }
 

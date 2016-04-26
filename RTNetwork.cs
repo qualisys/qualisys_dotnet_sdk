@@ -20,7 +20,7 @@ namespace QTMRealTimeSDK.Network
         /// <summary>
         /// Default constructor
         /// </summary>
-        internal RTNetwork() 
+        internal RTNetwork()
         {
         }
 
@@ -51,7 +51,7 @@ namespace QTMRealTimeSDK.Network
                 // Disable Nagle's algorithm
                 mTCPClient.NoDelay = true;
             }
-            catch(SocketException e)
+            catch (SocketException e)
             {
                 mErrorString = e.Message;
                 mErrorCode = e.SocketErrorCode;
@@ -63,7 +63,7 @@ namespace QTMRealTimeSDK.Network
 
                 return false;
             }
-            
+
             return true;
         }
 
@@ -118,7 +118,7 @@ namespace QTMRealTimeSDK.Network
         /// <returns>True if socket creation was successful</returns>
         internal bool CreateUDPSocket(ref ushort udpPort, bool broadcast = false)
         {
-            if(udpPort == 0 || udpPort > 1023)
+            if (udpPort == 0 || udpPort > 1023)
             {
                 IPEndPoint e = new IPEndPoint(IPAddress.Any, udpPort);
                 UdpClient tempSocket = new UdpClient(e);
@@ -136,7 +136,7 @@ namespace QTMRealTimeSDK.Network
                 }
 
                 return true;
-                
+
             }
             else
             {
@@ -228,13 +228,13 @@ namespace QTMRealTimeSDK.Network
             {
                 sentData += mTCPClient.Client.Send(sendBuffer);
             }
-            catch(SocketException e)
+            catch (SocketException e)
             {
                 mErrorString = e.Message;
                 mErrorCode = e.SocketErrorCode;
                 return false;
             }
-            
+
             return true;
         }
 
@@ -261,38 +261,38 @@ namespace QTMRealTimeSDK.Network
                     {
                         if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                         {
-							IPAddress broadcastAddress = null;
+                            IPAddress broadcastAddress = null;
 
-							Type monoSpecificType = Type.GetType ("Mono.Runtime") ?? Type.GetType ("System.MonoType");
-							bool runningOnMono = monoSpecificType != null;
-							if (runningOnMono)
-							{
-	                            if (IPInfoTools.IsUnix)
-								{
-		                            string mask = null;
-		                            try
-		                            {
-										mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);  // Marc's function - nic.Name is eth0 or wlan1 etc.
-		                            }
-		                            catch (Exception ex)
-		                            {
-		                              Console.WriteLine("GetIPRangeInfoFromNetworkInterface failed: {0}", ex.Message);
-		                            }
-		                            
-									if (mask == null || IPAddress.TryParse(mask, out broadcastAddress) == false)
-									{
-										broadcastAddress = IPAddress.Parse("255.255.255.0"); // default to this
-		                            }
-								}
-								else
-								{
-									broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-								}
-							}
-							else
-							{
-								broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-							}
+                            Type monoSpecificType = Type.GetType("Mono.Runtime") ?? Type.GetType("System.MonoType");
+                            bool runningOnMono = monoSpecificType != null;
+                            if (runningOnMono)
+                            {
+                                if (IPInfoTools.IsUnix)
+                                {
+                                    string mask = null;
+                                    try
+                                    {
+                                        mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);  // Marc's function - nic.Name is eth0 or wlan1 etc.
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine("GetIPRangeInfoFromNetworkInterface failed: {0}", ex.Message);
+                                    }
+
+                                    if (mask == null || IPAddress.TryParse(mask, out broadcastAddress) == false)
+                                    {
+                                        broadcastAddress = IPAddress.Parse("255.255.255.0"); // default to this
+                                    }
+                                }
+                                else
+                                {
+                                    broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+                                }
+                            }
+                            else
+                            {
+                                broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+                            }
                             if (broadcastAddress == null)
                                 continue;
 

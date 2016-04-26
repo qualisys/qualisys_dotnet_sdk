@@ -227,7 +227,7 @@ namespace QTMRealTimeSDK
         SettingsGazeVector mGazeVectorSettings;
         /// <summary>Gaze vector settings from QTM</summary>
         public SettingsGazeVector GazeVectorSettings { get { return mGazeVectorSettings; } }
-        
+
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
         private ushort mUDPport;
@@ -1016,11 +1016,11 @@ namespace QTMRealTimeSDK
             {
                 if (response.Contains("Measurement saved"))
                 {
-                    if(response.Contains("Measurement saved"))
+                    if (response.Contains("Measurement saved"))
                     {
                         Regex pattern = new Regex("'.*'$");
                         Match match = pattern.Match(response);
-                        newFilename = match.Value.Replace("'",""); 
+                        newFilename = match.Value.Replace("'", "");
                     }
                     return true;
                 }
@@ -1373,9 +1373,9 @@ namespace QTMRealTimeSDK
 
             return settings;
         }
-#endregion
+        #endregion
 
-#region set settings
+        #region set settings
 
         /// <summary>
         /// Creates xml string from the general settings to send to QTM
@@ -1483,7 +1483,7 @@ namespace QTMRealTimeSDK
                         xmlWriter.WriteElementString("Frequency_Tolerance", timeBaseSettings.FreqTolerance.ToString());
 
 
-                        if (timeBaseSettings.NominalFrequency > 0 )
+                        if (timeBaseSettings.NominalFrequency > 0)
                         {
                             xmlWriter.WriteElementString("Nominal_Frequency", timeBaseSettings.NominalFrequency.ToString("0.000"));
                         }
@@ -1762,9 +1762,9 @@ namespace QTMRealTimeSDK
             return xmlString.ToString();
         }
 
-#endregion
+        #endregion
 
-#region generic send functions
+        #region generic send functions
 
         /// <summary>
         /// Send string to QTM server
@@ -1877,7 +1877,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// Error reported by protocol or from server packet
