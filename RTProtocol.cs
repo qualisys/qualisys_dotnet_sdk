@@ -721,7 +721,7 @@ namespace QTMRealTimeSDK
 
         public bool StreamAllFrames(ComponentType component, int port = -1, string ipAddress = "")
         {
-            return StreamFrames(StreamRate.RateAllFrames, 1, false, component, port, ipAddress);
+            return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
         }
 
         /// <summary>
@@ -736,7 +736,7 @@ namespace QTMRealTimeSDK
         /// if not set streaming occurs on same ip as command came from</param>
         /// <returns></returns>
         public bool StreamFrames(StreamRate streamRate, int streamValue,
-                                bool streamAllComponents, List<ComponentType> components = null,
+                                List<ComponentType> components = null,
                                 int port = -1, string ipAddress = "")
         {
             string command = "streamframes";
@@ -771,20 +771,17 @@ namespace QTMRealTimeSDK
                 command += " UDP:" + port;
             }
 
-            if (streamAllComponents)
-                command += " all";
-            else
-                command += BuildStreamString(components);
+            command += BuildStreamString(components);
 
             return SendString(command, PacketType.PacketCommand);
         }
 
 
-        public bool StreamFrames(StreamRate streamRate, int streamValue, bool streamAllComponents, ComponentType component, int port = -1, string ipaddress = "")
+        public bool StreamFrames(StreamRate streamRate, int streamValue, ComponentType component, int port = -1, string ipaddress = "")
         {
             List<ComponentType> list = new List<ComponentType>();
             list.Add(component);
-            return StreamFrames(streamRate, streamValue, streamAllComponents, list, port, ipaddress);
+            return StreamFrames(streamRate, streamValue, list, port, ipaddress);
         }
 
         /// <summary>
@@ -1906,6 +1903,11 @@ namespace QTMRealTimeSDK
             {
                 switch (type)
                 {
+                    case ComponentType.ComponentAll:
+                        if (componentTypes.Count > 1)
+                            throw new System.ArgumentException("Can't have multiple components, when one is ComponentType.ComponentAll");
+                        command += " All";
+                        break;
                     case ComponentType.Component3d:
                         command += " 3D";
                         break;
