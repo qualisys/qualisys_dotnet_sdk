@@ -1384,6 +1384,57 @@ namespace QTMRealTimeSDK.Data
         }
 
         /// <summary>
+        /// Get unidentified 3D marker data at index
+        /// </summary>
+        /// <param name="index">index to get data from.</param>
+        /// <returns>Unidentified 3D marker data</returns>
+        public Q3D Get3DMarkerNoLabelsResidualData(int index)
+        {
+            lock (packetLock)
+            {
+                return m3DMarkerNoLabelResidualData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get unidentified 3D marker data
+        /// </summary>
+        /// <returns>List of all unidentified 3D marker data</returns>
+        public List<Q3D> Get3DMarkerNoLabelsResidualData()
+        {
+            lock (packetLock)
+            {
+                return m3DMarkerNoLabelResidualData.ToList();
+            }
+        }
+
+
+        /// <summary>
+        /// Get unidentified 3D marker data at index
+        /// </summary>
+        /// <param name="index">index to get data from.</param>
+        /// <returns>Unidentified 3D marker data</returns>
+        public Q3D Get3DMarkerNoLabelsData(int index)
+        {
+            lock (packetLock)
+            {
+                return m3DMarkerNoLabelData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get unidentified 3D marker data
+        /// </summary>
+        /// <returns>List of all unidentified 3D marker data</returns>
+        public List<Q3D> Get3DMarkerNoLabelsData()
+        {
+            lock (packetLock)
+            {
+                return m3DMarkerNoLabelData.ToList();
+            }
+        }
+
+        /// <summary>
         /// Get 6DOF data
         /// </summary>
         /// <returns>List of all 6DOF body data (orientation described with rotation matrix)</returns>
