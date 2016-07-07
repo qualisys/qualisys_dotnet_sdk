@@ -28,26 +28,44 @@ namespace QTMRealTimeSDK.Data
         PacketNone
     }
 
-    /// <summary>Type of component sent with RT</summary>
+    /// <summary>Type of component streamed</summary>
     public enum ComponentType
     {
+        // Labeled 3d markers (Get3DMarkerData)
         Component3d = 1,
+        // Unidentified 3d markers (Get3DMarkerNoLabelsData)
         Component3dNoLabels,
+        // Analog data (GetAnalogData)
         ComponentAnalog,
+        // Force data (GetForceData)
         ComponentForce,
+        // 6D data - position and rotation matrix (Get6DOFData)
         Component6d,
+        // 6D data - position and Euler angles (Get6DOFEulerData)
         Component6dEuler,
+        // 2D marker data (Get2DMarkerData)
         Component2d,
+        // Linearized 2D marker data (Get2DLinearizedMarkerDAta)
         Component2dLinearized,
+        // Labeled 3d markers with residual (Get3DMarkerResidualData)
         Component3dResidual,
+        // Unidentified 3d markers with residual (Get3DMarkerNoLabelsResidualData)
         Component3dNoLabelsResidual,
+        // 6D data - position and rotation matrix with residuals with residual (Get6DOFResidualData)
         Component6dResidual,
+        // 6D data - position and Euler angles with residual (Get6DOFEulerResidualData)
         Component6dEulerResidual,
+        // Analog data from available analog devices. Only one sample per channel and camera frame. The latest sample is used if more than one sample is available. (GetAnalogSingleData)
         ComponentAnalogSingle,
+        // Image frame from a specific camera. Image size and format is set with the XML settings, see Image settings. (GetImageData)
         ComponentImage,
+        // Force data from available force plates. Only one sample per plate and camera frame. The latest sample is used if more than one sample is available. (GetForceSingleData)
         ComponentForceSingle,
+        // Gaze vector data from eye tracker (GetGazeVectorData)
         ComponentGazeVector,
+        // Nothing
         ComponentNone,
+        // Stream everything
         ComponentAll
     }
 
@@ -300,8 +318,9 @@ namespace QTMRealTimeSDK.Data
 
         byte[] mData;
         internal byte[] Data { get { return mData; } }
+
         List<Camera> m2DMarkerData;
-        List<Camera> m2DLinearMarkerData;
+        List<Camera> m2DLinearizedMarkerData;
         List<Q3D> m3DMarkerData;
         List<Q3D> m3DMarkerResidualData;
         List<Q3D> m3DMarkerNoLabelData;
@@ -310,12 +329,12 @@ namespace QTMRealTimeSDK.Data
         List<Q6DOF> m6DOFResidualData;
         List<Q6DOFEuler> m6DOFEulerData;
         List<Q6DOFEuler> m6DOFEulerResidualData;
-        List<Analog> mAnalogDevices;
-        List<Analog> mAnalogSingleSample;
-        List<ForcePlate> mForcePlates;
-        List<ForcePlate> mForceSinglePlate;
+        List<Analog> mAnalogData;
+        List<Analog> mAnalogSingleData;
+        List<ForcePlate> mForcePlateData;
+        List<ForcePlate> mForceSinglePlateData;
         List<CameraImage> mImageData;
-        List<GazeVector> mGazeVector;
+        List<GazeVector> mGazeVectorData;
 
 
         /// <summary>
@@ -339,7 +358,7 @@ namespace QTMRealTimeSDK.Data
             mMinorVersion = minorVersion;
 
             m2DMarkerData = new List<Camera>();
-            m2DLinearMarkerData = new List<Camera>();
+            m2DLinearizedMarkerData = new List<Camera>();
 
             m3DMarkerData = new List<Q3D>();
             m3DMarkerResidualData = new List<Q3D>();
@@ -351,14 +370,14 @@ namespace QTMRealTimeSDK.Data
             m6DOFEulerData = new List<Q6DOFEuler>();
             m6DOFEulerResidualData = new List<Q6DOFEuler>();
 
-            mAnalogDevices = new List<Analog>();
-            mAnalogSingleSample = new List<Analog>();
+            mAnalogData = new List<Analog>();
+            mAnalogSingleData = new List<Analog>();
 
-            mForcePlates = new List<ForcePlate>();
-            mForceSinglePlate = new List<ForcePlate>();
+            mForcePlateData = new List<ForcePlate>();
+            mForceSinglePlateData = new List<ForcePlate>();
 
             mImageData = new List<CameraImage>();
-            mGazeVector = new List<GazeVector>();
+            mGazeVectorData = new List<GazeVector>();
 
             ClearData();
         }
@@ -388,7 +407,7 @@ namespace QTMRealTimeSDK.Data
             mComponentCount = -1;
 
             m2DMarkerData.Clear();
-            m2DLinearMarkerData.Clear();
+            m2DLinearizedMarkerData.Clear();
             m3DMarkerData.Clear();
             m3DMarkerResidualData.Clear();
             m3DMarkerNoLabelData.Clear();
@@ -397,12 +416,12 @@ namespace QTMRealTimeSDK.Data
             m6DOFResidualData.Clear();
             m6DOFEulerData.Clear();
             m6DOFEulerResidualData.Clear();
-            mAnalogDevices.Clear();
-            mAnalogSingleSample.Clear();
-            mForcePlates.Clear();
-            mForceSinglePlate.Clear();
+            mAnalogData.Clear();
+            mAnalogSingleData.Clear();
+            mForcePlateData.Clear();
+            mForceSinglePlateData.Clear();
             mImageData.Clear();
-            mGazeVector.Clear();
+            mGazeVectorData.Clear();
 
         }
 
@@ -530,7 +549,7 @@ namespace QTMRealTimeSDK.Data
                                         analogDeviceData.Channels[j] = sample;
                                     }
                                 }
-                                mAnalogDevices.Add(analogDeviceData);
+                                mAnalogData.Add(analogDeviceData);
                             }
                         }
                         else if (componentType == ComponentType.ComponentForce)
@@ -561,7 +580,7 @@ namespace QTMRealTimeSDK.Data
                                     plate.ForceSamples[j] = sample;
                                 }
 
-                                mForcePlates.Add(plate);
+                                mForcePlateData.Add(plate);
                             }
 
                         }
@@ -660,7 +679,7 @@ namespace QTMRealTimeSDK.Data
                                 if (componentType == ComponentType.Component2d)
                                     m2DMarkerData.Add(camera);
                                 else if (componentType == ComponentType.Component2dLinearized)
-                                    m2DLinearMarkerData.Add(camera);
+                                    m2DLinearizedMarkerData.Add(camera);
                             }
 
                         }
@@ -798,7 +817,7 @@ namespace QTMRealTimeSDK.Data
                                     device.Channels[j] = sample;
                                 }
 
-                                mAnalogSingleSample.Add(device);
+                                mAnalogSingleData.Add(device);
                             }
                         }
                         else if (componentType == ComponentType.ComponentImage)
@@ -857,7 +876,7 @@ namespace QTMRealTimeSDK.Data
                                 plate.ForceSamples[0].Moment = BitConvert.GetPoint(mData, ref position);
                                 plate.ForceSamples[0].ApplicationPoint = BitConvert.GetPoint(mData, ref position);
 
-                                mForceSinglePlate.Add(plate);
+                                mForceSinglePlateData.Add(plate);
                             }
                         }
                         else if (componentType == ComponentType.ComponentGazeVector)
@@ -884,7 +903,7 @@ namespace QTMRealTimeSDK.Data
                                         gazeVector.Position = BitConvert.GetPoint(mData, ref position);
                                     }
                                 }
-                                mGazeVector.Add(gazeVector);
+                                mGazeVectorData.Add(gazeVector);
                             }
                         }
                     }
@@ -1311,11 +1330,11 @@ namespace QTMRealTimeSDK.Data
         /// Get linear 2D marker data
         /// </summary>
         /// <returns>List of all linear 2D marker data</returns>
-        public List<Camera> Get2DLinearMarkerData()
+        public List<Camera> Get2DLinearizedMarkerData()
         {
             lock (packetLock)
             {
-                return m2DLinearMarkerData;
+                return m2DLinearizedMarkerData;
             }
         }
 
@@ -1324,11 +1343,11 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.</param>
         /// <returns>linear 2D marker data</returns>
-        public Camera Get2DLinearMarkerData(int index)
+        public Camera Get2DLinearizedMarkerData(int index)
         {
             lock (packetLock)
             {
-                return m2DLinearMarkerData[index];
+                return m2DLinearizedMarkerData[index];
             }
         }
 
@@ -1460,6 +1479,31 @@ namespace QTMRealTimeSDK.Data
         }
 
         /// <summary>
+        /// Get 6DOF data with residual
+        /// </summary>
+        /// <returns>List of all 6DOF body data (orientation described with rotation matrix)</returns>
+        public List<Q6DOF> Get6DOFResidualData()
+        {
+            lock (packetLock)
+            {
+                return m6DOFResidualData.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Get 6DOF data with residual of body at index
+        /// </summary>
+        /// <param name="index">index to get data from.</param>
+        /// <returns>6DOF body data (orientation described with rotation matrix)</returns>
+        public Q6DOF Get6DOFResidualData(int index)
+        {
+            lock (packetLock)
+            {
+                return m6DOFResidualData[index];
+            }
+        }
+
+        /// <summary>
         /// Get 6DOF data
         /// </summary>
         /// <returns>List of all 6DOF body data (orientation described with Euler angles)</returns>
@@ -1513,11 +1557,11 @@ namespace QTMRealTimeSDK.Data
         /// Get all samples from all analog devices
         /// </summary>
         /// <returns>List of analog devices containing all samples gathered this frame</returns>
-        public List<Analog> GetAnalogDevices()
+        public List<Analog> GetAnalogData()
         {
             lock (packetLock)
             {
-                return mAnalogDevices.ToList();
+                return mAnalogData.ToList();
             }
         }
 
@@ -1526,23 +1570,23 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.</param>
         /// <returns>Analog device containing all samples gathered this frame</returns>
-        public Analog GetAnalogDevice(int index)
+        public Analog GetAnalogData(int index)
         {
             lock (packetLock)
             {
-                return mAnalogDevices[index];
+                return mAnalogData[index];
             }
         }
 
         /// <summary>
-        /// Get sample from all analog devices(only one sample per frame)
+        /// Get sample from all analog devices (only one sample per frame)
         /// </summary>
         /// <returns>List of analog devices containing only one sample gathered this frame</returns>
-        public List<Analog> GetAnalogSingleDevices()
+        public List<Analog> GetAnalogSingleData()
         {
             lock (packetLock)
             {
-                return mAnalogSingleSample.ToList();
+                return mAnalogSingleData.ToList();
             }
         }
 
@@ -1551,11 +1595,11 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.</param>
         /// <returns>Analog device containing one sample gathered this frame</returns>
-        public Analog GetAnalogSingleDevice(int index)
+        public Analog GetAnalogSingleData(int index)
         {
             lock (packetLock)
             {
-                return mAnalogSingleSample[index];
+                return mAnalogSingleData[index];
             }
         }
 
@@ -1563,11 +1607,11 @@ namespace QTMRealTimeSDK.Data
         /// Get samples from all force plates
         /// </summary>
         /// <returns>List of all force plates containing all samples gathered this frame</returns>
-        public List<ForcePlate> GetForcePlates()
+        public List<ForcePlate> GetForceData()
         {
             lock (packetLock)
             {
-                return mForcePlates.ToList();
+                return mForcePlateData.ToList();
             }
         }
 
@@ -1576,11 +1620,11 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.</param>
         /// <returns>Force plate containing all samples gathered this frame</returns>
-        public ForcePlate GetForcePlate(int index)
+        public ForcePlate GetForceData(int index)
         {
             lock (packetLock)
             {
-                return mForcePlates[index];
+                return mForcePlateData[index];
             }
         }
 
@@ -1588,11 +1632,11 @@ namespace QTMRealTimeSDK.Data
         /// Get sample from all force plates (only one sample per frame)
         /// </summary>
         /// <returns>List of all force plates containing one sample gathered this frame</returns>
-        public List<ForcePlate> GetForceSinglePlates()
+        public List<ForcePlate> GetForceSingleData()
         {
             lock (packetLock)
             {
-                return mForceSinglePlate.ToList();
+                return mForceSinglePlateData.ToList();
             }
         }
 
@@ -1601,11 +1645,11 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.</param>
         /// <returns>Force plate containing all samples gathered this frame</returns>
-        public ForcePlate GetForceSinglePlate(int index)
+        public ForcePlate GetForceSingleData(int index)
         {
             lock (packetLock)
             {
-                return mForceSinglePlate[index];
+                return mForceSinglePlateData[index];
             }
         }
 
@@ -1638,11 +1682,11 @@ namespace QTMRealTimeSDK.Data
         /// Get gaze vectors from all cameras
         /// </summary>
         /// <returns>list of all images</returns>
-        public List<GazeVector> GetGazeVectors()
+        public List<GazeVector> GetGazeVectorData()
         {
             lock (packetLock)
             {
-                return mGazeVector.ToList();
+                return mGazeVectorData.ToList();
             }
         }
         /// <summary>
@@ -1650,11 +1694,11 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.(not camera index!)</param>
         /// <returns>Gaze vector from index</returns>
-        public GazeVector GetGazeVector(int index)
+        public GazeVector GetGazeVectorData(int index)
         {
             lock (packetLock)
             {
-                return mGazeVector[index];
+                return mGazeVectorData[index];
             }
         }
 
