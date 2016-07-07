@@ -12,7 +12,8 @@ namespace RTSDKExample
     {
         static void Main(string[] args)
         {
-            Example example = new Example();
+            ExampleLabeled3DMarkers example = new ExampleLabeled3DMarkers();
+            //Example6D example = new Example6D();
             example.DiscoverQTMServers(4547);
             Console.WriteLine("Press key to continue");
             Console.ReadKey();
@@ -28,7 +29,7 @@ namespace RTSDKExample
         }
     }
 
-    class Example
+    class Example6D
     {
         RTProtocol rtProtocol = new RTProtocol();
 
@@ -44,7 +45,7 @@ namespace RTSDKExample
             }
         }
 
-        ~Example()
+        ~Example6D()
         {
             if (rtProtocol.IsConnected())
             {
@@ -104,6 +105,93 @@ namespace RTSDKExample
                             sixDofBody.Position.X, sixDofBody.Position.Y, sixDofBody.Position.Z,
                             sixDofBody.Rotation.Roll, sixDofBody.Rotation.Pitch, sixDofBody.Rotation.Yaw,
                             sixDofBody.Residual);
+                    }
+                }
+            }
+
+            // Handle event packet
+            if (packetType == PacketType.PacketEvent)
+            {
+                // If an event comes from QTM then print it out
+                var qtmEvent = rtProtocol.GetRTPacket().GetEvent();
+                Console.WriteLine("{0}", qtmEvent);
+            }
+        }
+    }
+
+    class ExampleLabeled3DMarkers
+    {
+        RTProtocol rtProtocol = new RTProtocol();
+
+        public void DiscoverQTMServers(ushort discoveryPort)
+        {
+            if (rtProtocol.DiscoverRTServers(discoveryPort))
+            {
+                var discoveryResponses = rtProtocol.DiscoveryResponses;
+                foreach (var discoveryResponse in discoveryResponses)
+                {
+                    Console.WriteLine("Host:{0,20}\tIP Adress:{1,15}\tInfo Text:{2,20}\tCamera count:{3,3}", discoveryResponse.HostName, discoveryResponse.IpAddress, discoveryResponse.InfoText, discoveryResponse.CameraCount);
+                }
+            }
+        }
+
+        ~ExampleLabeled3DMarkers()
+        {
+            if (rtProtocol.IsConnected())
+            {
+                rtProtocol.StreamFramesStop();
+                rtProtocol.Disconnect();
+            }
+        }
+
+        public void HandleStreaming(string ipAddress)
+        {
+            // Check if connection to QTM is possible
+            if (!rtProtocol.IsConnected())
+            {
+                if (!rtProtocol.Connect(ipAddress, 0, 1, 10))
+                {
+                    Console.WriteLine("QTM: Trying to connect");
+                    Thread.Sleep(1000);
+                    return;
+                }
+                Console.WriteLine("QTM: Connected");
+            }
+
+            // Check for available 3DOF with residual data in the stream
+            if (rtProtocol.Settings3D == null)
+            {
+                if (!rtProtocol.Get3Dsettings())
+                {
+                    Console.WriteLine("QTM: Trying to get 3DOF settings");
+                    Thread.Sleep(500);
+                    return;
+                }
+                Console.WriteLine("QTM: 3DOF data available");
+
+                rtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component3dResidual);
+                Console.WriteLine("QTM: Starting to stream 3DOF data");
+                Thread.Sleep(500);
+            }
+
+            // Get RTPacket from stream
+            PacketType packetType;
+            rtProtocol.ReceiveRTPacket(out packetType, false);
+
+            // Handle data packet
+            if (packetType == PacketType.PacketData)
+            {
+                var threeDofData = rtProtocol.GetRTPacket().Get3DMarkerResidualData();
+                if (threeDofData != null)
+                {
+                    Console.WriteLine(rtProtocol.GetRTPacket().Get3DMarkerResidualData().Count);
+                    for (int body = 0; body < rtProtocol.GetRTPacket().Get3DMarkerResidualData().Count; body++)
+                    {
+                        var threeDofBody = threeDofData[body];
+                        Console.WriteLine("Frame:{0:D5} X:{1,7:F1} Y:{2,7:F1} Z:{3,7:F1} Residual:{4,7:F1}",
+                            rtProtocol.GetRTPacket().Frame,
+                            threeDofBody.Position.X, threeDofBody.Position.Y, threeDofBody.Position.Z,
+                            threeDofBody.Residual);
                     }
                 }
             }
