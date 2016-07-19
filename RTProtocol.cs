@@ -64,6 +64,8 @@ namespace QTMRealTimeSDK
         ModelMiqusM3,
         [XmlEnum("Miqus M5")]
         ModelMiqusM5,
+        [XmlEnum("Miqus Sync Unit")]
+        ModelMiqusSU,
     }
 
     /// <summary>Camera modes</summary>
