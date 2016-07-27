@@ -281,7 +281,7 @@ namespace QTMRealTimeSDK
             }
             else
             {
-                mErrorString = "Version of 1.8 or less of the protocol can not be used by the c# sdk";
+                mErrorString = "Protocol version of 1.8 or lower can not be used by the c# software development kit";
                 return false;
             }
 
@@ -651,75 +651,6 @@ namespace QTMRealTimeSDK
             }
             return false;
         }
-#if apa
-        /// <summary>
-        /// Get current frame from server
-        ///</summary>
-        /// <param name="streamAll">boolean if all component types should be streamed</param>
-        /// <param name="components">list of specific component types to stream, ignored if streamAll is set to true</param>
-        /// <returns>true if command was sent successfully and response was a datapacket with frame</returns>
-        public bool GetCurrentFrame(bool streamAll, List<ComponentType> components = null)
-        {
-            string command = "getCurrentFrame";
-
-            if (streamAll)
-                command += " all";
-            else
-                command += BuildStreamString(components);
-
-            if (SendCommandExpectCommandResponse(command))
-            {
-                PacketType responsePacketType = mPacket.PacketType;
-                if (responsePacketType == PacketType.PacketData)
-                {
-                    return true;
-                }
-                else if (responsePacketType == PacketType.PacketNoMoreData)
-                {
-                    mErrorString = "No data available";
-                    return false;
-                }
-                else
-                {
-                    mErrorString = mPacket.GetErrorString();
-                    return false;
-
-                }
-            }
-            return false;
-        }
-
-        ///</summary>
-        /// Get current frame from server
-        ///</summary>
-        /// <param name="streamAll">boolean if all component types should be streamed</param>
-        /// <param name="packet">packet with data returned from server</param>
-        /// <param name="components">list of specific component types to stream, ignored if streamAll is set to true</param>
-        /// <returns>true if command was sent successfully and response was a datapacket with frame</returns>
-        public bool GetCurrentFrame(out RTPacket packet, bool streamAll, List<ComponentType> components = null)
-        {
-            bool status;
-            if (components != null)
-            {
-                status = GetCurrentFrame(streamAll, components);
-            }
-            else
-            {
-                status = GetCurrentFrame(streamAll);
-            }
-
-            if (status)
-            {
-                packet = mPacket;
-                return true;
-            }
-            else
-            {
-                packet = RTPacket.ErrorPacket;
-                return false;
-            }
-        }
-#endif
 
         public bool StreamAllFrames(ComponentType component, int port = -1, string ipAddress = "")
         {
@@ -1055,7 +986,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters general", out xml))
             {
-                mGeneralSettings = ReadGeneralSettings(xml);
+                mGeneralSettings = ReadSettings<SettingsGeneral>("General", xml);
                 if (mGeneralSettings != null)
                     return true;
             }
@@ -1071,7 +1002,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters 3D", out xml))
             {
-                m3DSettings = Read3DSettings(xml);
+                m3DSettings = ReadSettings<Settings3D>("The_3D", xml);
                 if (m3DSettings != null)
                     return true;
             }
@@ -1087,7 +1018,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters 6D", out xml))
             {
-                m6DOFSettings = Read6DOFSettings(xml);
+                m6DOFSettings = ReadSettings<Settings6D>("The_6D", xml);
                 if (m6DOFSettings != null)
                     return true;
             }
@@ -1103,8 +1034,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters Analog", out xml))
             {
-                System.Diagnostics.Debug.WriteLine(xml);
-                mAnalogSettings = ReadAnalogSettings(xml);
+                mAnalogSettings = ReadSettings<SettingsAnalog>("Analog", xml);
                 if (mAnalogSettings != null)
                     return true;
             }
@@ -1120,7 +1050,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectCommandResponse("GetParameters force", out xml))
             {
-                mForceSettings = ReadForceSettings(xml);
+                mForceSettings = ReadSettings<SettingsForce>("Force", xml);
                 if (mForceSettings != null)
                     return true;
             }
@@ -1136,7 +1066,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectCommandResponse("GetParameters Image", out xml))
             {
-                mImageSettings = ReadImageSettings(xml);
+                mImageSettings = ReadSettings<SettingsImage>("Image", xml);
                 if (mImageSettings != null)
                     return true;
             }
@@ -1152,7 +1082,7 @@ namespace QTMRealTimeSDK
             string xml;
             if (SendCommandExpectCommandResponse("GetParameters GazeVector", out xml))
             {
-                mGazeVectorSettings = ReadGazeVectorSettings(xml);
+                mGazeVectorSettings = ReadSettings<SettingsGazeVector>("Gaze_Vector", xml);
                 if (mGazeVectorSettings != null)
                     return true;
             }
@@ -1162,605 +1092,33 @@ namespace QTMRealTimeSDK
         #endregion
 
         #region read settings
-
-        static string ReplaceBadXMLCharacters(string xmldata)
+        internal static string ReplaceBadXMLCharacters(string xmldata)
         {
             return xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1").Replace(",", ".");
         }
 
-
-        /// <summary>
-        /// Read general settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with general settings from QTM</returns>
-        public static SettingsGeneral ReadGeneralSettings(string xmldata)
+        internal static TSettings ReadSettings<TSettings>(string name, string xmldata)
         {
             xmldata = ReplaceBadXMLCharacters(xmldata);
 
-            XmlSerializer serializer = new XmlSerializer(typeof(SettingsGeneral));
+            XmlSerializer serializer = new XmlSerializer(typeof(TSettings));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
 
             XmlReader red = XmlReader.Create(ms);
 
-            red.ReadToDescendant("General");
-            SettingsGeneral settings;
+            red.ReadToDescendant(name);
+            TSettings settings;
             try
             {
-                settings = (SettingsGeneral)serializer.Deserialize(red.ReadSubtree());
+                settings = (TSettings)serializer.Deserialize(red.ReadSubtree());
             }
             catch
             {
-                settings = null;
+                settings = default(TSettings);
             }
             red.Close();
-
             return settings;
         }
-
-        /// <summary>
-        /// Read 3D settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of 3D settings from QTM</returns>
-        public static Settings3D Read3DSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Settings3D));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("The_3D");
-            Settings3D settings;
-            try
-            {
-                settings = (Settings3D)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-
-        /// <summary>
-        /// Read 6DOFsettings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of 6DOF settings from QTM</returns>
-        public static Settings6D Read6DOFSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Settings6D));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("The_6D");
-            Settings6D settings;
-            try
-            {
-                settings = (Settings6D)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-
-        /// <summary>
-        /// Read Analog settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of Analog settings from QTM</returns>
-        public static SettingsAnalog ReadAnalogSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(SettingsAnalog));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("Analog");
-            SettingsAnalog settings;
-            try
-            {
-                settings = (SettingsAnalog)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-
-        /// <summary>
-        /// Read Force settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of Force settings from QTM</returns>
-        public static SettingsForce ReadForceSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(SettingsForce));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("Force");
-            SettingsForce settings;
-            try
-            {
-                settings = (SettingsForce)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-
-        /// <summary>
-        /// Read Image settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of Image settings from QTM</returns>
-        public static SettingsImage ReadImageSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(SettingsImage));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("Image");
-            SettingsImage settings;
-            try
-            {
-                settings = (SettingsImage)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-
-
-        /// <summary>
-        /// Read Gaze Vector settings from XML string
-        ///</summary>
-        /// <param name="xmldata">string with xmldata</param>
-        /// <returns>class with data of Gaze Vector settings from QTM</returns>
-        public static SettingsGazeVector ReadGazeVectorSettings(string xmldata)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            XmlSerializer serializer = new XmlSerializer(typeof(SettingsGazeVector));
-            MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
-
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant("Gaze_Vector");
-            SettingsGazeVector settings;
-            try
-            {
-                settings = (SettingsGazeVector)serializer.Deserialize(red.ReadSubtree());
-            }
-            catch
-            {
-                settings = null;
-            }
-            red.Close();
-
-            return settings;
-        }
-        #endregion
-
-        #region set settings
-
-        /// <summary>
-        /// Creates xml string from the general settings to send to QTM
-        ///</summary>
-        /// <param name="generalSettings">generl settings to generate string from</param>
-        /// <param name="setProcessingActions">if string should include processing actions or not</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string SetGeneralSettings(SettingsGeneral generalSettings, bool setProcessingActions = false)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("General");
-                {
-                    xmlWriter.WriteElementString("Frequency", generalSettings.captureFrequency.ToString());
-                    xmlWriter.WriteElementString("Capture_Time", generalSettings.captureTime.ToString("0.000"));
-                    xmlWriter.WriteElementString("Start_On_ExternalTrigger", generalSettings.startOnExternalTrigger.ToString());
-                    if (setProcessingActions)
-                    {
-                        xmlWriter.WriteStartElement("Processing_Actions");
-                        switch (generalSettings.processingActions.TrackingActions)
-                        {
-                            case SettingsTrackingProcessingActions.ProcessingTracking2D:
-                                xmlWriter.WriteElementString("Tracking", "2D");
-                                break;
-                            case SettingsTrackingProcessingActions.ProcessingTracking3D:
-                                xmlWriter.WriteElementString("Tracking", "3D");
-                                break;
-                            default:
-                                xmlWriter.WriteElementString("Tracking", "False");
-                                break;
-                        }
-
-                        xmlWriter.WriteElementString("TwinSystemMerge", generalSettings.processingActions.TwinSystemMerge.ToString());
-                        xmlWriter.WriteElementString("SplineFill", generalSettings.processingActions.SplineFill.ToString());
-                        xmlWriter.WriteElementString("AIM", generalSettings.processingActions.Aim.ToString());
-                        xmlWriter.WriteElementString("Track6DOF", generalSettings.processingActions.Track6DOF.ToString());
-                        xmlWriter.WriteElementString("ForceData", generalSettings.processingActions.ForceData.ToString());
-                        xmlWriter.WriteElementString("ExportTSV", generalSettings.processingActions.ExportTSV.ToString());
-                        xmlWriter.WriteElementString("ExportC3D", generalSettings.processingActions.ExportC3D.ToString());
-                        xmlWriter.WriteElementString("ExportMatlabFile", generalSettings.processingActions.ExportMatlab.ToString());
-                        xmlWriter.WriteEndElement();
-
-                    }
-                }
-                xmlWriter.WriteEndElement();
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
-        /// <summary>
-        /// Creates xml string from the given settings to send to QTM
-        ///</summary>
-        /// <param name="sSettingsGeneralExternalTimeBase">time base settings to generate string from</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string SetGeneralExtTimeBase(SettingsGeneralExternalTimeBase timeBaseSettings)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("General");
-                {
-                    xmlWriter.WriteStartElement("External_Time_Base");
-                    {
-                        xmlWriter.WriteElementString("Enabled", timeBaseSettings.Enabled.ToString());
-                        switch (timeBaseSettings.SignalSource)
-                        {
-                            case SignalSource.SourceControlPort:
-                                xmlWriter.WriteElementString("Signal_Source", "Control port");
-                                break;
-                            case SignalSource.SourceIRReceiver:
-                                xmlWriter.WriteElementString("Signal_Source", "IR receiver");
-                                break;
-                            case SignalSource.SourceSMPTE:
-                                xmlWriter.WriteElementString("Signal_Source", "SMPTE");
-                                break;
-                            case SignalSource.SourceVideoSync:
-                                xmlWriter.WriteElementString("Signal_Source", "Video sync");
-                                break;
-                        }
-
-                        if (timeBaseSettings.SignalMode == SignalMode.Periodic)
-                        {
-                            xmlWriter.WriteElementString("Signal_Mode", "True");
-                        }
-                        else
-                        {
-                            xmlWriter.WriteElementString("Signal_Mode", "False");
-                        }
-
-                        xmlWriter.WriteElementString("Frequency_Multiplier", timeBaseSettings.FreqMultiplier.ToString());
-                        xmlWriter.WriteElementString("Frequency_Divisor", timeBaseSettings.FreqDivisor.ToString());
-                        xmlWriter.WriteElementString("Frequency_Tolerance", timeBaseSettings.FreqTolerance.ToString());
-
-
-                        if (timeBaseSettings.NominalFrequency > 0)
-                        {
-                            xmlWriter.WriteElementString("Nominal_Frequency", timeBaseSettings.NominalFrequency.ToString("0.000"));
-                        }
-                        else
-                        {
-                            xmlWriter.WriteElementString("Nominal_Frequency", "None");
-                        }
-
-                        switch (timeBaseSettings.SignalEdge)
-                        {
-                            case SignalEdge.Negative:
-                                xmlWriter.WriteElementString("Signal_Edge", "Negative");
-                                break;
-                            case SignalEdge.Positive:
-                                xmlWriter.WriteElementString("Signal_Edge", "Positive");
-                                break;
-                        }
-
-                        xmlWriter.WriteElementString("Signal_Shutter_Delay", timeBaseSettings.SignalShutterDelay.ToString());
-                        xmlWriter.WriteElementString("Non_Periodic_Timeout", timeBaseSettings.NominalFrequency.ToString("0.000"));
-
-                    }
-                    xmlWriter.WriteEndElement();
-                }
-                xmlWriter.WriteEndElement();
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
-        /// <summary>
-        /// Creates xml string from the given settings to send to QTM
-        ///</summary>
-        /// <param name="cameraSettings">Camera settings to generate string from. if camera ID is < 0, setting will be applied to all cameras</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string CreateGeneralCameraString(SettingsGeneralCamera cameraSettings)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("General");
-                {
-                    xmlWriter.WriteStartElement("Camera");
-                    {
-                        xmlWriter.WriteElementString("ID", cameraSettings.CameraId.ToString());
-                        switch (cameraSettings.Mode)
-                        {
-                            case CameraMode.ModeMarker:
-                                xmlWriter.WriteElementString("Mode", "Marker");
-                                break;
-                            case CameraMode.ModeMarkerIntensity:
-                                xmlWriter.WriteElementString("Mode", "Marker Intensity");
-                                break;
-                            case CameraMode.ModeVideo:
-                                xmlWriter.WriteElementString("Mode", "Video");
-                                break;
-                        }
-                        xmlWriter.WriteElementString("Video_Exposure", cameraSettings.VideoExposure.ToString());
-                        xmlWriter.WriteElementString("Video_Flash_Time", cameraSettings.VideoFlashTime.ToString());
-                        xmlWriter.WriteElementString("Marker_Exposure", cameraSettings.MarkerExposure.ToString());
-                        xmlWriter.WriteElementString("Marker_Threshold", cameraSettings.MarkerThreshold.ToString());
-                        xmlWriter.WriteElementString("Orientation", cameraSettings.Orientation.ToString());
-                    }
-                    xmlWriter.WriteEndElement();
-
-                }
-                xmlWriter.WriteEndElement();
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
-        /// <summary>
-        /// create xml string for sync settings for camera
-        ///</summary>
-        /// <param name="cameraID">Camera settings to generate string from. if camera ID is < 0, setting will be applied to all cameras</param>
-        /// <param name="syncSettings">settings to generate string from</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string CreateGeneralCameraSyncOutString(int cameraID, Sync syncSettings)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("General");
-                {
-                    xmlWriter.WriteStartElement("Camera");
-                    {
-                        xmlWriter.WriteElementString("ID", cameraID.ToString());
-
-                        xmlWriter.WriteStartElement("Sync_Out");
-                        {
-                            switch (syncSettings.SyncMode)
-                            {
-                                case SyncOutFreqMode.ModeShutterOut:
-                                    xmlWriter.WriteElementString("Mode", "Shutter out");
-                                    break;
-                                case SyncOutFreqMode.ModeMultiplier:
-                                    xmlWriter.WriteElementString("Mode", "Multiplier");
-                                    xmlWriter.WriteElementString("Value", syncSettings.SyncValue.ToString());
-                                    break;
-                                case SyncOutFreqMode.ModeDivisor:
-                                    xmlWriter.WriteElementString("Mode", "Divisor");
-                                    xmlWriter.WriteElementString("Value", syncSettings.SyncValue.ToString());
-                                    break;
-                                case SyncOutFreqMode.ModeActualFreq:
-                                    xmlWriter.WriteElementString("Mode", "Camera independent");
-                                    break;
-                                case SyncOutFreqMode.ModeActualMeasurementTime:
-                                    xmlWriter.WriteElementString("Mode", "Measurement time");
-                                    xmlWriter.WriteElementString("Value", syncSettings.SyncValue.ToString());
-                                    break;
-                                case SyncOutFreqMode.ModeFixed100Hz:
-                                    xmlWriter.WriteElementString("Mode", "Continuous 100Hz");
-                                    break;
-                            }
-                            if (syncSettings.SyncMode != SyncOutFreqMode.ModeSRAMWireSync || syncSettings.SyncMode != SyncOutFreqMode.ModeFixed100Hz)
-                            {
-                                switch (syncSettings.SignalPolarity)
-                                {
-                                    case SignalPolarity.Negative:
-                                        xmlWriter.WriteElementString("Signal_Polarity", "Negative");
-                                        break;
-                                    case SignalPolarity.Positive:
-                                        xmlWriter.WriteElementString("Signal_Polarity", "Positive");
-                                        break;
-                                }
-
-                            }
-                        }
-                        xmlWriter.WriteEndElement();
-
-                    }
-                    xmlWriter.WriteEndElement();
-
-                }
-                xmlWriter.WriteEndElement();
-
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
-        /// <summary>
-        /// create xml string for image settings
-        ///</summary>
-        /// <param name="sImageCamera">Image settings to generate string from</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string CreateSetImageSettingsString(ImageCamera imageSettings)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("Image");
-                {
-                    xmlWriter.WriteStartElement("Camera");
-                    {
-                        xmlWriter.WriteElementString("ID", imageSettings.CameraID.ToString());
-                        xmlWriter.WriteElementString("Enabled", imageSettings.Enabled.ToString());
-
-                        switch (imageSettings.ImageFormat)
-                        {
-                            case ImageFormat.FormatRawGrayScale:
-                                xmlWriter.WriteElementString("Mode", "RAWGrayscale");
-                                break;
-                            case ImageFormat.FormatRawBGR:
-                                xmlWriter.WriteElementString("Mode", "RAWBGR");
-                                break;
-                            case ImageFormat.FormatJPG:
-                                xmlWriter.WriteElementString("Mode", "JPG");
-                                break;
-                            case ImageFormat.FormatPNG:
-                                xmlWriter.WriteElementString("Mode", "PNG");
-                                break;
-                        }
-
-                        xmlWriter.WriteElementString("Format", ((int)imageSettings.ImageFormat).ToString());
-
-                        xmlWriter.WriteElementString("Width", imageSettings.Width.ToString());
-                        xmlWriter.WriteElementString("Height", imageSettings.Height.ToString());
-
-                        xmlWriter.WriteElementString("Left_Crop", imageSettings.CropLeft.ToString());
-                        xmlWriter.WriteElementString("Top_Crop", imageSettings.CropRight.ToString());
-                        xmlWriter.WriteElementString("Right_Crop", imageSettings.CropTop.ToString());
-                        xmlWriter.WriteElementString("Bottom_Crop", imageSettings.CropBottom.ToString());
-
-                    }
-                    xmlWriter.WriteEndElement();
-
-                }
-                xmlWriter.WriteEndElement();
-
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
-        /// <summary>
-        /// create xml string for force plate settings
-        ///</summary>
-        /// <param name="plateSettings">force plate settings to generate string from</param>
-        /// <returns>generated xml string from settings</returns>
-        public static string CreateForceSettingsString(ForcePlateSettings plateSettings)
-        {
-            StringWriter xmlString = new StringWriter();
-            XmlWriterSettings settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.ConformanceLevel = ConformanceLevel.Fragment;
-            XmlWriter xmlWriter = XmlWriter.Create(xmlString, settings);
-            xmlWriter.WriteStartElement("QTM_Settings");
-            {
-                xmlWriter.WriteStartElement("Force");
-                {
-                    xmlWriter.WriteStartElement("Plate");
-                    {
-                        xmlWriter.WriteElementString("Plate_ID", plateSettings.AnalogDeviceID.ToString());
-
-                        xmlWriter.WriteStartElement("Corner1");
-                        {
-                            xmlWriter.WriteElementString("X", plateSettings.Location.Corner1.X.ToString());
-                            xmlWriter.WriteElementString("Y", plateSettings.Location.Corner1.Y.ToString());
-                            xmlWriter.WriteElementString("Z", plateSettings.Location.Corner1.Z.ToString());
-                        }
-                        xmlWriter.WriteEndElement();
-
-                        xmlWriter.WriteStartElement("Corner2");
-                        {
-                            xmlWriter.WriteElementString("X", plateSettings.Location.Corner2.X.ToString());
-                            xmlWriter.WriteElementString("Y", plateSettings.Location.Corner2.Y.ToString());
-                            xmlWriter.WriteElementString("Z", plateSettings.Location.Corner2.Z.ToString());
-                        }
-                        xmlWriter.WriteEndElement();
-
-                        xmlWriter.WriteStartElement("Corner3");
-                        {
-                            xmlWriter.WriteElementString("X", plateSettings.Location.Corner3.X.ToString());
-                            xmlWriter.WriteElementString("Y", plateSettings.Location.Corner3.Y.ToString());
-                            xmlWriter.WriteElementString("Z", plateSettings.Location.Corner3.Z.ToString());
-                        }
-                        xmlWriter.WriteEndElement();
-
-                        xmlWriter.WriteStartElement("Corner4");
-                        {
-                            xmlWriter.WriteElementString("X", plateSettings.Location.Corner4.X.ToString());
-                            xmlWriter.WriteElementString("Y", plateSettings.Location.Corner4.Y.ToString());
-                            xmlWriter.WriteElementString("Z", plateSettings.Location.Corner4.Z.ToString());
-                        }
-                        xmlWriter.WriteEndElement();
-
-                    }
-                    xmlWriter.WriteEndElement();
-
-                }
-                xmlWriter.WriteEndElement();
-
-            }
-            xmlWriter.WriteEndElement();
-
-            return xmlString.ToString();
-        }
-
         #endregion
 
         #region generic send functions
