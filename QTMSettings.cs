@@ -7,29 +7,41 @@ using QTMRealTimeSDK.Data;
 
 namespace QTMRealTimeSDK.Settings
 {
-    /// <summary> General Settings from QTM. </summary>
+    /// <summary>General Settings from QTM</summary>
     [XmlRoot("General")]
     public class SettingsGeneral
     {
-        /// <summary> QTM Capture frequency </summary>
+        /// <summary>QTM Capture frequency </summary>
         [XmlElement("Frequency")]
         public int captureFrequency;
 
-        /// <summary> length of QTM Capture. Time expressed in seconds</summary>
+        /// <summary>length of QTM Capture. Time expressed in seconds</summary>
         [XmlElement("Capture_Time")]
         public float captureTime;
 
-        /// <summary> Measurement start on external trigger</summary>
+        /// <summary>Measurement start on any external trigger</summary>
         [XmlElement("Start_On_External_Trigger")]
         public bool startOnExternalTrigger;
 
+        /// <summary>Measurement start on MSU Trig NO/Oqus Trig in</summary>
+        [XmlElement("Start_On_Trigger_NO")]
+        public bool startOnTrigNO;
+
+        /// <summary>Measurement start on MSU Trig NC</summary>
+        [XmlElement("Start_On_Trigger_NC")]
+        public bool startOnTrigNC;
+
+        /// <summary>Measurement start on software trigger (app, keyboard etc)</summary>
+        [XmlElement("Start_On_Trigger_Software")]
+        public bool startOnTrigSoftware;
+
         [XmlElement("External_Time_Base")]
-        public SettingsGeneralExternalTimeBase externalTimebase;
+        public SettingsExternalTimeBase externalTimebase;
 
         [XmlElement("Processing_Actions")]
-        public SettingProccessingActions processingActions;
+        public SettingProcessingActions processingActions;
 
-        /// <summary> Camera Settings </summary>
+        /// <summary>Camera Settings </summary>
 
         [XmlElement("Camera")]
         public List<SettingsGeneralCamera> cameraSettings;
@@ -39,14 +51,14 @@ namespace QTMRealTimeSDK.Settings
         }
     }
 
-    /// <summary> 3D Bone Settings from QTM. </summary>
+    /// <summary>3D Bone Settings from QTM</summary>
     public class SettingsBone
     {
-        /// <summary> name of marker bone starts from </summary>
+        /// <summary>name of marker bone starts from </summary>
         [XmlAttribute("From")]
         public string from;
 
-        /// <summary> name of marker bone ends at</summary>
+        /// <summary>name of marker bone ends at</summary>
         [XmlAttribute("To")]
         public string to;
 
@@ -60,7 +72,7 @@ namespace QTMRealTimeSDK.Settings
         }
     }
 
-    /// <summary> 3D Settings from QTM. </summary>
+    /// <summary>3D Settings from QTM</summary>
     [XmlRoot("The_3D")]
     public class Settings3D
     {
@@ -82,7 +94,7 @@ namespace QTMRealTimeSDK.Settings
         }
     }
 
-    /// <summary> 6D Settings from QTM. </summary>
+    /// <summary>6D Settings from QTM</summary>
     [XmlRoot("The_6D")]
     public class Settings6D
     {
@@ -92,7 +104,7 @@ namespace QTMRealTimeSDK.Settings
         public List<Settings6DOF> bodies;
     }
 
-    /// <summary> Analog Settings from QTM. </summary>
+    /// <summary>Analog Settings from QTM</summary>
     [XmlRoot("Analog")]
     public class SettingsAnalog
     {
@@ -105,7 +117,7 @@ namespace QTMRealTimeSDK.Settings
         }
     }
 
-    /// <summary> Force Settings from QTM. </summary>
+    /// <summary>Force Settings from QTM</summary>
     [XmlRoot("Force")]
     public class SettingsForce
     {
@@ -119,7 +131,7 @@ namespace QTMRealTimeSDK.Settings
         public SettingsForce() { }
     }
 
-    /// <summary> Image Settings from QTM. </summary>
+    /// <summary>Image Settings from QTM</summary>
     [XmlRoot("Image")]
     public class SettingsImage
     {
@@ -127,7 +139,7 @@ namespace QTMRealTimeSDK.Settings
         public List<ImageCamera> cameraList;
     }
 
-    /// <summary> Gaze vector Settings from QTM. </summary>
+    /// <summary>Gaze vector Settings from QTM</summary>
     [XmlRoot("Gaze_Vector")]
     public class SettingsGazeVector
     {
@@ -290,7 +302,7 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Settings regarding processing actions</summary>
-    public struct SettingProccessingActions
+    public struct SettingProcessingActions
     {
         /// <summary>Tracking processing action</summary>
         [XmlElement("Tracking")]
@@ -322,7 +334,7 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Settings regarding external Time Base</summary>
-    public struct SettingsGeneralExternalTimeBase
+    public struct SettingsExternalTimeBase
     {
         [XmlElement("Enabled")]
         public bool Enabled;

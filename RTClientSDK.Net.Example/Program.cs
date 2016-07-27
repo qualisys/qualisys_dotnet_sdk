@@ -169,6 +169,11 @@ namespace RTSDKExample
                 }
                 Console.WriteLine("QTM: 3DOF data available");
 
+                foreach (var identifiedMarkers in rtProtocol.Settings3D.labels3D)
+                {
+                    Console.WriteLine("{0}", identifiedMarkers.Name);
+                }
+
                 rtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component3dResidual);
                 Console.WriteLine("QTM: Starting to stream 3DOF data");
                 Thread.Sleep(500);
