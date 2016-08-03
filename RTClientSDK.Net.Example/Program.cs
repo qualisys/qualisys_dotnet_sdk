@@ -71,7 +71,7 @@ namespace RTSDKExample
             // Check for available 6DOF data in the stream
             if (rtProtocol.Settings6DOF == null)
             {
-                if (!rtProtocol.Get6DSettings())
+                if (!rtProtocol.Get6dSettings())
                 {
                     Console.WriteLine("QTM: Trying to get 6DOF settings");
                     Thread.Sleep(500);
@@ -149,7 +149,7 @@ namespace RTSDKExample
             // Check if connection to QTM is possible
             if (!rtProtocol.IsConnected())
             {
-                if (!rtProtocol.Connect(ipAddress, 0, 1, 10))
+                if (!rtProtocol.Connect(ipAddress))
                 {
                     Console.WriteLine("QTM: Trying to connect");
                     Thread.Sleep(1000);
@@ -161,7 +161,7 @@ namespace RTSDKExample
             // Check for available 3DOF with residual data in the stream
             if (rtProtocol.Settings3D == null)
             {
-                if (!rtProtocol.Get3Dsettings())
+                if (!rtProtocol.Get3dSettings())
                 {
                     Console.WriteLine("QTM: Trying to get 3DOF settings");
                     Thread.Sleep(500);

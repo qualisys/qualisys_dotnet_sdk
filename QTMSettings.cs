@@ -19,7 +19,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Capture_Time")]
         public float captureTime;
 
-        /// <summary>Measurement start on any external trigger</summary>
+        /// <summary>Measurement start on any external trigger (qtm version 2.13 or less, or 2.14 running Oqus systems)</summary>
         [XmlElement("Start_On_External_Trigger")]
         public bool startOnExternalTrigger;
 
@@ -41,10 +41,15 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Processing_Actions")]
         public SettingProcessingActions processingActions;
 
-        /// <summary>Camera Settings </summary>
+        [XmlElement("RealTime_Processing_Actions")]
+        public SettingProcessingActions realtimeProcessingActions;
 
+        [XmlElement("Reprocessing_Actions")]
+        public SettingProcessingActions ReprocessingActions;
+
+        /// <summary>Camera Settings </summary>
         [XmlElement("Camera")]
-        public List<SettingsGeneralCamera> cameraSettings;
+        public List<SettingsGeneralCameraSystem> cameraSettings;
 
         public SettingsGeneral()
         {
@@ -147,8 +152,8 @@ namespace QTMRealTimeSDK.Settings
         public string Name;
     }
 
-    /// <summary>General settings for Camera</summary>
-    public struct SettingsGeneralCamera
+    /// <summary>General settings for Camera System</summary>
+    public struct SettingsGeneralCameraSystem
     {
         /// <summary>ID of camera</summary>
         [XmlElement("ID")]
@@ -159,22 +164,31 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>If the camera is an underwater camera</summary>
         [XmlElement("UnderWater")]
         public bool UnderWater;
+        /// <summary>If the camera supports hardware sync (like Oqus and Miqus Sync Units)</summary>
+        [XmlElement("Supports_HW_Sync")]
+        public bool SupportsHardwareSync;
         /// <summary>Serial number of the selected camera</summary>
         [XmlElement("Serial")]
         public int Serial;
         /// <summary>Camera mode the camera is set to</summary>
         [XmlElement("Mode")]
         public CameraMode Mode;
-        /// <summary>values for camera video exposure, current, min and max</summary>
+        /// <summary>Values for camera video mode, current, min and max</summary>
+        [XmlElement("Video_Mode")]
+        public VideoMode VideoMode;
+        /// <summary>Values for camera video mode, current, min and max</summary>
+        [XmlElement("Video_Frequency")]
+        public int VideoFrequency;
+        /// <summary>Values for camera video exposure, current, min and max</summary>
         [XmlElement("Video_Exposure")]
         public CameraSetting VideoExposure;
-        /// <summary>values for camera video flash time, current, min and max</summary>
+        /// <summary>Values for camera video flash time, current, min and max</summary>
         [XmlElement("Video_Flash_Time")]
         public CameraSetting VideoFlashTime;
-        /// <summary>values for camera marker exposure, current, min and max</summary>
+        /// <summary>Values for camera marker exposure, current, min and max</summary>
         [XmlElement("Marker_Exposure")]
         public CameraSetting MarkerExposure;
-        /// <summary>values for camera marker threshold, current, min and max</summary>
+        /// <summary>Values for camera marker threshold, current, min and max</summary>
         [XmlElement("Marker_Threshold")]
         public CameraSetting MarkerThreshold;
         /// <summary>Position of camera</summary>
@@ -195,24 +209,29 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Video Field Of View, left,top,right and bottom coordinates</summary>
         [XmlElement("Video_FOV")]
         public FieldOfView VideoFOV;
-        /// <summary>Sync settings</summary>
+        /// <summary>Sync out settings for Oqus sync out or Miqus Sync Unit Out1</summary>
         [XmlElement("Sync_Out")]
-        public Sync SyncOut;
+        public SettingsSyncOut SyncOut;
+        /// <summary>Sync out settings for Miqus Sync Unit Out2</summary>
+        [XmlElement("Sync_Out2")]
+        public SettingsSyncOut SyncOut2;
+        /// <summary>Sync out settings for Miqus Sync Unit Measurement Time (MT)</summary>
+        [XmlElement("Sync_Out_MT")]
+        public SettingsSyncOut SyncOutMT;
     }
 
-
     /// <summary>settings regarding sync for Camera</summary>
-    public struct Sync
+    public struct SettingsSyncOut
     {
         /// <summary>Sync mode for camera</summary>
         [XmlElement("Mode")]
-        public SyncOutFreqMode SyncMode;
+        public SyncOutFrequencyMode SyncMode;
         /// <summary>Sync value, depending on mode</summary>
         [XmlElement("Value")]
         public int SyncValue;
         /// <summary>Output duty cycle in percent</summary>
         [XmlElement("Duty_Cycle")]
-        public int DutyCycle;
+        public float DutyCycle;
         /// <summary>TTL signal polarity. no used in SRAM or 100Hz mode</summary>
         [XmlElement("Signal_Polarity")]
         public SignalPolarity SignalPolarity;
@@ -301,36 +320,44 @@ namespace QTMRealTimeSDK.Settings
         public int Max;
     }
 
-    /// <summary>Settings regarding processing actions</summary>
+    /// <summary>Settings regarding post processing actions</summary>
     public struct SettingProcessingActions
     {
-        /// <summary>Tracking processing action</summary>
+        /// <summary>Preprocessing 2d data</summary>
+        [XmlElement("PreProcessing2D")]
+        public bool PreProcessing2D;
+        /// <summary>Tracking processing</summary>
         [XmlElement("Tracking")]
         public SettingsTrackingProcessingActions TrackingActions;
-        /// <summary>Twin system merge processing action status</summary>
+        /// <summary>Twin system merge processing</summary>
         [XmlElement("TwinSystemMerge")]
         public bool TwinSystemMerge;
-        /// <summary>Spline Fill status</summary>
+        /// <summary>Gapfill processing</summary>
         [XmlElement("SplineFill")]
         public bool SplineFill;
-        /// <summary>AIM tracking processing status</summary>
+        /// <summary>AIM processing</summary>
         [XmlElement("AIM")]
         public bool Aim;
-        /// <summary>6 DOF tracking processing status</summary>
+        /// <summary>6DOF tracking processing</summary>
         [XmlElement("Track6DOF")]
         public bool Track6DOF;
-        /// <summary>Force data status</summary>
+        /// <summary>Force data</summary>
         [XmlElement("ForceData")]
         public bool ForceData;
-        /// <summary>Export to TSV status</summary>
+        /// <summary>GazeVector</summary>
+        [XmlElement("GazeVector")]
+        public bool GazeVector;
+        /// <summary>Export to TSV</summary>
         [XmlElement("ExportTSV")]
         public bool ExportTSV;
-        /// <summary>Export to C3D status</summary>
+        /// <summary>Export to C3D</summary>
         [XmlElement("ExportC3D")]
         public bool ExportC3D;
-        /// <summary>Export to Matlab status</summary>
+        /// <summary>Export to Matlab file</summary>
         [XmlElement("ExportMatlabFile")]
         public bool ExportMatlab;
+        [XmlElement("ExportAviFile")]
+        public bool ExportAviFile;
     }
 
     /// <summary>Settings regarding external Time Base</summary>
@@ -420,6 +447,9 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Settings for Force plate</summary>
     public struct ForcePlateSettings
     {
+        /// <summary>Force plate index number</summary>
+        [XmlElement("Force_Plate_Index")]
+        public int ForcePlateIndex;
         /// <summary>ID of force plate</summary>
         [XmlElement("Plate_ID")]
         public int PlateID;
@@ -428,7 +458,7 @@ namespace QTMRealTimeSDK.Settings
         public int AnalogDeviceID;
         /// <summary>Measurement frequency of analog device connected to force plate</summary>
         [XmlElement("Frequency")]
-        public int Frequency;
+        public float Frequency;
         /// <summary>Force plate type</summary>
         [XmlElement("Type")]
         public string Type;
@@ -590,7 +620,7 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Tracking processing actions</summary>
     public enum SettingsTrackingProcessingActions
     {
-        [XmlEnum("False")]
+        [XmlEnum("false")]
         ProcessingNone = 0,
         [XmlEnum("2D")]
         ProcessingTracking2D,

@@ -79,8 +79,34 @@ namespace QTMRealTimeSDK
         ModeVideo
     }
 
+    public enum VideoMode
+    {
+        [XmlEnum("Custom")]
+        VideoModeCustom = 0,
+        [XmlEnum("1080p_24hz")]
+        VideoMode1080p_24hz,
+        [XmlEnum("720p_25hz")]
+        VideoMode720p_25hz,
+        [XmlEnum("720p_50hz")]
+        VideoMode720p_50hz,
+        [XmlEnum("540p_25hz")]
+        VideoMode540p_25hz,
+        [XmlEnum("540p_50hz")]
+        VideoMode540p_50hz,
+        [XmlEnum("540p_60hz")]
+        VideoMode540p_60hz,
+        [XmlEnum("480p_25hz")]
+        VideoMode480p_25hz,
+        [XmlEnum("480p_50hz")]
+        VideoMode480p_50hz,
+        [XmlEnum("480p_60hz")]
+        VideoMode480p_60hz,
+        [XmlEnum("480p_120hz")]
+        VideoMode480p_120hz,
+    }
+
     /// <summary>Sync out modes</summary>
-    public enum SyncOutFreqMode
+    public enum SyncOutFrequencyMode
     {
         [XmlEnum("Shutter out")]
         ModeShutterOut = 0,
@@ -92,8 +118,6 @@ namespace QTMRealTimeSDK
         ModeActualFreq,
         [XmlEnum("Measurement time")]
         ModeActualMeasurementTime,
-        [XmlEnum("SRAM wired")]
-        ModeSRAMWireSync,
         [XmlEnum("Continuous 100Hz")]
         ModeFixed100Hz
     }
@@ -854,7 +878,7 @@ namespace QTMRealTimeSDK
         /// Close the current measurement in QTM.
         /// Needs to have control over QTM for this command to work
         ///</summary>
-        /// <returns>returns true if measurement was closed or if there was nothing to close</returns>
+        /// <returns>Returns true if measurement was closed or if there was nothing to close</returns>
         public bool CloseMeasurement()
         {
             string response;
@@ -980,7 +1004,7 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get general settings from QTM Server and saves data in protocol
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
+        /// <returns>Returns true if settings was retrieved</returns>
         public bool GetGeneralSettings()
         {
             string xml;
@@ -996,8 +1020,8 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get 3D settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
-        public bool Get3Dsettings()
+        /// <returns>Returns true if settings was retrieved</returns>
+        public bool Get3dSettings()
         {
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters 3D", out xml))
@@ -1012,8 +1036,8 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get 6DOF settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
-        public bool Get6DSettings()
+        /// <returns>Returns true if settings was retrieved</returns>
+        public bool Get6dSettings()
         {
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters 6D", out xml))
@@ -1028,7 +1052,7 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get Analog settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
+        /// <returns>Returns true if settings was retrieved</returns>
         public bool GetAnalogSettings()
         {
             string xml;
@@ -1044,11 +1068,11 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get Force settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
+        /// <returns>Returns true if settings was retrieved</returns>
         public bool GetForceSettings()
         {
             string xml;
-            if (SendCommandExpectCommandResponse("GetParameters force", out xml))
+            if (SendCommandExpectXMLResponse("GetParameters force", out xml))
             {
                 mForceSettings = ReadSettings<SettingsForce>("Force", xml);
                 if (mForceSettings != null)
@@ -1060,11 +1084,11 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get Image settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
+        /// <returns>Returns true if settings was retrieved</returns>
         public bool GetImageSettings()
         {
             string xml;
-            if (SendCommandExpectCommandResponse("GetParameters Image", out xml))
+            if (SendCommandExpectXMLResponse("GetParameters Image", out xml))
             {
                 mImageSettings = ReadSettings<SettingsImage>("Image", xml);
                 if (mImageSettings != null)
@@ -1076,11 +1100,11 @@ namespace QTMRealTimeSDK
         /// <summary>
         /// Get Gaze vector settings from QTM Server
         ///</summary>
-        /// <returns>returns true if settings was retrieved</returns>
+        /// <returns>Returns true if settings was retrieved</returns>
         public bool GetGazeVectorSettings()
         {
             string xml;
-            if (SendCommandExpectCommandResponse("GetParameters GazeVector", out xml))
+            if (SendCommandExpectXMLResponse("GetParameters GazeVector", out xml))
             {
                 mGazeVectorSettings = ReadSettings<SettingsGazeVector>("Gaze_Vector", xml);
                 if (mGazeVectorSettings != null)
@@ -1091,7 +1115,7 @@ namespace QTMRealTimeSDK
 
         #endregion
 
-        #region read settings
+        #region Read settings internal methods
         internal static string ReplaceBadXMLCharacters(string xmldata)
         {
             return xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1").Replace(",", ".");
@@ -1104,24 +1128,28 @@ namespace QTMRealTimeSDK
             XmlSerializer serializer = new XmlSerializer(typeof(TSettings));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
 
-            XmlReader red = XmlReader.Create(ms);
-
-            red.ReadToDescendant(name);
+            XmlReader xmlReader = null;
             TSettings settings;
             try
             {
-                settings = (TSettings)serializer.Deserialize(red.ReadSubtree());
+                xmlReader = XmlReader.Create(ms);
+                xmlReader.ReadToDescendant(name);
+                var subtree = xmlReader.ReadSubtree();
+                settings = (TSettings)serializer.Deserialize(subtree);
             }
-            catch
+            catch (Exception e)
             {
                 settings = default(TSettings);
             }
-            red.Close();
+            if (xmlReader != null)
+            {
+                xmlReader.Close();
+            }
             return settings;
         }
         #endregion
 
-        #region generic send functions
+        #region Generic communication methods
 
         /// <summary>
         /// Send string to QTM server
