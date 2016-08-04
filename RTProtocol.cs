@@ -19,7 +19,7 @@ using QTMRealTimeSDK.Data;
 namespace QTMRealTimeSDK
 {
     #region enums
-    /// <summary>streaming rate</summary>
+    /// <summary>Streaming rate</summary>
     public enum StreamRate
     {
         RateAllFrames = 1,
@@ -226,31 +226,31 @@ namespace QTMRealTimeSDK
         /// <summary>Packet received from QTM</summary>
         protected RTPacket Packet { get { return mPacket; } }
 
-        SettingsGeneral mGeneralSettings;
+        private SettingsGeneral mGeneralSettings;
         /// <summary>General settings from QTM</summary>
         public SettingsGeneral GeneralSettings { get { return mGeneralSettings; } }
 
-        Settings3D m3DSettings;
+        private Settings3D m3DSettings;
         /// <summary>3D settings from QTM</summary>
         public Settings3D Settings3D { get { return m3DSettings; } }
 
-        Settings6D m6DOFSettings;
+        private Settings6D m6DOFSettings;
         /// <summary>6DOF settings from QTM</summary>
         public Settings6D Settings6DOF { get { return m6DOFSettings; } }
 
-        SettingsAnalog mAnalogSettings;
+        private SettingsAnalog mAnalogSettings;
         /// <summary>Analog settings from QTM</summary>
         public SettingsAnalog AnalogSettings { get { return mAnalogSettings; } }
 
-        SettingsForce mForceSettings;
+        private SettingsForce mForceSettings;
         /// <summary>Force settings from QTM</summary>
         public SettingsForce ForceSettings { get { return mForceSettings; } }
 
-        SettingsImage mImageSettings;
+        private SettingsImage mImageSettings;
         /// <summary>Image settings from QTM</summary>
         public SettingsImage ImageSettings { get { return mImageSettings; } }
 
-        SettingsGazeVector mGazeVectorSettings;
+        private SettingsGazeVector mGazeVectorSettings;
         /// <summary>Gaze vector settings from QTM</summary>
         public SettingsGazeVector GazeVectorSettings { get { return mGazeVectorSettings; } }
 
@@ -282,9 +282,7 @@ namespace QTMRealTimeSDK
             mDiscoveryResponses = new HashSet<DiscoveryResponse>();
         }
 
-        /// <summary>
-        /// Create connection to server
-        ///</summary>
+        /// <summary>Create connection to server</summary>
         /// <param name="serverAddr">address to server</param>
         /// <param name="serverPortUDP">port to use if UDP socket is desired, set to 0 for automatic port selection</param>
         /// <param name="majorVersion">Major protocol version to use, default is latest</param>
@@ -402,9 +400,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Create connection to server
-        ///</summary>
+        /// <summary>Create connection to server</summary>
         /// <param name="host">host detected via broadcast discovery</param>
         /// <param name="serverPortUDP">port to use if UDP socket is desired, set to 0 for automatic port selection</param>
         /// <param name="majorVersion">Major protocol version to use, default is latest</param>
@@ -415,29 +411,14 @@ namespace QTMRealTimeSDK
             return Connect(host.IpAddress, serverPortUDP, majorVersion, minorVersion, host.Port);
         }
 
-        /// <summary>
-        /// Creates an UDP socket
-        ///</summary>
-        /// <param name="udpPort">Port to listen to. </param>
-        /// <param name="broadcast">if port should be able to send broadcast packets</param>
-        /// <returns></returns>
-        public bool CreateUDPSocket(ref ushort udpPort, bool broadcast = false)
-        {
-            return mNetwork.CreateUDPSocket(ref udpPort, broadcast);
-        }
-
-        /// <summary>
-        /// Disconnect sockets from server
-        ///</summary>
+        /// <summary>Disconnect from server</summary>
         public void Disconnect()
         {
             mBroadcastSocketCreated = false;
             mNetwork.Disconnect();
         }
 
-        /// <summary>
-        /// Check if our TCP is connected
-        ///</summary>
+        /// <summary>Check if there is a tcp connection to the server available</summary>
         /// <returns>connection status of TCP socket </returns>
         public bool IsConnected()
         {
@@ -535,9 +516,7 @@ namespace QTMRealTimeSDK
         }
 
 
-        /// <summary>
-        /// Send discovery packet to network to find available QTM Servers.
-        ///</summary>
+        /// <summary>Send discovery packet to network to find available QTM Servers.</summary>
         /// <param name="replyPort">port for servers to reply.</param>
         /// <param name="discoverPort">port to send discovery packet.</param>
         /// <returns>true if discovery packet was sent successfully</returns>
@@ -595,9 +574,7 @@ namespace QTMRealTimeSDK
 
         #region get set functions
 
-        /// <summary>
-        /// Get protocol version used from QTM server
-        ///</summary>
+        /// <summary>Get protocol version used from QTM server</summary>
         /// <param name="majorVersion">Major version of protocol used</param>
         /// <param name="minorVersion">Minor version of protocol used</param>
         /// <returns>true if command and response was successful</returns>
@@ -618,9 +595,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Set what version QTM server should use
-        ///</summary>
+        /// <summary>Set what realtime server version QTM should provide</summary>
         /// <param name="majorVersion">Major version of protocol used</param>
         /// <param name="minorVersion">Minor version of protocol used</param>
         /// <returns>true if command was successful</returns>
@@ -637,13 +612,10 @@ namespace QTMRealTimeSDK
             {
                 return true;
             }
-
             return false;
         }
 
-        /// <summary>
-        /// Ask QTM server what version is used.
-        ///</summary>
+        /// <summary>Ask QTM server what version is used.</summary>
         /// <param name="version">what version server uses</param>
         /// <returns>true if command was sent successfully</returns>
         public bool GetQTMVersion(out string version)
@@ -658,9 +630,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Check license towards QTM Server
-        ///</summary>
+        /// <summary>Check license towards QTM Server</summary>
         /// <param name="licenseCode">license code to check</param>
         /// <returns>true if command was successfully sent AND License passed, otherwise false</returns>
         public bool CheckLicense(string licenseCode)
@@ -676,25 +646,22 @@ namespace QTMRealTimeSDK
             return false;
         }
 
+        /// <summary>Stream all frames from QTM server</summary>
+        /// <returns>true if streaming started ok</returns>
         public bool StreamAllFrames(ComponentType component, int port = -1, string ipAddress = "")
         {
             return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
         }
 
-        /// <summary>
-        /// Stream frames from QTM server
-        ///</summary>
+        /// <summary>Stream frames from QTM server</summary>
         /// <param name="streamRate">what rate server should stream at</param>
         /// <param name="streamValue">related to streamrate, not used if all frames are streamed</param>
         /// <param name="streamAllComponents">If all component types should be streamed</param>
         /// <param name="components">List of all component types deisred to stream</param>
         /// <param name="port">if set, streaming will be done by UDP on this port. Has to be set if ip address is specified</param>
-        /// <param name="ipAddress">if UDP streaming should occur to other ip address,
-        /// if not set streaming occurs on same ip as command came from</param>
-        /// <returns></returns>
-        public bool StreamFrames(StreamRate streamRate, int streamValue,
-                                List<ComponentType> components = null,
-                                int port = -1, string ipAddress = "")
+        /// <param name="ipAddress">if UDP streaming should occur to other ip address, if not set streaming occurs on same ip as command came from</param>
+        /// <returns>true if streaming started ok</returns>
+        public bool StreamFrames(StreamRate streamRate, int streamValue, List<ComponentType> components = null, int port = -1, string ipAddress = "")
         {
             string command = "streamframes";
 
@@ -741,18 +708,14 @@ namespace QTMRealTimeSDK
             return StreamFrames(streamRate, streamValue, list, port, ipaddress);
         }
 
-        /// <summary>
-        /// Tell QTM Server to stop streaming frames
-        ///</summary>
+        /// <summary>Tell QTM Server to stop streaming frames</summary>
         /// <returns>true if command was sent successfully</returns>
         public bool StreamFramesStop()
         {
             return SendString("StreamFrames Stop", PacketType.PacketCommand);
         }
 
-        /// <summary>
-        /// Get latest event from QTM server
-        ///</summary>
+        /// <summary>Get latest event from QTM server</summary>
         /// <param name="respondedEvent">even from qtm</param>
         /// <returns>true if command was sent successfully</returns>
         public bool GetState(out QTMEvent respondedEvent)
@@ -776,9 +739,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Send trigger to QTM server
-        ///</summary>
+        /// <summary>Send trigger to QTM server</summary>
         /// <returns>True if command and trigger was received successfully</returns>
         public bool SendTrigger()
         {
@@ -793,9 +754,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Set an event in QTM.
-        ///</summary>
+        /// <summary>Set an event in QTM</summary>
         /// <param name="label">label of event</param>
         /// <returns>true if event was set successfully</returns>
         public bool SetQTMEvent(string label)
@@ -811,9 +770,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Take control over QTM
-        ///</summary>
+        /// <summary>Take control over QTM</summary>
         /// <param name="password">Password set in client</param>
         /// <returns>True if you become the master</returns>
         public bool TakeControl(string password = "")
@@ -834,9 +791,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Release master control over QTM
-        ///</summary>
+        /// <summary>Release master control over QTM</summary>
         /// <returns>true if control was released or if client already is a regular client</returns>
         public bool ReleaseControl()
         {
@@ -851,11 +806,8 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Create a new measurement in QTM, connect to the cameras and enter RT (preview) mode.
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
-        /// <returns></returns>
+        /// <summary>Create a new measurement in QTM, connect to the cameras and enter RT (preview) mode. Needs to have control over QTM for this command to work</summary>
+        /// <returns>true if succeeded</returns>
         public bool NewMeasurement()
         {
             string response;
@@ -874,10 +826,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Close the current measurement in QTM.
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Close the current measurement in QTM. Needs to have control over QTM for this command to work</summary>
         /// <returns>Returns true if measurement was closed or if there was nothing to close</returns>
         public bool CloseMeasurement()
         {
@@ -894,10 +843,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Start capture in QTM.
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Start capture in QTM. Needs to have control over QTM for this command to work</summary>
         /// <returns>true if measurement was started</returns>
         public bool StartCapture(bool RTFromFile = false)
         {
@@ -913,10 +859,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Stop current measurement in QTM.
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Stop current measurement in QTM. Needs to have control over QTM for this command to work</summary>
         /// <returns>true if measurement was stopped</returns>
         public bool StopCapture()
         {
@@ -931,13 +874,10 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Load capture at path filename, both relative and absolute path works
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Load file, both relative and absolute path works. Needs to have control over QTM for this command to work</summary>
         /// <param name="filename">filename to load</param>
         /// <returns>true if measurement was loaded</returns>
-        public bool LoadCapture(string filename)
+        public bool LoadFile(string filename)
         {
             string response;
             if (SendCommandExpectCommandResponse("Load " + filename, out response))
@@ -950,15 +890,12 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Save capture with filename.
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Save current capture. Needs to have control over QTM for this command to work</summary>
         /// <param name="filename">filename to save at.</param>
         /// <param name="overwrite">if QTM is allowed to override existing files.</param>
         /// <param name="newFilename">if QTM is not allowed to overwrite, the new filename will be sent back </param>
         /// <returns>true if measurement was saved.</returns>
-        public bool SaveCapture(string filename, bool overwrite, ref string newFilename)
+        public bool SaveFile(string filename, bool overwrite, ref string newFilename)
         {
             string command = "Save " + filename;
             if (overwrite)
@@ -982,10 +919,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// load project at path
-        /// Needs to have control over QTM for this command to work
-        ///</summary>
+        /// <summary>Load project. Needs to have control over QTM for this command to work</summary>
         /// <param name="projectPath">path to project to load</param>
         /// <returns>true if project was loaded</returns>
         public bool LoadProject(string projectPath)
@@ -1001,115 +935,73 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Get general settings from QTM Server and saves data in protocol
-        ///</summary>
+        /// <summary>Get general settings from QTM Server and saves data in protocol</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetGeneralSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters general", out xml))
-            {
-                mGeneralSettings = ReadSettings<SettingsGeneral>("General", xml);
-                if (mGeneralSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("General", "General", out mGeneralSettings);
         }
 
-        /// <summary>
-        /// Get 3D settings from QTM Server
-        ///</summary>
+        /// <summary>Get 3D settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get3dSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters 3D", out xml))
-            {
-                m3DSettings = ReadSettings<Settings3D>("The_3D", xml);
-                if (m3DSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("3D", "The_3D", out m3DSettings);
         }
 
-        /// <summary>
-        /// Get 6DOF settings from QTM Server
-        ///</summary>
+        /// <summary>Get 6DOF settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get6dSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters 6D", out xml))
-            {
-                m6DOFSettings = ReadSettings<Settings6D>("The_6D", xml);
-                if (m6DOFSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("6D", "The_6D", out m6DOFSettings);
         }
 
-        /// <summary>
-        /// Get Analog settings from QTM Server
-        ///</summary>
+        /// <summary>Get Analog settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetAnalogSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters Analog", out xml))
-            {
-                mAnalogSettings = ReadSettings<SettingsAnalog>("Analog", xml);
-                if (mAnalogSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("Analog", "Analog", out mAnalogSettings);
         }
 
-        /// <summary>
-        /// Get Force settings from QTM Server
-        ///</summary>
+        /// <summary>Get Force settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetForceSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters force", out xml))
-            {
-                mForceSettings = ReadSettings<SettingsForce>("Force", xml);
-                if (mForceSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("Force", "Force", out mForceSettings);
         }
 
-        /// <summary>
-        /// Get Image settings from QTM Server
-        ///</summary>
+        /// <summary>Get Image settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetImageSettings()
         {
-            string xml;
-            if (SendCommandExpectXMLResponse("GetParameters Image", out xml))
-            {
-                mImageSettings = ReadSettings<SettingsImage>("Image", xml);
-                if (mImageSettings != null)
-                    return true;
-            }
-            return false;
+            return GetSettings("Image", "Image", out mImageSettings);
         }
 
-        /// <summary>
-        /// Get Gaze vector settings from QTM Server
-        ///</summary>
+        /// <summary>Get Gaze vector settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetGazeVectorSettings()
         {
+            return GetSettings("GazeVector", "Gaze_Vector", out mGazeVectorSettings);
+        }
+
+        internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject)
+        {
             string xml;
-            if (SendCommandExpectXMLResponse("GetParameters GazeVector", out xml))
+            if (SendCommandExpectXMLResponse("GetParameters " + settingsName, out xml))
             {
-                mGazeVectorSettings = ReadSettings<SettingsGazeVector>("Gaze_Vector", xml);
-                if (mGazeVectorSettings != null)
+                string error;
+                settingObject = ReadSettings<TSettings>(settingXmlName, xml, out error);
+                if (settingObject != null)
+                {
                     return true;
+                }
+                else
+                {
+                    mErrorString = error;
+                }
+
             }
+            settingObject = default(TSettings);
             return false;
         }
 
@@ -1121,25 +1013,31 @@ namespace QTMRealTimeSDK
             return xmldata.Replace("True", "true").Replace("False", "false").Replace("None", "-1").Replace(",", ".");
         }
 
-        internal static TSettings ReadSettings<TSettings>(string name, string xmldata)
+        internal static TSettings ReadSettings<TSettings>(string name, string xmldata, out string error)
         {
             xmldata = ReplaceBadXMLCharacters(xmldata);
 
             XmlSerializer serializer = new XmlSerializer(typeof(TSettings));
             MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(xmldata));
 
+            error = string.Empty;
             XmlReader xmlReader = null;
-            TSettings settings;
+            TSettings settings = default(TSettings);
             try
             {
                 xmlReader = XmlReader.Create(ms);
-                xmlReader.ReadToDescendant(name);
-                var subtree = xmlReader.ReadSubtree();
-                settings = (TSettings)serializer.Deserialize(subtree);
+                if (xmlReader.ReadToDescendant(name))
+                {
+                    settings = (TSettings)serializer.Deserialize(xmlReader.ReadSubtree());
+                }
+                else
+                {
+                    error = string.Format("Could not find '{0}' descendent in the given xml data {1}", name, xmldata);
+                }
             }
             catch (Exception e)
             {
-                settings = default(TSettings);
+                error = e.Message;
             }
             if (xmlReader != null)
             {
@@ -1151,17 +1049,15 @@ namespace QTMRealTimeSDK
 
         #region Generic communication methods
 
-        /// <summary>
-        /// Send string to QTM server
-        ///</summary>
-        /// <param name="strtoSend">string with data to send</param>
+        /// <summary>Send string to QTM server</summary>
+        /// <param name="stringToSend">string with data to send</param>
         /// <param name="packetType">what type of packet it should be sent as</param>
         /// <returns>true if string was sent successfully</returns>
-        internal bool SendString(string strtoSend, PacketType packetType)
+        internal bool SendString(string stringToSend, PacketType packetType)
         {
             if (mNetwork.IsConnected())
             {
-                byte[] str = Encoding.ASCII.GetBytes(strtoSend);
+                byte[] str = Encoding.ASCII.GetBytes(stringToSend);
                 byte[] size = BitConverter.GetBytes(str.Length + Constants.PACKET_HEADER_SIZE);
                 byte[] cmd = BitConverter.GetBytes((int)packetType);
 
@@ -1178,6 +1074,10 @@ namespace QTMRealTimeSDK
             return false;
         }
 
+        /// <summary>Send command QTM server and expect a XML response packet</summary>
+        /// <param name="command">Command to send</param>
+        /// <param name="xml">Returned xml data string</param>
+        /// <returns>true if command was sent successfully</returns>
         public bool SendCommandExpectXMLResponse(string command, out string xml)
         {
             if (SendString(command, PacketType.PacketCommand))
@@ -1206,10 +1106,8 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Send command to QTM server that TCP socket is connected to
-        ///</summary>
-        /// <param name="command">command to send</param>
+        /// <summary>Send command to QTM server and get a command response</summary>
+        /// <param name="command">Command to send</param>
         /// <returns>true if server does not reply with error packet</returns>
         public bool SendCommandExpectCommandResponse(string command, out string response)
         {
@@ -1235,9 +1133,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        /// <summary>
-        /// Send XML data to QTM server
-        ///</summary>
+        /// <summary>Send XML data to QTM server</summary>
         /// <param name="xmlString">string with XML data to send</param>
         /// <returns>true if xml was sent successfully</returns>
         public bool SendXML(string xmlString)
@@ -1264,18 +1160,14 @@ namespace QTMRealTimeSDK
 
         #endregion
 
-        /// <summary>
-        /// Error reported by protocol or from server packet
-        ///</summary>
+        /// <summary>Get last error reported by protocol or from data packet</summary>
         /// <returns>Error message</returns>
         public string GetErrorString()
         {
             return mErrorString;
         }
 
-        /// <summary>
-        /// Builds string for components when using streamframes function
-        ///</summary>
+        /// <summary>Builds string for components when using streamframes function</summary>
         /// <param name="componentTypes">component types to stream</param>
         /// <returns>string with protocol names of components</returns>
         private string BuildStreamString(List<ComponentType> componentTypes)
@@ -1349,6 +1241,8 @@ namespace QTMRealTimeSDK
             return command;
         }
 
+        #region disposing
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposed)
@@ -1374,5 +1268,7 @@ namespace QTMRealTimeSDK
         {
             Dispose(false);
         }
+
+        #endregion
     }
 }
