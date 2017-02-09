@@ -126,7 +126,7 @@ namespace QTMRealTimeSDK
         }
 
         /// <summary>
-        /// Convert bytes at position to a sPoint (3 float values)
+        /// Convert bytes at position to a Point (3 float values)
         /// </summary>
         /// <param name="data">Data packet</param>
         /// <param name="position">position to convert, will be increased with the size of three floats in bytes</param>
@@ -144,7 +144,7 @@ namespace QTMRealTimeSDK
         }
 
         /// <summary>
-        /// Convert bytes at position to a sPoint (3 float values)
+        /// Convert bytes at position to a Point (3 float values)
         /// </summary>
         /// <param name="data">Data packet</param>
         /// <param name="rotation">rotation to convert, will be increased with the size of three floats in bytes</param>
