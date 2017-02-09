@@ -145,69 +145,73 @@ namespace QTMRealTimeSDK.Network
 
         internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header = false, int timeout = 500000)
         {
-            List<Socket> receiveList = new List<Socket>();
-            List<Socket> errorList = new List<Socket>();
+            try
+            {
 
-            if (mTCPClient != null)
-            {
-                receiveList.Add(mTCPClient.Client);
-                errorList.Add(mTCPClient.Client);
-            }
+                List<Socket> receiveList = new List<Socket>();
+                List<Socket> errorList = new List<Socket>();
 
-            if (mUDPClient != null)
-            {
-                receiveList.Add(mUDPClient.Client);
-                errorList.Add(mUDPClient.Client);
-            }
+                if (mTCPClient != null)
+                {
+                    receiveList.Add(mTCPClient.Client);
+                    errorList.Add(mTCPClient.Client);
+                }
 
-            if (mUDPBroadcastClient != null)
-            {
-                receiveList.Add(mUDPBroadcastClient.Client);
-                errorList.Add(mUDPBroadcastClient.Client);
-            }
+                if (mUDPClient != null)
+                {
+                    receiveList.Add(mUDPClient.Client);
+                    errorList.Add(mUDPClient.Client);
+                }
 
-            if (receiveList.Count == 0)
-            {
-                receivebuffer = null;
-                return 0;
-            }
+                if (mUDPBroadcastClient != null)
+                {
+                    receiveList.Add(mUDPBroadcastClient.Client);
+                    errorList.Add(mUDPBroadcastClient.Client);
+                }
 
-            Socket.Select(receiveList, null, errorList, timeout);
+                if (receiveList.Count == 0)
+                {
+                    receivebuffer = null;
+                    return 0;
+                }
 
-            if (mTCPClient != null && errorList.Contains(mTCPClient.Client))
-            {
-                // Error from TCP socket
-                mErrorString = "Error reading from TCP socket";
+                Socket.Select(receiveList, null, errorList, timeout);
+
+                if (mTCPClient != null && errorList.Contains(mTCPClient.Client))
+                {
+                    // Error from TCP socket
+                    mErrorString = "Error reading from TCP socket";
+                }
+                else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
+                {
+                    // Receive data from TCP socket
+                    return mTCPClient.Client.Receive(receivebuffer, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
+                }
+                else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
+                {
+                    // Error from UDP socket
+                    mErrorString = "Error reading from UDP socket";
+                }
+                else if (mUDPClient != null && receiveList.Contains(mUDPClient.Client))
+                {
+                    // Receive data from UDP socket
+                    return mUDPClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
+                }
+                else if (mUDPBroadcastClient != null && errorList.Contains(mUDPBroadcastClient.Client))
+                {
+                    // Error from broadcast socket
+                    mErrorString = "Error reading from Broadcast UDP socket";
+                }
+                else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
+                {
+                    // Receive data from broadcast socket
+                    return mUDPBroadcastClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
+                }
             }
-            else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
+            catch (SocketException exception)
             {
-                // Receive data from TCP socket
-                return mTCPClient.Client.Receive(receivebuffer, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
-            }
-            else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
-            {
-                // Error from UDP socket
-                mErrorString = "Error reading from UDP socket";
-            }
-            else if (mUDPClient != null && receiveList.Contains(mUDPClient.Client))
-            {
-                // Receive data from UDP socket
-                return mUDPClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
-            }
-            else if (mUDPBroadcastClient != null && errorList.Contains(mUDPBroadcastClient.Client))
-            {
-                // Error from broadcast socket
-                mErrorString = "Error reading from Broadcast UDP socket";
-            }
-            else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
-            {
-                // Receive data from broadcast socket
-                return mUDPBroadcastClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
-            }
-            else
-            {
-                // General error
-                return -1;
+                // Ignore and return
+                mErrorString = exception.Message;
             }
             return -1;
         }
