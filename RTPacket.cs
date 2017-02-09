@@ -1,13 +1,12 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2017 Qualisys AB
 //
 using System;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Text.RegularExpressions;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
 namespace QTMRealTimeSDK.Data
 {

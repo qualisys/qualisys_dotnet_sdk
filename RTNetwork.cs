@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2016 Qualisys AB
+﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2017 Qualisys AB
 //
 using System.Net;
 using System.Net.Sockets;
