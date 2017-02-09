@@ -103,10 +103,36 @@ namespace QTMRealTimeSDK.Settings
     [XmlRoot("The_6D")]
     public class Settings6D
     {
+        public Settings6D()
+        {
+            eulerNames = new EulerNames();
+        }
+
         [XmlElement("Bodies")]
         public int bodyCount;
         [XmlElement("Body")]
         public List<Settings6DOF> bodies;
+        [XmlElement("Euler")]
+        public EulerNames eulerNames;
+    }
+
+    [XmlRoot("Euler")]
+    public class EulerNames
+    {
+        public EulerNames()
+        {
+            First = "Roll";
+            Second = "Pitch";
+            Third = "Yaw";
+        }
+
+        [XmlElement("First"), ]
+        public string First;
+        [XmlElement("Second")]
+        public string Second;
+        [XmlElement("Third")]
+        public string Third;
+
     }
 
     /// <summary>Analog Settings from QTM</summary>
