@@ -677,13 +677,13 @@ namespace QTMRealTimeSDK
             switch (streamRate)
             {
                 case StreamRate.RateAllFrames:
-                    command += " allFrames";
+                    command += " allframes";
                     break;
                 case StreamRate.RateFrequency:
-                    command += " Frequency:" + streamValue;
+                    command += " frequency:" + streamValue;
                     break;
                 case StreamRate.RateFrequencyDivisor:
-                    command += " FrequencyDivisor:" + streamValue;
+                    command += " frequencydivisor:" + streamValue;
                     break;
             }
 
@@ -691,7 +691,7 @@ namespace QTMRealTimeSDK
             {
                 if (port > 0)
                 {
-                    command += " UDP:" + ipAddress + ":" + port;
+                    command += " udp:" + ipAddress + ":" + port;
                 }
                 else
                 {
@@ -701,7 +701,7 @@ namespace QTMRealTimeSDK
             }
             else if (port > 0)
             {
-                command += " UDP:" + port;
+                command += " udp:" + port;
             }
 
             command += BuildStreamString(components);
