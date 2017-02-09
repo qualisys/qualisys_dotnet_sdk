@@ -63,6 +63,8 @@ namespace QTMRealTimeSDK
         ModelMiqusM5,
         [XmlEnum("Miqus Sync Unit")]
         ModelMiqusSU,
+        [XmlEnum("Miqus Video")]
+        ModelMiqusVideo,
     }
 
     /// <summary>Camera modes</summary>
@@ -74,32 +76,6 @@ namespace QTMRealTimeSDK
         ModeMarkerIntensity,
         [XmlEnum("Video")]
         ModeVideo
-    }
-
-    public enum VideoMode
-    {
-        [XmlEnum("Custom")]
-        VideoModeCustom = 0,
-        [XmlEnum("1080p_24hz")]
-        VideoMode1080p_24hz,
-        [XmlEnum("720p_25hz")]
-        VideoMode720p_25hz,
-        [XmlEnum("720p_50hz")]
-        VideoMode720p_50hz,
-        [XmlEnum("540p_25hz")]
-        VideoMode540p_25hz,
-        [XmlEnum("540p_50hz")]
-        VideoMode540p_50hz,
-        [XmlEnum("540p_60hz")]
-        VideoMode540p_60hz,
-        [XmlEnum("480p_25hz")]
-        VideoMode480p_25hz,
-        [XmlEnum("480p_50hz")]
-        VideoMode480p_50hz,
-        [XmlEnum("480p_60hz")]
-        VideoMode480p_60hz,
-        [XmlEnum("480p_120hz")]
-        VideoMode480p_120hz,
     }
 
     /// <summary>Sync out modes</summary>

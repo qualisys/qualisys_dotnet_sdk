@@ -199,10 +199,7 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Camera mode the camera is set to</summary>
         [XmlElement("Mode")]
         public CameraMode Mode;
-        /// <summary>Values for camera video mode, current, min and max</summary>
-        [XmlElement("Video_Mode")]
-        public VideoMode VideoMode;
-        /// <summary>Values for camera video mode, current, min and max</summary>
+       /// <summary>Values for camera video mode, current, min and max</summary>
         [XmlElement("Video_Frequency")]
         public int VideoFrequency;
         /// <summary>Values for camera video exposure, current, min and max</summary>
