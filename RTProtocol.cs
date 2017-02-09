@@ -416,6 +416,15 @@ namespace QTMRealTimeSDK
         {
             mBroadcastSocketCreated = false;
             mNetwork.Disconnect();
+
+            m3DSettings = null;
+            m6DOFSettings = null;
+            mAnalogSettings = null;
+            mDiscoveryResponses.Clear();
+            mForceSettings = null;
+            mGazeVectorSettings = null;
+            mGeneralSettings = null;
+            mImageSettings = null;
         }
 
         /// <summary>Check if there is a tcp connection to the server available</summary>
