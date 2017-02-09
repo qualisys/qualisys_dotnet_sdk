@@ -103,7 +103,7 @@ namespace RTSDKExample
                             rtProtocol.GetRTPacket().Frame,
                             bodySetting.Name,
                             sixDofBody.Position.X, sixDofBody.Position.Y, sixDofBody.Position.Z,
-                            sixDofBody.Rotation.Roll, sixDofBody.Rotation.Pitch, sixDofBody.Rotation.Yaw,
+                            sixDofBody.Rotation.First, sixDofBody.Rotation.Second, sixDofBody.Rotation.Third,
                             sixDofBody.Residual);
                     }
                 }
