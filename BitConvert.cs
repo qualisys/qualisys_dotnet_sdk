@@ -154,9 +154,9 @@ namespace QTMRealTimeSDK
             EulerRotation rotation;
             byte[] pointData = new byte[sizeof(float) * 3];
             Array.Copy(data, position, pointData, 0, sizeof(float) * 3);
-            rotation.Roll = BitConverter.ToSingle(pointData, 0);
-            rotation.Pitch = BitConverter.ToSingle(pointData, 4);
-            rotation.Yaw = BitConverter.ToSingle(pointData, 8);
+            rotation.First = BitConverter.ToSingle(pointData, 0);
+            rotation.Second = BitConverter.ToSingle(pointData, 4);
+            rotation.Third = BitConverter.ToSingle(pointData, 8);
             position += sizeof(float) * 3;
             return rotation;
         }

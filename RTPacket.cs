@@ -117,12 +117,9 @@ namespace QTMRealTimeSDK.Data
     /// <summary>Struct for RPY coordinates</summary>
     public struct EulerRotation
     {
-        [XmlElement("X")]
-        public float Roll;
-        [XmlElement("Y")]
-        public float Pitch;
-        [XmlElement("Z")]
-        public float Yaw;
+        public float First;
+        public float Second;
+        public float Third;
     }
     /// <summary>Data from a force plate, includes samples</summary>
 	public struct ForcePlate
