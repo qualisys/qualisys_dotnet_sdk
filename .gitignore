@@ -16,3 +16,6 @@
 /obj/Release
 /RTClientSDK.Net.Example/bin
 /RTClientSDK.Net.Example/obj
+/SixDofViewer/.vs/SixDofViewer/v14/.suo
+/SixDofViewer/SixDofViewer/bin
+/SixDofViewer/SixDofViewer/obj
