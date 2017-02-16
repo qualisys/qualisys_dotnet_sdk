@@ -143,11 +143,47 @@ namespace QTMRealTimeSDK.Network
             }
         }
 
-        internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header = false, int timeout = 500000)
+        internal int ReceiveBroadcast(ref byte[] receivebuffer, int bufferSize, ref EndPoint remoteEP, int timeout)
+        {
+            if (mUDPBroadcastClient == null)
+                return -1;
+
+            try
+            {
+                List <Socket> receiveList = new List<Socket>();
+                List<Socket> errorList = new List<Socket>();
+
+                if (mUDPBroadcastClient != null)
+                {
+                    receiveList.Add(mUDPBroadcastClient.Client);
+                    errorList.Add(mUDPBroadcastClient.Client);
+                }
+
+                Socket.Select(receiveList, null, errorList, timeout);
+
+                if (mUDPBroadcastClient != null && errorList.Contains(mUDPBroadcastClient.Client))
+                {
+                    // Error from broadcast socket
+                    mErrorString = "Error reading from Broadcast UDP socket";
+                }
+                else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
+                {
+                    // Receive data from broadcast socket
+                    return mUDPBroadcastClient.Client.ReceiveFrom(receivebuffer, bufferSize, SocketFlags.None, ref remoteEP);
+                }
+            }
+            catch (SocketException exception)
+            {
+                // Ignore and return
+                mErrorString = exception.Message;
+            }
+            return -1;
+        }
+
+        internal int Receive(ref byte[] receivebuffer, int bufferSize, bool header, int timeout)
         {
             try
             {
-
                 List<Socket> receiveList = new List<Socket>();
                 List<Socket> errorList = new List<Socket>();
 
@@ -161,12 +197,6 @@ namespace QTMRealTimeSDK.Network
                 {
                     receiveList.Add(mUDPClient.Client);
                     errorList.Add(mUDPClient.Client);
-                }
-
-                if (mUDPBroadcastClient != null)
-                {
-                    receiveList.Add(mUDPBroadcastClient.Client);
-                    errorList.Add(mUDPBroadcastClient.Client);
                 }
 
                 if (receiveList.Count == 0)
@@ -196,16 +226,6 @@ namespace QTMRealTimeSDK.Network
                 {
                     // Receive data from UDP socket
                     return mUDPClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
-                }
-                else if (mUDPBroadcastClient != null && errorList.Contains(mUDPBroadcastClient.Client))
-                {
-                    // Error from broadcast socket
-                    mErrorString = "Error reading from Broadcast UDP socket";
-                }
-                else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
-                {
-                    // Receive data from broadcast socket
-                    return mUDPBroadcastClient.Client.Receive(receivebuffer, bufferSize, SocketFlags.None);
                 }
             }
             catch (SocketException exception)
@@ -256,45 +276,19 @@ namespace QTMRealTimeSDK.Network
             {
                 foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
                 {
-                    if (nic.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
-                        nic.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
+                    if (nic.OperationalStatus != OperationalStatus.Up)
                         continue;
+                    if (nic.NetworkInterfaceType != 0)
+                    {
+                        if (nic.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
+                            nic.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
+                        continue;
+                    }
                     foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
                     {
                         if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                         {
-                            IPAddress broadcastAddress = null;
-
-                            Type monoSpecificType = Type.GetType("Mono.Runtime") ?? Type.GetType("System.MonoType");
-                            bool runningOnMono = monoSpecificType != null;
-                            if (runningOnMono)
-                            {
-                                if (IPInfoTools.IsUnix)
-                                {
-                                    string mask = null;
-                                    try
-                                    {
-                                        mask = IPInfoTools.GetIPv4Mask(nic.Name, ip.Address);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.WriteLine("GetIPRangeInfoFromNetworkInterface failed: {0}", ex.Message);
-                                    }
-
-                                    if (mask == null || IPAddress.TryParse(mask, out broadcastAddress) == false)
-                                    {
-                                        broadcastAddress = IPAddress.Parse("255.255.255.0"); // default to this
-                                    }
-                                }
-                                else
-                                {
-                                    broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-                                }
-                            }
-                            else
-                            {
-                                broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-                            }
+                            var broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
                             if (broadcastAddress == null)
                                 continue;
 

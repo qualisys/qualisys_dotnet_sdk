@@ -6,6 +6,7 @@ using QTMRealTimeSDK.Settings;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -235,9 +236,30 @@ namespace QTMRealTimeSDK
         private int mMinorVersion;
         private string mErrorString;
 
+        /// <summary>Data with response from Discovery broadcast</summary>
+        public struct DiscoveryResponse
+        {
+            /// <summary>Hostname of server</summary>
+            public string HostName;
+            /// <summary>IP to server</summary>
+            public string IpAddress;
+            /// <summary>Base port</summary>
+            public short Port;
+            /// <summary>Info text about host</summary>
+            public string InfoText;
+            /// <summary>Number of cameras connected to server</summary>
+            public int CameraCount;
+        }
+
         private HashSet<DiscoveryResponse> mDiscoveryResponses;
         /// <summary>list of discovered QTM server possible to connect to</summary>
-        public HashSet<DiscoveryResponse> DiscoveryResponses { get { return mDiscoveryResponses; } }
+        public HashSet<DiscoveryResponse> DiscoveryResponses
+        {
+            get
+            {
+                return mDiscoveryResponses;
+            }
+        }
 
         /// <summary>
         /// Default constructor
@@ -534,15 +556,17 @@ namespace QTMRealTimeSDK
                 int received = 0;
                 do
                 {
-                    received = mNetwork.Receive(ref discoverBuffer, discoverBufferSize, false, 100000);
+                    EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
+                    received = mNetwork.ReceiveBroadcast(ref discoverBuffer, discoverBufferSize, ref remoteEP, 100000);
                     if (received != -1 && received > 8)
                     {
                         var packetType = RTPacket.GetPacketType(discoverBuffer);
                         if (packetType == PacketType.PacketCommand)
                         {
                             DiscoveryResponse response;
-                            if (RTPacket.GetDiscoverData(discoverBuffer, out response))
+                            if (GetDiscoverData(discoverBuffer, out response))
                             {
+                                response.IpAddress = (remoteEP as IPEndPoint).Address.ToString();
                                 mDiscoveryResponses.Add(response);
                             }
                         }
@@ -1223,6 +1247,45 @@ namespace QTMRealTimeSDK
             return command;
         }
 
+
+        /// <summary>
+        /// get all data from discovery packet
+        /// </summary>
+        /// <param name="discoveryResponse">data from packet</param>
+        /// <returns>true if </returns>
+        public static bool GetDiscoverData(byte[] data, out DiscoveryResponse discoveryResponse)
+        {
+            var packetSize = BitConverter.ToInt32(data, 0);
+            byte[] portData = new byte[2];
+            Array.Copy(data, packetSize - 2, portData, 0, 2);
+            Array.Reverse(portData);
+            discoveryResponse.Port = BitConverter.ToInt16(portData, 0);
+
+            byte[] stringData = new byte[packetSize - 10];
+            Array.Copy(data, 8, stringData, 0, packetSize - 10);
+            string stringFromByteData = System.Text.Encoding.Default.GetString(stringData);
+            string[] splittedData = stringFromByteData.Split(',');
+
+            discoveryResponse.HostName = splittedData[0].Trim();
+            discoveryResponse.InfoText = splittedData[1].Trim();
+
+            string camcount = splittedData[2].Trim();
+            Regex pattern = new Regex("\\d*");
+            Match camMatch = pattern.Match(camcount);
+
+            if (camMatch.Success)
+            {
+                camcount = camMatch.Groups[0].Value;
+                discoveryResponse.CameraCount = int.Parse(camcount);
+            }
+            else
+            {
+                discoveryResponse.CameraCount = -1;
+            }
+            discoveryResponse.IpAddress = null;
+            return true;
+        }
+
         #region disposing
 
         protected virtual void Dispose(bool disposing)
@@ -1253,4 +1316,5 @@ namespace QTMRealTimeSDK
 
         #endregion
     }
+
 }

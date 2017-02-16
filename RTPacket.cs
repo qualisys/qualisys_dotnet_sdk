@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
@@ -246,21 +244,6 @@ namespace QTMRealTimeSDK.Data
         public Point Position;
         /// <summary>Sample number</summary>
         public uint SampleNumber;
-    }
-
-    /// <summary>Data with response from Discovery broadcast</summary>
-    public struct DiscoveryResponse
-    {
-        /// <summary>Hostname of server</summary>
-        public string HostName;
-        /// <summary>IP to server</summary>
-        public string IpAddress;
-        /// <summary>Base port</summary>
-        public short Port;
-        /// <summary>Info text about host</summary>
-        public string InfoText;
-        /// <summary>Number of cameras connected to server</summary>
-        public int CameraCount;
     }
 
     #endregion
@@ -1236,61 +1219,6 @@ namespace QTMRealTimeSDK.Data
                 return (QTMEvent)mData[RTProtocol.Constants.PACKET_HEADER_SIZE];
             }
             return QTMEvent.EventNone;
-        }
-
-        /// <summary>
-        /// get all data from discovery packet
-        /// </summary>
-        /// <param name="discoveryResponse">data from packet</param>
-        /// <returns>true if </returns>
-        public static bool GetDiscoverData(byte[] data, out DiscoveryResponse discoveryResponse)
-        {
-            var packetSize = GetPacketSize(data);
-            byte[] portData = new byte[2];
-            Array.Copy(data, packetSize - 2, portData, 0, 2);
-            Array.Reverse(portData);
-            discoveryResponse.Port = BitConverter.ToInt16(portData, 0);
-
-            byte[] stringData = new byte[packetSize - 10];
-            Array.Copy(data, 8, stringData, 0, packetSize - 10);
-            string stringFromByteData = System.Text.Encoding.Default.GetString(stringData);
-            string[] splittedData = stringFromByteData.Split(',');
-
-            discoveryResponse.HostName = splittedData[0].Trim();
-            discoveryResponse.InfoText = splittedData[1].Trim();
-
-            string camcount = splittedData[2].Trim();
-            Regex pattern = new Regex("\\d*");
-            Match camMatch = pattern.Match(camcount);
-
-            if (camMatch.Success)
-            {
-                camcount = camMatch.Groups[0].Value;
-                discoveryResponse.CameraCount = int.Parse(camcount);
-            }
-            else
-            {
-                discoveryResponse.CameraCount = -1;
-            }
-            try
-            {
-                discoveryResponse.IpAddress = "";
-                IPAddress[] adresses = System.Net.Dns.GetHostAddresses(discoveryResponse.HostName);
-                foreach (IPAddress ip in adresses)
-                {
-                    if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        discoveryResponse.IpAddress = ip.ToString();
-                        break;
-                    }
-                }
-            }
-            catch
-            {
-                discoveryResponse.IpAddress = "";
-                return false;
-            }
-            return true;
         }
 
         #endregion
