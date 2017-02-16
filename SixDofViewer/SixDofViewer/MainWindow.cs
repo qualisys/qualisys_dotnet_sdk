@@ -1,4 +1,6 @@
-﻿using QTMRealTimeSDK;
+﻿// Realtime SDK Example for Qualisys Track Manager. Copyright 2017 Qualisys AB
+//
+using QTMRealTimeSDK;
 using QTMRealTimeSDK.Data;
 using QTMRealTimeSDK.Settings;
 using System;

@@ -43,11 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Example2d.cs" />
+    <Compile Include="Example3d.cs" />
+    <Compile Include="IExample.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="Example6d.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RTClientSDK.Net.csproj">

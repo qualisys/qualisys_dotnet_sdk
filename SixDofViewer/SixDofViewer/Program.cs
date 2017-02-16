@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Realtime SDK Example for Qualisys Track Manager. Copyright 2017 Qualisys AB
+//
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
