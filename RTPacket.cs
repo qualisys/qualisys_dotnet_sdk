@@ -82,6 +82,9 @@ namespace QTMRealTimeSDK.Data
         EventCameraSettingsChanged,
         EventQTMShuttingDown,
         EventCaptureSaved,
+        EventReserved1,
+        EventReserved2,
+        EventTrigger,
         EventNone
     }
 
