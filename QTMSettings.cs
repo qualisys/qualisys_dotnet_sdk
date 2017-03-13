@@ -170,12 +170,19 @@ namespace QTMRealTimeSDK.Settings
         public List<ImageCamera> cameraList;
     }
 
-    /// <summary>Gaze vector Settings from QTM</summary>
+    /// <summary> Gaze vector name from QTM. </summary>
+    public class GazeVectorName
+    {
+        [XmlElement("Name")]
+        public string name;
+    }
+
+    /// <summary> Gaze vector Settings from QTM. </summary>
     [XmlRoot("Gaze_Vector")]
     public class SettingsGazeVector
     {
-        [XmlElement("Name")]
-        public string Name;
+        [XmlElement("Vector")]
+        public List<GazeVectorName> gazeVectorList;
     }
 
     /// <summary>General settings for Camera System</summary>
