@@ -224,9 +224,9 @@ namespace QTMRealTimeSDK
         /// <summary>Image settings from QTM</summary>
         public SettingsImage ImageSettings { get { return mImageSettings; } }
 
-        private SettingsGazeVector mGazeVectorSettings;
+        private SettingsGazeVectors mGazeVectorSettings;
         /// <summary>Gaze vector settings from QTM</summary>
-        public SettingsGazeVector GazeVectorSettings { get { return mGazeVectorSettings; } }
+        public SettingsGazeVectors GazeVectorSettings { get { return mGazeVectorSettings; } }
 
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
