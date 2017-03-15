@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Example2d.cs" />
     <Compile Include="Example3d.cs" />
+    <Compile Include="ExampleGaze.cs" />
     <Compile Include="IExample.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

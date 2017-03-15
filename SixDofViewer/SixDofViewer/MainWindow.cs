@@ -86,9 +86,9 @@ namespace SixDofViewer
 
                 if (sixDofBodyNameToUse.Length > 0)
                 {
-                    for (int bodyIndex = 0; bodyIndex < rtProtocol.Settings6DOF.bodyCount; bodyIndex++)
+                    for (int bodyIndex = 0; bodyIndex < rtProtocol.Settings6DOF.BodyCount; bodyIndex++)
                     {
-                        if (string.Equals(rtProtocol.Settings6DOF.bodies[bodyIndex].Name, sixDofBodyNameToUse, StringComparison.OrdinalIgnoreCase))
+                        if (string.Equals(rtProtocol.Settings6DOF.Bodies[bodyIndex].Name, sixDofBodyNameToUse, StringComparison.OrdinalIgnoreCase))
                         {
                             bodyIndexToUse = bodyIndex;
                             break;
@@ -97,14 +97,14 @@ namespace SixDofViewer
                 }
                 else
                 {
-                    if (rtProtocol.Settings6DOF.bodyCount > 0)
+                    if (rtProtocol.Settings6DOF.BodyCount > 0)
                     {
-                        sixDofBodyNameToUse = rtProtocol.Settings6DOF.bodies[0].Name;
+                        sixDofBodyNameToUse = rtProtocol.Settings6DOF.Bodies[0].Name;
                         bodyIndexToUse = 0;
                     }
                 }
 
-                eulerNames = rtProtocol.Settings6DOF.eulerNames;
+                eulerNames = rtProtocol.Settings6DOF.EulerNames;
 
                 // Start streaming 6dof euler residual data at 10Hz frequency
                 rtProtocol.StreamFrames(StreamRate.RateFrequency, 10, QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual);

@@ -38,9 +38,9 @@ namespace RTClientSDK.Net.Example
                 }
                 Console.WriteLine("QTM: Marker settings available");
 
-                foreach (var identifiedMarkers in mRtProtocol.Settings3D.labels3D)
+                foreach (var identifiedMarkerLabel in mRtProtocol.Settings3D.Labels)
                 {
-                    Console.WriteLine("{0}", identifiedMarkers.Name);
+                    Console.WriteLine("{0}", identifiedMarkerLabel.Name);
                 }
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component3dResidual);

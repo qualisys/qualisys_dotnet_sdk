@@ -15,9 +15,10 @@ namespace RTClientSDK.Net.Example
             RTProtocol mRtProtocol = new RTProtocol();
             string mIpAddress = "127.0.0.1";
 
-            Example example = new Example3D(mRtProtocol, mIpAddress);
+            //Example example = new Example3D(mRtProtocol, mIpAddress);
             //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
+            Example example = new ExampleGaze(mRtProtocol, mIpAddress);
             MainExample mainExample = new MainExample(example, mRtProtocol, mIpAddress);
             mainExample.DiscoverQTMServers(4545);
             Console.WriteLine("Press key to continue");

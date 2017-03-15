@@ -56,7 +56,7 @@ namespace RTClientSDK.Net.Example
                     for (int body = 0; body < sixDofData.Count; body++)
                     {
                         var sixDofBody = sixDofData[body];
-                        var bodySetting = mRtProtocol.Settings6DOF.bodies[body];
+                        var bodySetting = mRtProtocol.Settings6DOF.Bodies[body];
                         Console.WriteLine("Frame:{0:D5} Body:{1,20} X:{2,7:F1} Y:{3,7:F1} Z:{4,7:F1} First Angle:{5,7:F1} Second Angle:{6,7:F1} Third Angle:{7,7:F1} Residual:{8,7:F1}",
                             mRtProtocol.GetRTPacket().Frame,
                             bodySetting.Name,
