@@ -250,9 +250,32 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Sync out settings for Miqus Sync Unit Measurement Time (MT)</summary>
         [XmlElement("Sync_Out_MT")]
         public SettingsSyncOut SyncOutMT;
+        /// <summary>Lens Control settings for camera equipped with motorized lens</summary>
+        [XmlElement("LensControl")]
+        public SettingsLensControl LensControl;
     }
 
-    /// <summary>settings regarding sync for Camera</summary>
+    /// <summary>Settings regarding Lens Control for Camera equipped with motorized lens</summary>
+    public struct SettingsLensControl
+    {
+        [XmlElement("Focus")]
+        public SettingsLensControlValues Focus;
+        [XmlElement("Aperture")]
+        public SettingsLensControlValues Aperture;
+    }
+
+    /// <summary>Settings for Lens Control Focus</summary>
+    public struct SettingsLensControlValues
+    {
+        [XmlAttribute("Value")]
+        public float Value;
+        [XmlAttribute("Min")]
+        public float Min;
+        [XmlAttribute("Max")]
+        public float Max;
+    }
+
+    /// <summary>Settings regarding sync for Camera</summary>
     public struct SettingsSyncOut
     {
         /// <summary>Sync mode for camera</summary>
@@ -338,7 +361,7 @@ namespace QTMRealTimeSDK.Settings
         public int Bottom;
     }
 
-    /// <summary>settings for Camera values (min,max and current)</summary>
+    /// <summary>Settings for Camera values (min,max and current)</summary>
     public struct CameraSetting
     {
         /// <summary>Current value</summary>
@@ -417,7 +440,7 @@ namespace QTMRealTimeSDK.Settings
         public float NonPeriodicTimeout;
     }
 
-    /// <summary>settings for 6DOF bodies</summary>
+    /// <summary>Settings for 6DOF bodies</summary>
     public struct Settings6DOF
     {
         /// <summary>Name of 6DOF body</summary>
@@ -465,7 +488,7 @@ namespace QTMRealTimeSDK.Settings
         public float Max;
     }
 
-    /// <summary>settings for Analog channel</summary>
+    /// <summary>Settings for Analog channel</summary>
     public struct AnalogChannelInfo
     {
         /// <summary>Channel label</summary>
@@ -638,7 +661,7 @@ namespace QTMRealTimeSDK.Settings
         public float CropBottom;
     }
 
-    /// <summary>settings for labeled marker</summary>
+    /// <summary>Settings for labeled marker</summary>
     public struct Settings3DLabel
     {
         /// <summary>Name of marker</summary>
