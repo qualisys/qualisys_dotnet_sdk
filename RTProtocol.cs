@@ -101,11 +101,11 @@ namespace QTMRealTimeSDK
     {
         [XmlEnum("Control port")]
         SourceControlPort = 0,
-        [XmlEnum("IR_receiver")]
+        [XmlEnum("IR receiver")]
         SourceIRReceiver,
         [XmlEnum("SMPTE")]
         SourceSMPTE,
-        [XmlEnum("Video_sync")]
+        [XmlEnum("Video sync")]
         SourceVideoSync
     }
 
