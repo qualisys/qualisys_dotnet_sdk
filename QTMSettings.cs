@@ -7,9 +7,15 @@ using QTMRealTimeSDK.Data;
 
 namespace QTMRealTimeSDK.Settings
 {
+    public class SettingsBase
+    {
+        [XmlIgnore]
+        public string Xml;
+    }
+
     /// <summary>General Settings from QTM</summary>
     [XmlRoot("General")]
-    public class SettingsGeneral
+    public class SettingsGeneral : SettingsBase
     {
         /// <summary>QTM Capture frequency </summary>
         [XmlElement("Frequency")]
@@ -57,7 +63,7 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>3D Bone Settings from QTM</summary>
-    public class SettingsBone
+    public class SettingsBone : SettingsBase
     {
         /// <summary>name of marker bone starts from </summary>
         [XmlAttribute("From")]
@@ -79,7 +85,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>3D Settings from QTM</summary>
     [XmlRoot("The_3D")]
-    public class Settings3D
+    public class Settings3D : SettingsBase
     {
         [XmlElement("AxisUpwards")]
         public Axis AxisUpwards;
@@ -101,7 +107,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>6D Settings from QTM</summary>
     [XmlRoot("The_6D")]
-    public class Settings6D
+    public class Settings6D : SettingsBase
     {
         public Settings6D()
         {
@@ -137,7 +143,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>Analog Settings from QTM</summary>
     [XmlRoot("Analog")]
-    public class SettingsAnalog
+    public class SettingsAnalog : SettingsBase
     {
         [XmlElement("Device")]
         public List<AnalogDevice> Devices;
@@ -150,7 +156,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>Force Settings from QTM</summary>
     [XmlRoot("Force")]
-    public class SettingsForce
+    public class SettingsForce : SettingsBase
     {
         [XmlElement("Unit_Length")]
         public string UnitLength;
@@ -164,7 +170,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>Image Settings from QTM</summary>
     [XmlRoot("Image")]
-    public class SettingsImage
+    public class SettingsImage : SettingsBase
     {
         [XmlElement("Camera")]
         public List<ImageCamera> Cameras;
@@ -181,7 +187,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary> Gaze vector Settings from QTM. </summary>
     [XmlRoot("Gaze_Vector")]
-    public class SettingsGazeVectors
+    public class SettingsGazeVectors : SettingsBase
     {
         [XmlElement("Vector")]
         public List<SettingGazeVector> GazeVectors;
