@@ -1035,6 +1035,10 @@ namespace QTMRealTimeSDK
                 if (xmlReader.ReadToDescendant(name))
                 {
                     settings = (TSettings)serializer.Deserialize(xmlReader.ReadSubtree());
+                    if (settings is SettingsBase)
+                    {
+                        (settings as SettingsBase).Xml = xmldata;
+                    }
                 }
                 else
                 {
@@ -1142,25 +1146,27 @@ namespace QTMRealTimeSDK
         /// <summary>Send XML data to QTM server</summary>
         /// <param name="xmlString">string with XML data to send</param>
         /// <returns>true if xml was sent successfully</returns>
-        public bool SendXML(string xmlString)
+        public bool SendXML(string xmlString, out string response)
         {
             if (SendString(xmlString, PacketType.PacketXML))
             {
                 PacketType packetType;
-
-                if (ReceiveRTPacket(out packetType) > 0)
+                while (ReceiveRTPacket(out packetType, true) > 0)
                 {
                     if (packetType == PacketType.PacketCommand)
                     {
+                        response = mPacket.GetCommandString();
                         return true;
                     }
-                    else
+                    if (packetType == PacketType.PacketError)
                     {
+                        response = mPacket.GetErrorString();
                         mErrorString = mPacket.GetErrorString();
+                        return false;
                     }
                 }
             }
-
+            response = "Send xml failed";
             return false;
         }
 
