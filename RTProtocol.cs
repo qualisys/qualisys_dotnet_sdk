@@ -175,7 +175,7 @@ namespace QTMRealTimeSDK
             /// <summary>Latest major version of protocol</summary>
             public const int MAJOR_VERSION = 1;
             /// <summary>Latest minor version of protocol</summary>
-            public const int MINOR_VERSION = 13;
+            public const int MINOR_VERSION = 17;
             /// <summary>Maximum camera count</summary>
             public const int MAX_CAMERA_COUNT = 256;
             /// <summary>Maximum Analog device count</summary>
@@ -1241,6 +1241,9 @@ namespace QTMRealTimeSDK
                         break;
                     case ComponentType.ComponentImage:
                         command += " Image";
+                        break;
+                    case ComponentType.ComponentTimecode:
+                        command += " Timecode";
                         break;
                     case ComponentType.ComponentForceSingle:
                         command += " ForceSingle";

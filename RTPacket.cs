@@ -62,6 +62,8 @@ namespace QTMRealTimeSDK.Data
         ComponentGazeVector,
         // Nothing
         ComponentNone,
+        // Timecode component
+        ComponentTimecode,
         // Stream everything
         ComponentAll
     }
@@ -86,6 +88,14 @@ namespace QTMRealTimeSDK.Data
         EventReserved2,
         EventTrigger,
         EventNone
+    }
+
+    // <summary>Timecode types available from QTM</summary>
+    public enum TimecodeType
+    {
+        SMPTE = 0,
+        IRIG,
+        CameraTime
     }
 
     #endregion
@@ -249,6 +259,37 @@ namespace QTMRealTimeSDK.Data
         public uint SampleNumber;
     }
 
+    /// <summary>Data for Timecode.</summary>
+    public struct Timecode
+    {
+        /// <summary>Gaze vector</summary>
+        public TimecodeType Type;
+        /// <summary>Gaze vector position</summary>
+        public uint Hi;
+        /// <summary>Sample number</summary>
+        public uint Low;
+    }
+    
+    /// <summary> IRIG timecode struct </summary>
+    public struct IRIGTimecode
+    {
+        public uint Year;
+        public uint Day;
+        public uint Hour;
+        public uint Minute;
+        public uint Second;
+        public uint Tenth;
+    }
+
+    /// <summary> SMPTE timecode struct </summary>
+    public struct SMPTETimecode
+    {
+        public uint Hour;
+        public uint Minute;
+        public uint Second;
+        public uint Frame;
+    }
+
     #endregion
 
     public class RTPacket
@@ -317,6 +358,7 @@ namespace QTMRealTimeSDK.Data
         List<ForcePlate> mForceSinglePlateData;
         List<CameraImage> mImageData;
         List<GazeVector> mGazeVectorData;
+        List<Timecode> mTimecodeData;
 
 
         /// <summary>
@@ -361,6 +403,8 @@ namespace QTMRealTimeSDK.Data
             mImageData = new List<CameraImage>();
             mGazeVectorData = new List<GazeVector>();
 
+            mTimecodeData = new List<Timecode>();
+
             ClearData();
         }
 
@@ -404,6 +448,7 @@ namespace QTMRealTimeSDK.Data
             mForceSinglePlateData.Clear();
             mImageData.Clear();
             mGazeVectorData.Clear();
+            mTimecodeData.Clear();
 
         }
 
@@ -836,6 +881,26 @@ namespace QTMRealTimeSDK.Data
                                 position += image.ImageSize;
 
                                 mImageData.Add(image);
+                            }
+                        }
+                        else if (componentType == ComponentType.ComponentTimecode)
+                        {
+                            /* Timecode count - 4 bytes
+                             * [Repeated per marker]
+                             *   Timecode Type - 4 bytes
+                             *   Timecode High - 4 bytes
+                             *   Timecode Low - 4 bytes
+                             */
+
+                            int timecodeCount = BitConvert.GetInt32(mData, ref position);
+                            for (int i = 0; i < timecodeCount; i++)
+                            {
+                                Timecode timecode = new Timecode();
+                                timecode.Type = (TimecodeType)BitConvert.GetUInt32(mData, ref position);
+                                timecode.Hi = BitConvert.GetUInt32(mData, ref position);
+                                timecode.Low = BitConvert.GetUInt32(mData, ref position);
+
+                                mTimecodeData.Add(timecode);
                             }
                         }
                         else if (componentType == ComponentType.ComponentForceSingle)
@@ -1602,6 +1667,110 @@ namespace QTMRealTimeSDK.Data
             lock (packetLock)
             {
                 return mImageData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get all timecodes
+        /// </summary>
+        /// <returns>list of all timecodes</returns>
+        public List<Timecode> GetTimecodeData()
+        {
+            lock (packetLock)
+            {
+                return mTimecodeData.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Get timecode data at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>Timecode from index</returns>
+        public Timecode GetTimecodeData(int index=0)
+        {
+            lock (packetLock)
+            {
+                return mTimecodeData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get timecode type at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>Timecode type from index</returns>
+        public TimecodeType GetTimecodeType(int index=0)
+        {
+            lock (packetLock)
+            {
+                return mTimecodeData[index].Type;
+            }
+        }
+
+        /// <summary>
+        /// Get irig timecode at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>IRIG timecode from index</returns>
+        public bool GetIRIGTimecode(ref IRIGTimecode irig, int index=0)
+        {
+            lock (packetLock)
+            {
+                var timecode = mTimecodeData[index];
+                if(timecode.Type == TimecodeType.IRIG)
+                {
+                    irig.Year = 0x7f &  timecode.Hi;
+                    irig.Day = 0x1FF & (timecode.Hi >> 7);
+                    irig.Hour = 0x1f & timecode.Low;
+                    irig.Minute = 0x3F & (timecode.Low >> 5);
+                    irig.Second = 0x3F & (timecode.Low >> 11);
+                    irig.Tenth = 0xF & (timecode.Low >> 17);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get smpte timecode at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>SMPTE timecode from index</returns>
+        public bool GetSMPTETimecode(ref SMPTETimecode smpte, int index=0)
+        {
+            lock (packetLock)
+            {
+                var timecode = mTimecodeData[index];
+                if (timecode.Type == TimecodeType.SMPTE)
+                {
+                    smpte.Hour = 0x1f & timecode.Low;
+                    smpte.Minute = 0x3F & (timecode.Low >> 5);
+                    smpte.Second = 0x3F & (timecode.Low >> 11);
+                    smpte.Frame = 0x1F & (timecode.Low >> 17);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get camera time at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>Camera time from index</returns>
+        public bool GetCaptureTimeTimecode(out UInt64 cameratime, int index=0)
+        {
+            lock (packetLock)
+            {
+                var timecode = mTimecodeData[index];
+                if (timecode.Type == TimecodeType.CameraTime)
+                {
+                    cameratime = timecode.Hi << 32 | timecode.Low;
+                    return true;
+                }
+                cameratime = 0;
+                return false;
             }
         }
 
