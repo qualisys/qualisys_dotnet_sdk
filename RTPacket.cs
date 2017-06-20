@@ -124,7 +124,7 @@ namespace QTMRealTimeSDK.Data
         public float Z;
     }
 
-    /// <summary>Struct for RPY coordinates</summary>
+    /// <summary>Struct for Euler rotation</summary>
     public struct EulerRotation
     {
         public float First;
@@ -321,10 +321,6 @@ namespace QTMRealTimeSDK.Data
         /// <summary>if the packet is a data packet, this will return the frame number, otherwise -1</summary>
         public int Frame { get { return mFrameNumber; } }
 
-        int mComponentCount;
-        /// <summary>if the packet is a data packet, this will return the number of component types in packet, otherwise -1</summary>
-        public int ComponentCount { get { return mComponentCount; } }
-
         uint m2DDropRate;
         /// <summary>Drop rate from cameras</summary>
         public uint DropRate { get { return m2DDropRate; } }
@@ -430,7 +426,6 @@ namespace QTMRealTimeSDK.Data
 
             mTimestamp = -1;
             mFrameNumber = -1;
-            mComponentCount = -1;
 
             m2DMarkerData.Clear();
             m2DLinearizedMarkerData.Clear();
@@ -474,20 +469,18 @@ namespace QTMRealTimeSDK.Data
 
             lock (packetLock)
             {
-
                 ClearData();
                 mData = data;
-                SetPacketHeader();
+                SetPacketHeader(mData);
 
                 if (mPacketType == PacketType.PacketData)
                 {
-                    SetTimeStamp();
-                    SetFrameNumber();
-                    SetComponentCount();
-
+                    mTimestamp = BitConverter.ToInt64(mData, RTProtocol.Constants.PACKET_HEADER_SIZE);
+                    mFrameNumber = BitConverter.ToInt32(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 8);
+                    var components = BitConverter.ToInt32(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 12);
                     int position = RTProtocol.Constants.PACKET_HEADER_SIZE + RTProtocol.Constants.DATA_PACKET_HEADER_SIZE;
 
-                    for (int component = 1; component <= mComponentCount; component++)
+                    for (int component = 1; component <= components; component++)
                     {
                         ComponentType componentType = GetComponentType(position);
                         position += RTProtocol.Constants.COMPONENT_HEADER;
@@ -963,93 +956,30 @@ namespace QTMRealTimeSDK.Data
         /// <summary>
         /// Set this packet's header.
         /// </summary>
-        private void SetPacketHeader()
+        private void SetPacketHeader(byte[] data)
         {
-            mPacketSize = GetPacketSize();
-            SetType();
+            mPacketSize = GetPacketSize(data);
+            SetPacketType();
         }
 
         /// <summary>
         /// Get the packet type of this packet.
         /// </summary>
         /// <returns>Packet type</returns>
-		private void SetType()
+        private void SetPacketType()
         {
             if (mPacketSize < 4)
+            {
                 mPacketType = PacketType.PacketNone;
-
-            byte[] packetData = new byte[4];
-            Array.Copy(mData, 4, packetData, 0, 4);
-            mPacketType = (PacketType)BitConverter.ToInt32(packetData, 0);
+                return;
+            }
+            mPacketType = (PacketType)BitConverter.ToInt32(mData, 4);
         }
 
-        /// <summary>
-        /// set timestamp for this packet
-        /// </summary>
-        private void SetTimeStamp()
-        {
-            if (mPacketType == PacketType.PacketData)
-            {
-                byte[] timeStampData = new byte[8];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, timeStampData, 0, 8);
-                mTimestamp = BitConverter.ToInt64(timeStampData, 0);
-            }
-            else
-            {
-                mTimestamp = -1;
-            }
-        }
-
-        /// <summary>
-        /// Set frame number for this packet
-        /// </summary>
-        private void SetFrameNumber()
-        {
-            if (mPacketType == PacketType.PacketData)
-            {
-                byte[] frameData = new byte[4];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 8, frameData, 0, 4);
-                mFrameNumber = BitConverter.ToInt32(frameData, 0);
-            }
-            else
-            {
-                mFrameNumber = -1;
-            }
-        }
-
-        /// <summary>
-        /// set component count for this function
-        /// </summary>
-        private void SetComponentCount()
-        {
-            if (mPacketType == PacketType.PacketData)
-            {
-                byte[] componentCountData = new byte[4];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 12, componentCountData, 0, 4);
-                mComponentCount = BitConverter.ToInt32(componentCountData, 0);
-            }
-            else
-            {
-                mComponentCount = -1;
-            }
-        }
         #endregion
 
         #region get functions for packet header data
 
-        /// <summary>
-        /// Get the size and packet type of a packet.
-        /// </summary>
-        /// <param name="data">byte data for packet</param>
-        /// <param name="size">returns size of packet</param>
-        /// <param name="type">returns type of packet</param>
-        /// <returns>true if header was retrieved successfully </returns>
-        internal static bool GetPacketHeader(byte[] data, out int size, out PacketType type)
-        {
-            size = BitConverter.ToInt32(data, 0);
-            type = (PacketType)BitConverter.ToInt32(data, 4);
-            return true;
-        }
 
         /// <summary>
         /// Get number of bytes in packet.
@@ -1116,101 +1046,6 @@ namespace QTMRealTimeSDK.Data
             return -1;
         }
 
-        /// <summary>
-        /// Get the size and packet type of a packet.
-        /// </summary>
-        /// <param name="data">byte data for packet</param>
-        /// <param name="size">returns size of packet</param>
-        /// <param name="type">returns type of packet</param>
-        /// <returns>true if header was retrieved successfully </returns>
-        internal bool GetPacketHeader(out int size, out PacketType type)
-        {
-            byte[] data = new byte[8];
-            Array.Copy(mData, 0, data, 0, 8);
-            size = BitConverter.ToInt32(data, 0);
-            type = (PacketType)BitConverter.ToInt32(data, 4);
-            return true;
-        }
-
-        /// <summary>
-        /// Get number of bytes in packet.
-        /// </summary>
-        /// <param name="data">bytes from packet.</param>
-        /// <returns>Size of packet.</returns>
-        internal int GetPacketSize()
-        {
-            byte[] data = new byte[4];
-            Array.Copy(mData, 0, data, 0, 4);
-            return BitConverter.ToInt32(data, 0);
-        }
-
-        /// <summary>
-        /// Get the packet type of packet.
-        /// </summary>
-        /// <param name="data">bytes from packet.</param>
-        /// <returns>packet type</returns>
-        internal PacketType GetPacketType()
-        {
-            byte[] data = new byte[4];
-            Array.Copy(mData, 4, data, 0, 4);
-
-            if (data.GetLength(0) < 4)
-                return PacketType.PacketNone;
-
-            return (PacketType)BitConverter.ToInt32(data, 0);
-        }
-
-        /// <summary>
-        /// Get time stamp in a data packet.
-        /// </summary>
-        /// <param name="data">bytes from packet.</param>
-        /// <returns>time stamp from packet</returns>
-        internal long GetTimeStamp()
-        {
-            if (GetPacketType() == PacketType.PacketData)
-            {
-                byte[] data = new byte[8];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, data, 0, 8);
-
-                return BitConverter.ToInt64(data, 0);
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Get frame number from a data packet.
-        /// </summary>
-        /// <param name="data">bytes from packet.</param>
-        /// <returns>frame number from packet</returns>
-        internal int GetFrameNumber()
-        {
-            if (GetPacketType() == PacketType.PacketData)
-            {
-                byte[] data = new byte[4];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 8, data, 0, 4);
-
-                return BitConverter.ToInt32(data, 0);
-            }
-            return -1;
-        }
-
-        /// <summary>
-        /// Get count of different component types from a datapacket
-        /// </summary>
-        /// <param name="data">bytes from packet.</param>
-        /// <returns>number of component types in packet</returns>
-        internal int GetComponentCount()
-        {
-            if (GetPacketType() == PacketType.PacketData)
-            {
-                byte[] data = new byte[4];
-                Array.Copy(mData, RTProtocol.Constants.PACKET_HEADER_SIZE + 12, data, 0, 4);
-
-                return BitConverter.ToInt32(data, 0);
-            }
-            return -1;
-        }
-
         #endregion
 
         #region Component related get functions
@@ -1222,21 +1057,7 @@ namespace QTMRealTimeSDK.Data
         /// <returns>Component type</returns>
         private ComponentType GetComponentType(int position)
         {
-            byte[] componentData = new byte[4];
-            Array.Copy(mData, position + 4, componentData, 0, 4);
-            return (ComponentType)BitConverter.ToInt32(componentData, 0);
-        }
-
-        /// <summary>
-        /// Get size of component at position of this packet.
-        /// </summary>
-        /// <param name="position">position in packet where the component starts</param>
-        /// <returns>size of component.</returns>
-        private int GetComponentSize(int position)
-        {
-            byte[] componentData = new byte[4];
-            Array.Copy(mData, position, componentData, 0, 4);
-            return BitConverter.ToInt32(componentData, 0);
+            return (ComponentType)BitConverter.ToInt32(mData, position + 4);
         }
 
         /// <summary>
@@ -1246,7 +1067,7 @@ namespace QTMRealTimeSDK.Data
 		public string GetErrorString()
         {
             if (mPacketType == PacketType.PacketError)
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize(mData) - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             return null;
         }
 
@@ -1258,7 +1079,7 @@ namespace QTMRealTimeSDK.Data
         {
             if (mPacketType == PacketType.PacketCommand)
             {
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize(mData) - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             }
             return null;
         }
@@ -1271,7 +1092,7 @@ namespace QTMRealTimeSDK.Data
         {
             if (mPacketType == PacketType.PacketXML)
             {
-                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize() - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
+                return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize(mData) - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
             }
             return null;
         }

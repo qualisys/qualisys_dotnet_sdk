@@ -18,10 +18,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted integer</returns>
         public static int GetInt32(byte[] data, ref int position)
         {
-            byte[] intData = new byte[sizeof(int)];
-            Array.Copy(data, position, intData, 0, sizeof(int));
+            var value = BitConverter.ToInt32(data, position);
             position += sizeof(int);
-            return BitConverter.ToInt32(intData, 0);
+            return value;
         }
 
         /// <summary>
@@ -32,10 +31,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted usigned integer</returns>
         public static uint GetUInt32(byte[] data, ref int position)
         {
-            byte[] intData = new byte[sizeof(uint)];
-            Array.Copy(data, position, intData, 0, sizeof(uint));
+            var value = BitConverter.ToUInt32(data, position);
             position += sizeof(uint);
-            return BitConverter.ToUInt32(intData, 0);
+            return value;
         }
 
         /// <summary>
@@ -46,10 +44,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted short integer</returns>
         public static short GetShort(byte[] data, ref int position)
         {
-            byte[] shortData = new byte[sizeof(short)];
-            Array.Copy(data, position, shortData, 0, sizeof(short));
+            var value = BitConverter.ToInt16(data, position);
             position += sizeof(short);
-            return BitConverter.ToInt16(shortData, 0);
+            return value;
         }
 
         /// <summary>
@@ -60,10 +57,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted ushort integer</returns>
         public static ushort GetUShort(byte[] data, ref int position)
         {
-            byte[] shortData = new byte[sizeof(ushort)];
-            Array.Copy(data, position, shortData, 0, sizeof(ushort));
+            var value = BitConverter.ToUInt16(data, position);
             position += sizeof(ushort);
-            return BitConverter.ToUInt16(shortData, 0);
+            return value;
         }
 
         /// <summary>
@@ -74,10 +70,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted long integer</returns>
         public static long GetLong(byte[] data, ref int position)
         {
-            byte[] longData = new byte[sizeof(long)];
-            Array.Copy(data, position, longData, 0, sizeof(long));
+            var value = BitConverter.ToInt64(data, position);
             position += sizeof(long);
-            return BitConverter.ToInt64(longData, 0);
+            return value;
         }
 
         /// <summary>
@@ -88,10 +83,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted ulong integer</returns>
         public static ulong GetULong(byte[] data, ref int position)
         {
-            byte[] longData = new byte[sizeof(ulong)];
-            Array.Copy(data, position, longData, 0, sizeof(ulong));
+            var value = BitConverter.ToUInt64(data, position);
             position += sizeof(ulong);
-            return BitConverter.ToUInt64(longData, 0);
+            return value;
         }
 
         /// <summary>
@@ -102,10 +96,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted float integer</returns>
         public static float GetFloat(byte[] data, ref int position)
         {
-            byte[] floatData = new byte[sizeof(float)];
-            Array.Copy(data, position, floatData, 0, sizeof(float));
+            var value = BitConverter.ToSingle(data, position);
             position += sizeof(float);
-            return BitConverter.ToSingle(floatData, 0);
+            return value;
         }
 
         /// <summary>
@@ -116,10 +109,9 @@ namespace QTMRealTimeSDK
         /// <returns>converted double integer</returns>
         public static double GetDouble(byte[] data, ref int position)
         {
-            byte[] doubleData = new byte[sizeof(double)];
-            Array.Copy(data, position, doubleData, 0, sizeof(double));
+            var value = BitConverter.ToInt64(data, position);
             position += sizeof(double);
-            return BitConverter.ToInt64(doubleData, 0);
+            return value;
         }
 
         /// <summary>
@@ -131,11 +123,9 @@ namespace QTMRealTimeSDK
 		public static Point GetPoint(byte[] data, ref int position)
         {
             Point point;
-            byte[] pointData = new byte[sizeof(float) * 3];
-            Array.Copy(data, position, pointData, 0, sizeof(float) * 3);
-            point.X = BitConverter.ToSingle(pointData, 0);
-            point.Y = BitConverter.ToSingle(pointData, 4);
-            point.Z = BitConverter.ToSingle(pointData, 8);
+            point.X = BitConverter.ToSingle(data, position + 0);
+            point.Y = BitConverter.ToSingle(data, position + 4);
+            point.Z = BitConverter.ToSingle(data, position + 8);
             position += sizeof(float) * 3;
             return point;
         }
@@ -149,11 +139,9 @@ namespace QTMRealTimeSDK
 		public static EulerRotation GetEulerRotation(byte[] data, ref int position)
         {
             EulerRotation rotation;
-            byte[] pointData = new byte[sizeof(float) * 3];
-            Array.Copy(data, position, pointData, 0, sizeof(float) * 3);
-            rotation.First = BitConverter.ToSingle(pointData, 0);
-            rotation.Second = BitConverter.ToSingle(pointData, 4);
-            rotation.Third = BitConverter.ToSingle(pointData, 8);
+            rotation.First = BitConverter.ToSingle(data, position + 0);
+            rotation.Second = BitConverter.ToSingle(data, position + 4);
+            rotation.Third = BitConverter.ToSingle(data, position + 8);
             position += sizeof(float) * 3;
             return rotation;
         }
