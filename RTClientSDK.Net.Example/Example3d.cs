@@ -62,10 +62,18 @@ namespace RTClientSDK.Net.Example
                     for (int body = 0; body < mRtProtocol.GetRTPacket().Get3DMarkerResidualData().Count; body++)
                     {
                         var threeDofBody = threeDofData[body];
-                        Console.WriteLine("Frame:{0:D5} X:{1,7:F1} Y:{2,7:F1} Z:{3,7:F1} Residual:{4,7:F1}",
-                            mRtProtocol.GetRTPacket().Frame,
-                            threeDofBody.Position.X, threeDofBody.Position.Y, threeDofBody.Position.Z,
-                            threeDofBody.Residual);
+                        if (!Double.IsNaN(threeDofBody.Position.X))
+                        {
+                            Console.WriteLine("Frame:{0:D5} Name:{1,20} X:{2,7:F1} Y:{3,7:F1} Z:{4,7:F1} Residual:{5,5:F1}",
+                                mRtProtocol.GetRTPacket().Frame, mRtProtocol.Settings3D.Labels[body].Name,
+                                threeDofBody.Position.X, threeDofBody.Position.Y, threeDofBody.Position.Z,
+                                threeDofBody.Residual);
+                        }
+                        else
+                        {
+                            Console.WriteLine("Frame:{0:D5} Name:{1,20} -----------------------------------",
+                                mRtProtocol.GetRTPacket().Frame, mRtProtocol.Settings3D.Labels[body].Name);
+                        }
                     }
                 }
             }

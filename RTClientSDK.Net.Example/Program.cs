@@ -16,6 +16,7 @@ namespace RTClientSDK.Net.Example
             string mIpAddress = "127.0.0.1";
 
             Example example = new Example3D(mRtProtocol, mIpAddress);
+            //Example example = new ExampleImage(mRtProtocol, mIpAddress);
             //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
             //Example example = new ExampleGaze(mRtProtocol, mIpAddress);
