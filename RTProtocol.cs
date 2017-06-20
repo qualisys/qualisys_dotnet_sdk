@@ -222,7 +222,20 @@ namespace QTMRealTimeSDK
 
         private SettingsImage mImageSettings;
         /// <summary>Image settings from QTM</summary>
-        public SettingsImage ImageSettings { get { return mImageSettings; } }
+        public SettingsImage ImageSettings
+        {
+            get
+            {
+                return mImageSettings;
+            }
+            set
+            {
+                if (mImageSettings != value)
+                {
+                    mImageSettings = value;
+                }
+            }
+        }
 
         private SettingsGazeVectors mGazeVectorSettings;
         /// <summary>Gaze vector settings from QTM</summary>
@@ -434,8 +447,7 @@ namespace QTMRealTimeSDK
             return mPacket;
         }
 
-        private byte[] header = new byte[RTProtocol.Constants.PACKET_HEADER_SIZE];
-        private byte[] data;
+        private byte[] data = new byte[RTProtocol.Constants.PACKET_HEADER_SIZE];
         private Object receiveLock = new Object();
 
         public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 500000)
@@ -451,7 +463,7 @@ namespace QTMRealTimeSDK
                 {
                     receivedTotal = 0;
 
-                    int received = mNetwork.Receive(ref header, RTProtocol.Constants.PACKET_HEADER_SIZE, true, timeout);
+                    int received = mNetwork.Receive(ref data, 0, RTProtocol.Constants.PACKET_HEADER_SIZE, true, timeout);
                     if (received == 0)
                     {
                         return 0; // Receive timeout
@@ -475,22 +487,19 @@ namespace QTMRealTimeSDK
                     }
                     receivedTotal += received;
 
-                    frameSize = RTPacket.GetPacketSize(header);
-                    packetType = RTPacket.GetPacketType(header);
+                    frameSize = RTPacket.GetPacketSize(data);
+                    packetType = RTPacket.GetPacketType(data);
 
                     if (data == null || frameSize > data.Length)
                     {
-                        data = new byte[frameSize];
+                        Array.Resize(ref data, frameSize);
                     }
-                    header.CopyTo(data, 0);
 
                     // Receive more data until we have read the whole packet
                     while (receivedTotal < frameSize)
                     {
                         // As long as we haven't received enough data, wait for more
-                        byte[] buffer = new byte[frameSize - receivedTotal];
-                        received = mNetwork.Receive(ref buffer, frameSize - receivedTotal, false, timeout);
-                        buffer.CopyTo(data, receivedTotal);
+                        received = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, timeout);
                         if (received <= 0)
                         {
                             if (!mNetwork.IsConnected())
@@ -505,7 +514,6 @@ namespace QTMRealTimeSDK
                         }
                         receivedTotal += received;
                     }
-
                     mPacket.SetData(data);
                 }
                 while (skipEvents && packetType == PacketType.PacketEvent);
@@ -518,7 +526,6 @@ namespace QTMRealTimeSDK
                 return -1;
             }
         }
-
 
         /// <summary>Send discovery packet to network to find available QTM Servers.</summary>
         /// <param name="replyPort">port for servers to reply.</param>
