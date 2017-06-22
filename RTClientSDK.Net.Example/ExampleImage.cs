@@ -67,8 +67,8 @@ namespace RTClientSDK.Net.Example
                 {
                     var camera = mRtProtocol.ImageSettings.Cameras[i];
                     camera.Enabled = true;
-                    camera.Width = 1;
-                    camera.Height = 480;
+                    camera.Width /= 4;
+                    camera.Height /= 4;
                     newImageSettingsCameras.Add(camera);
                 }
                 newImageSettings.Cameras = newImageSettingsCameras;
