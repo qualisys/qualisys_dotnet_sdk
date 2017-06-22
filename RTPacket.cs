@@ -959,15 +959,6 @@ namespace QTMRealTimeSDK.Data
         private void SetPacketHeader(byte[] data)
         {
             mPacketSize = GetPacketSize(data);
-            SetPacketType();
-        }
-
-        /// <summary>
-        /// Get the packet type of this packet.
-        /// </summary>
-        /// <returns>Packet type</returns>
-        private void SetPacketType()
-        {
             if (mPacketSize < 4)
             {
                 mPacketType = PacketType.PacketNone;
