@@ -176,7 +176,7 @@ namespace QTMRealTimeSDK.Settings
         public List<ImageCamera> Cameras;
     }
 
-    /// <summary> Gaze vector name from QTM. </summary>
+    /// <summary>Gaze vector</summary>
     public class SettingGazeVector
     {
         [XmlElement("Name")]
@@ -185,7 +185,7 @@ namespace QTMRealTimeSDK.Settings
         public float Frequency;
     }
 
-    /// <summary> Gaze vector Settings from QTM. </summary>
+    /// <summary>Gaze vector Settings from QTM</summary>
     [XmlRoot("Gaze_Vector")]
     public class SettingsGazeVectors : SettingsBase
     {
