@@ -60,10 +60,10 @@ namespace QTMRealTimeSDK.Data
         ComponentForceSingle,
         // Gaze vector data from eye tracker (GetGazeVectorData)
         ComponentGazeVector,
-        // Nothing
-        ComponentNone,
         // Timecode component
         ComponentTimecode,
+        // Nothing
+        ComponentNone,
         // Stream everything
         ComponentAll
     }
@@ -84,8 +84,8 @@ namespace QTMRealTimeSDK.Data
         EventCameraSettingsChanged,
         EventQTMShuttingDown,
         EventCaptureSaved,
-        EventReserved1,
-        EventReserved2,
+        EventReprocessingStarted,
+        EventReprocessingStopped,
         EventTrigger,
         EventNone
     }
