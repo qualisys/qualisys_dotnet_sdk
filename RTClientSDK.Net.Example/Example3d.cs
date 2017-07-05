@@ -58,7 +58,6 @@ namespace RTClientSDK.Net.Example
                 var threeDofData = mRtProtocol.GetRTPacket().Get3DMarkerResidualData();
                 if (threeDofData != null)
                 {
-                    Console.WriteLine(mRtProtocol.GetRTPacket().Get3DMarkerResidualData().Count);
                     for (int body = 0; body < mRtProtocol.GetRTPacket().Get3DMarkerResidualData().Count; body++)
                     {
                         var threeDofBody = threeDofData[body];
@@ -83,6 +82,11 @@ namespace RTClientSDK.Net.Example
             {
                 // If an event comes from QTM then print it out
                 var qtmEvent = mRtProtocol.GetRTPacket().GetEvent();
+                if (qtmEvent == QTMEvent.EventConnectionClosed ||
+                    qtmEvent == QTMEvent.EventRTFromFileStopped)
+                {
+                    mRtProtocol.ClearSettings();
+                }
                 Console.WriteLine("{0}", qtmEvent);
             }
         }
