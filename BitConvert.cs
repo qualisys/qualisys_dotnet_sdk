@@ -37,19 +37,6 @@ namespace QTMRealTimeSDK
         }
 
         /// <summary>
-        /// Convert bytes at position to 16-bit integer
-        /// </summary>
-        /// <param name="data">Data packet</param>
-        /// <param name="position">position to convert, will be increased with the size of short in bytes</param>
-        /// <returns>converted short integer</returns>
-        public static short GetShort(byte[] data, ref int position)
-        {
-            var value = BitConverter.ToInt16(data, position);
-            position += sizeof(short);
-            return value;
-        }
-
-        /// <summary>
         /// Convert bytes at position to unsigned 16-bit integer
         /// </summary>
         /// <param name="data">Data packet</param>
@@ -63,32 +50,6 @@ namespace QTMRealTimeSDK
         }
 
         /// <summary>
-        /// Convert bytes at position to 64-bit integer
-        /// </summary>
-        /// <param name="data">Data packet</param>
-        /// <param name="position">position to convert, will be increased with the size of long in bytes</param>
-        /// <returns>converted long integer</returns>
-        public static long GetLong(byte[] data, ref int position)
-        {
-            var value = BitConverter.ToInt64(data, position);
-            position += sizeof(long);
-            return value;
-        }
-
-        /// <summary>
-        /// Convert bytes at position to unsigned 64-bit integer
-        /// </summary>
-        /// <param name="data">Data packet</param>
-        /// <param name="position">position to convert, will be increased with the size of long in bytes</param>
-        /// <returns>converted ulong integer</returns>
-        public static ulong GetULong(byte[] data, ref int position)
-        {
-            var value = BitConverter.ToUInt64(data, position);
-            position += sizeof(ulong);
-            return value;
-        }
-
-        /// <summary>
         /// Convert bytes at position to 32-bit float
         /// </summary>
         /// <param name="data">Data packet</param>
@@ -98,19 +59,6 @@ namespace QTMRealTimeSDK
         {
             var value = BitConverter.ToSingle(data, position);
             position += sizeof(float);
-            return value;
-        }
-
-        /// <summary>
-        /// Convert bytes at position to 64-bit float
-        /// </summary>
-        /// <param name="data">Data packet</param>
-        /// <param name="position">position to convert, will be increased with the size of double in bytes</param>
-        /// <returns>converted double integer</returns>
-        public static double GetDouble(byte[] data, ref int position)
-        {
-            var value = BitConverter.ToInt64(data, position);
-            position += sizeof(double);
             return value;
         }
 
