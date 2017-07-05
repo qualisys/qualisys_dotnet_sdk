@@ -73,21 +73,19 @@ namespace RTClientSDK.Net.Example
                 }
                 newImageSettings.Cameras = newImageSettingsCameras;
 
-                XmlSerializer serializer = new XmlSerializer(typeof(QTMRealTimeSDK.Settings.SettingsImage));
-                StringBuilder builder = new StringBuilder();
-                XmlWriterSettings writerSettings = new XmlWriterSettings();
-                writerSettings.OmitXmlDeclaration = true;
-                XmlWriter writer = XmlWriter.Create(builder, writerSettings);
 
-                serializer.Serialize(writer, newImageSettings);
-                var xmlsettings = "<QTM_Settings>";
-                var xmldata = builder.ToString();
-                xmlsettings += xmldata;
-                xmlsettings += "</QTM_Settings>";
-
-                string response;
-                mRtProtocol.SendXML(xmlsettings, out response);
-                Console.WriteLine(response);
+                string createSettingsError;
+                var xmlSettings = RTProtocol.CreateSettingsXml(newImageSettings, out createSettingsError);
+                if (xmlSettings != string.Empty)
+                {
+                    string response;
+                    mRtProtocol.SendXML(xmlSettings, out response);
+                    Console.WriteLine(response);
+                }
+                else
+                {
+                    Console.WriteLine(createSettingsError);
+                }
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.ComponentImage);
                 Console.WriteLine("QTM: Starting to stream Image data");
@@ -117,8 +115,14 @@ namespace RTClientSDK.Net.Example
             {
                 // If an event comes from QTM then print it out
                 var qtmEvent = mRtProtocol.GetRTPacket().GetEvent();
+                if (qtmEvent == QTMEvent.EventConnectionClosed ||
+                    qtmEvent == QTMEvent.EventRTFromFileStopped)
+                {
+                    mRtProtocol.ClearSettings();
+                }
                 Console.WriteLine("{0}", qtmEvent);
             }
         }
+
     }
 }
