@@ -106,7 +106,9 @@ namespace QTMRealTimeSDK
         [XmlEnum("SMPTE")]
         SourceSMPTE,
         [XmlEnum("Video sync")]
-        SourceVideoSync
+        SourceVideoSync,
+        [XmlEnum("IRIG")]
+        SourceIRIGSync
     }
 
     /// <summary>Signal modes</summary>
