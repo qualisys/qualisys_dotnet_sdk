@@ -49,6 +49,7 @@
     <Compile Include="RTNetwork.cs" />
     <Compile Include="RTPacket.cs" />
     <Compile Include="RTProtocol.cs" />
+    <Compile Include="TimecodeExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
