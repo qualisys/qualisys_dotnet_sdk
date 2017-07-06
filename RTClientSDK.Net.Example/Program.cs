@@ -20,6 +20,7 @@ namespace RTClientSDK.Net.Example
             //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
             //Example example = new ExampleGaze(mRtProtocol, mIpAddress);
+            //Example example = new ExampleTimecode(mRtProtocol, mIpAddress);
             MainExample mainExample = new MainExample(example, mRtProtocol, mIpAddress);
             mainExample.DiscoverQTMServers(4545);
             Console.WriteLine("Press key to continue");
