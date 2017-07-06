@@ -726,7 +726,6 @@ namespace QTMRealTimeSDK
         /// <summary>Stream frames from QTM server</summary>
         /// <param name="streamRate">what rate server should stream at</param>
         /// <param name="streamValue">related to streamrate, not used if all frames are streamed</param>
-        /// <param name="streamAllComponents">If all component types should be streamed</param>
         /// <param name="components">List of all component types deisred to stream</param>
         /// <param name="port">if set, streaming will be done by UDP on this port. Has to be set if ip address is specified</param>
         /// <param name="ipAddress">if UDP streaming should occur to other ip address, if not set streaming occurs on same ip as command came from</param>
@@ -1286,11 +1285,6 @@ namespace QTMRealTimeSDK
             {
                 switch (type)
                 {
-                    case ComponentType.ComponentAll:
-                        if (componentTypes.Count > 1)
-                            throw new System.ArgumentException("Can't have multiple components, when one is ComponentType.ComponentAll");
-                        command += " All";
-                        break;
                     case ComponentType.Component3d:
                         command += " 3D";
                         break;
