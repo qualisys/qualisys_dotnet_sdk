@@ -549,7 +549,9 @@ namespace QTMRealTimeSDK
 
                     if (data == null || frameSize > data.Length)
                     {
-                        Array.Resize(ref data, frameSize);
+                        // Do some preventive additional allocation to reduce number of times neede
+                        var newSize = (int)(frameSize * 1.47);
+                        Array.Resize(ref data, newSize);
                     }
 
                     // Receive more data until we have read the whole packet
