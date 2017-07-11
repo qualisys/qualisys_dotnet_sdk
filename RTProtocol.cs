@@ -549,7 +549,7 @@ namespace QTMRealTimeSDK
 
                     if (data == null || frameSize > data.Length)
                     {
-                        // Do some preventive additional allocation to reduce number of times neede
+                        // Do some preventive additional allocation to reduce number of times allocation is needed
                         var newSize = (int)(frameSize * 1.47);
                         Array.Resize(ref data, newSize);
                     }
