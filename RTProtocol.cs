@@ -359,7 +359,7 @@ namespace QTMRealTimeSDK
             return mPacket;
         }
 
-        private byte[] data = new byte[RTProtocol.Constants.PACKET_HEADER_SIZE];
+        private byte[] data = new byte[65535];
         private Object receiveLock = new Object();
 
         public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 500000)
@@ -375,7 +375,7 @@ namespace QTMRealTimeSDK
                 {
                     receivedTotal = 0;
 
-                    int received = mNetwork.Receive(ref data, 0, RTProtocol.Constants.PACKET_HEADER_SIZE, true, timeout);
+                    int received = mNetwork.Receive(ref data, 0, data.Length, true, timeout);
                     if (received == 0)
                     {
                         return 0; // Receive timeout
@@ -584,10 +584,10 @@ namespace QTMRealTimeSDK
         /// <param name="streamRate">what rate server should stream at</param>
         /// <param name="streamValue">related to streamrate, not used if all frames are streamed</param>
         /// <param name="components">List of all component types deisred to stream</param>
-        /// <param name="port">if set, streaming will be done by UDP on this port. Has to be set if ip address is specified</param>
+        /// <param name="udpPort">if set, streaming will be done by UDP on this port. Has to be set if ip address is specified</param>
         /// <param name="ipAddress">if UDP streaming should occur to other ip address, if not set streaming occurs on same ip as command came from</param>
-        /// <returns>true if streaming started ok</returns>
-        public bool StreamFrames(StreamRate streamRate, int streamValue, List<ComponentType> components = null, int port = -1, string ipAddress = "")
+        /// <returns>true if streaming started</returns>
+        public bool StreamFrames(StreamRate streamRate, int streamValue, List<ComponentType> components = null, int udpPort = -1, string ipAddress = "")
         {
             string command = "streamframes";
 
@@ -606,9 +606,9 @@ namespace QTMRealTimeSDK
 
             if (ipAddress != "")
             {
-                if (port > 0)
+                if (udpPort > 0)
                 {
-                    command += " udp:" + ipAddress + ":" + port;
+                    command += " udp:" + ipAddress + ":" + udpPort;
                 }
                 else
                 {
@@ -616,9 +616,9 @@ namespace QTMRealTimeSDK
                     return false;
                 }
             }
-            else if (port > 0)
+            else if (udpPort > 0)
             {
-                command += " udp:" + port;
+                command += " udp:" + udpPort;
             }
 
             command += BuildStreamString(components);
