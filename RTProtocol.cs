@@ -16,7 +16,6 @@ using System.Xml.Serialization;
 
 namespace QTMRealTimeSDK
 {
-    #region enums
     /// <summary>Streaming rate</summary>
     public enum StreamRate
     {
@@ -25,149 +24,20 @@ namespace QTMRealTimeSDK
         RateFrequencyDivisor
     }
 
-    /// <summary>Camera models</summary>
-    public enum CameraModel
+    /// <summary>Data with response from Discovery broadcast</summary>
+    public struct DiscoveryResponse
     {
-        [XmlEnum("MacReflex")]
-        ModelMacReflex = 0,
-        [XmlEnum("ProReflex 120")]
-        ModelProReflex120,
-        [XmlEnum("ProReflex 240")]
-        ModelProReflex240,
-        [XmlEnum("ProReflex 500")]
-        ModelProReflex500,
-        [XmlEnum("ProReflex 1000")]
-        ModelProReflex1000,
-        [XmlEnum("Oqus 100 ")]
-        ModelQqus100,
-        [XmlEnum("Oqus 300")]
-        ModelQqus300,
-        [XmlEnum("Oqus 300 Plus")]
-        ModelQqus300Plus,
-        [XmlEnum("Oqus 400")]
-        ModelQqus400,
-        [XmlEnum("Oqus 500")]
-        ModelQqus500,
-        [XmlEnum("Oqus 200 C")]
-        ModelQqus200C,
-        [XmlEnum("Oqus 500 Plus")]
-        ModelQqus500Plus,
-        [XmlEnum("Oqus 700")]
-        ModelQqus700,
-        [XmlEnum("Oqus 700 Plus")]
-        ModelQqus700Plus,
-        [XmlEnum("Miqus M1")]
-        ModelMiqusM1,
-        [XmlEnum("Miqus M3")]
-        ModelMiqusM3,
-        [XmlEnum("Miqus M5")]
-        ModelMiqusM5,
-        [XmlEnum("Miqus Sync Unit")]
-        ModelMiqusSU,
-        [XmlEnum("Miqus Video")]
-        ModelMiqusVideo,
+        /// <summary>Hostname of server</summary>
+        public string HostName;
+        /// <summary>IP to server</summary>
+        public string IpAddress;
+        /// <summary>Base port</summary>
+        public short Port;
+        /// <summary>Info text about host</summary>
+        public string InfoText;
+        /// <summary>Number of cameras connected to server</summary>
+        public int CameraCount;
     }
-
-    /// <summary>Camera modes</summary>
-    public enum CameraMode
-    {
-        [XmlEnum("Marker")]
-        ModeMarker = 0,
-        [XmlEnum("Marker Intensity")]
-        ModeMarkerIntensity,
-        [XmlEnum("Video")]
-        ModeVideo
-    }
-
-    /// <summary>Sync out modes</summary>
-    public enum SyncOutFrequencyMode
-    {
-        [XmlEnum("Shutter out")]
-        ModeShutterOut = 0,
-        [XmlEnum("Multiplier")]
-        ModeMultiplier,
-        [XmlEnum("Divisor")]
-        ModeDivisor,
-        [XmlEnum("Camera independent")]
-        ModeActualFreq,
-        [XmlEnum("Measurement time")]
-        ModeActualMeasurementTime,
-        [XmlEnum("Continuous 100Hz")]
-        ModeFixed100Hz
-    }
-
-    /// <summary>Signal sources</summary>
-    public enum SignalSource
-    {
-        [XmlEnum("Control port")]
-        SourceControlPort = 0,
-        [XmlEnum("IR receiver")]
-        SourceIRReceiver,
-        [XmlEnum("SMPTE")]
-        SourceSMPTE,
-        [XmlEnum("Video sync")]
-        SourceVideoSync,
-        [XmlEnum("IRIG")]
-        SourceIRIGSync
-    }
-
-    /// <summary>Signal modes</summary>
-    public enum SignalMode
-    {
-        [XmlEnum("Periodic")]
-        Periodic = 0,
-        [XmlEnum("Non-periodic")]
-        NonPeriodic
-    }
-
-    /// <summary>Axises</summary>
-    public enum Axis
-    {
-        [XmlEnum("+X")]
-        XAxisUpwards = 0,
-        [XmlEnum("-X")]
-        XAxisDownwards,
-        [XmlEnum("+Y")]
-        YAxisUpwards,
-        [XmlEnum("-Y")]
-        YAxisDownwards,
-        [XmlEnum("+Z")]
-        ZAxisUpwards,
-        [XmlEnum("-Z")]
-        ZAxisDownwards
-    }
-
-    /// <summary>Signal Edge</summary>
-    public enum SignalEdge
-    {
-        [XmlEnum("Negative")]
-        Negative = 0,
-        [XmlEnum("Positive")]
-        Positive
-    }
-
-    /// <summary>Signal Polarity</summary>
-    public enum SignalPolarity
-    {
-        [XmlEnum("Negative")]
-        Negative = 0,
-        [XmlEnum("Positive")]
-        Positive
-    }
-
-    /// <summary>Image formats Available</summary>
-    public enum ImageFormat
-    {
-        [XmlEnum("RAWGrayscale")]
-        FormatRawGrayScale = 0,
-        [XmlEnum("RAWBGR")]
-        FormatRawBGR,
-        [XmlEnum("JPG")]
-        FormatJPG,
-        [XmlEnum("PNG")]
-        FormatPNG
-    }
-    #endregion
 
     public class RTProtocol : IDisposable
     {
@@ -300,21 +170,6 @@ namespace QTMRealTimeSDK
         private int mMajorVersion;
         private int mMinorVersion;
         private string mErrorString;
-
-        /// <summary>Data with response from Discovery broadcast</summary>
-        public struct DiscoveryResponse
-        {
-            /// <summary>Hostname of server</summary>
-            public string HostName;
-            /// <summary>IP to server</summary>
-            public string IpAddress;
-            /// <summary>Base port</summary>
-            public short Port;
-            /// <summary>Info text about host</summary>
-            public string InfoText;
-            /// <summary>Number of cameras connected to server</summary>
-            public int CameraCount;
-        }
 
         private HashSet<DiscoveryResponse> mDiscoveryResponses;
         /// <summary>list of discovered QTM server possible to connect to</summary>
