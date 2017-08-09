@@ -237,14 +237,14 @@ namespace QTMRealTimeSDK.Settings
         public int Orientation;
         /// <summary>Marker resolution of camera, width and height</summary>
         [XmlElement("Marker_Res")]
-        public Resolution MarkerResolution;
+        public FieldOfViewSize MarkerFieldOfViewSize;
         /// <summary>Video resolution of camera, width and height</summary>
         [XmlElement("Video_Res")]
-        public Resolution VideoResolution;
-        /// <summary>Marker Field Of View, left,top,right and bottom coordinates</summary>
+        public FieldOfViewSize VideoFieldOfViewSize;
+        /// <summary>Marker Field Of View, left, top, right and bottom coordinates</summary>
         [XmlElement("Marker_FOV")]
         public FieldOfView MarkerFOV;
-        /// <summary>Video Field Of View, left,top,right and bottom coordinates</summary>
+        /// <summary>Video Field Of View, left, top, right and bottom coordinates</summary>
         [XmlElement("Video_FOV")]
         public FieldOfView VideoFOV;
         /// <summary>Sync out settings for Oqus sync out or Miqus Sync Unit Out1</summary>
@@ -259,15 +259,30 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Lens Control settings for camera equipped with motorized lens</summary>
         [XmlElement("LensControl")]
         public SettingsLensControl LensControl;
+        [XmlElement("AutoExposure")]
+        public SettingsAutoExposure AutoExposure;
+        [XmlElement("Video_Resolution")]
+        public SettingsVideoResolution VideoResolution;
+        [XmlElement("Video_Aspect_Ratio")]
+        public SettingsVideoAspectRatio VideoAspectRatio;
     }
 
-    /// <summary>Settings regarding Lens Control for Camera equipped with motorized lens</summary>
+    /// <summary>Settings regarding Lens Control for camera equipped with motorized lens</summary>
     public struct SettingsLensControl
     {
         [XmlElement("Focus")]
         public SettingsLensControlValues Focus;
         [XmlElement("Aperture")]
         public SettingsLensControlValues Aperture;
+    }
+
+    /// <summary>Settings regarding camera auto exposure</summary>
+    public struct SettingsAutoExposure
+    {
+        [XmlAttribute("Enabled")]
+        public bool Enabled;
+        [XmlAttribute("Compensation")]
+        public float Compensation;
     }
 
     /// <summary>Settings for Lens Control Focus</summary>
@@ -340,7 +355,7 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Resolution (width/height)</summary>
-    public struct Resolution
+    public struct FieldOfViewSize
     {
         /// <summary>Width</summary>
         [XmlElement("Width")]
@@ -689,7 +704,6 @@ namespace QTMRealTimeSDK.Settings
         ProcessingTracking3D
     }
 
-
     /// <summary>Camera models</summary>
     public enum CameraModel
     {
@@ -832,4 +846,27 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("PNG")]
         FormatPNG
     }
+    /// <summary>Video resolution settings for video cameras</summary>
+    public enum SettingsVideoResolution
+    {
+        [XmlEnum("1080p")]
+        VideoResolution_1080p = 0,
+        [XmlEnum("720p")]
+        VideoResolution_720p,
+        [XmlEnum("540p")]
+        VideoResolution_540p,
+        [XmlEnum("420p")]
+        VideoResolution_420p,
+    }
+    /// <summary>Video aspect ratio settings for video cameras</summary>
+    public enum SettingsVideoAspectRatio
+    {
+        [XmlEnum("16x9")]
+        AspectRatio_16x9,
+        [XmlEnum("4x3")]
+        AspectRatio_4x3,
+        [XmlEnum("1x1")]
+        AspectRatio_1x1,
+    }
+
 }
