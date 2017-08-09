@@ -98,7 +98,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\..\Development\RTClientSDK.Net\RTClientSDK.Net.csproj">
+    <ProjectReference Include="..\..\RTClientSDK.Net.csproj">
       <Project>{0df35107-dde5-4e9e-9284-f5d05bb47146}</Project>
       <Name>RTClientSDK.Net</Name>
     </ProjectReference>
