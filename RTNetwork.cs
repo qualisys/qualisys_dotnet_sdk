@@ -150,7 +150,7 @@ namespace QTMRealTimeSDK.Network
 
             try
             {
-                List <Socket> receiveList = new List<Socket>();
+                List<Socket> receiveList = new List<Socket>();
                 List<Socket> errorList = new List<Socket>();
 
                 if (mUDPBroadcastClient != null)
@@ -261,6 +261,34 @@ namespace QTMRealTimeSDK.Network
         }
 
         /// <summary>
+        /// Try and get all the local ip adresses
+        /// </summary>
+        /// <returns></returns>
+        private List<IPAddress> GetLocalIPAddresses()
+        {
+            try
+            {
+                List<IPAddress> localIPs = new List<IPAddress>();
+
+                var hostName = Dns.GetHostName();
+                var host = Dns.GetHostEntry(hostName);
+                foreach (IPAddress ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        localIPs.Add(ip);
+                    }
+                }
+                return localIPs;
+            }
+            catch (Exception)
+            {
+                // Ignore exception
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Send data over UDP via broadcast IP
         /// </summary>
         /// <param name="sendBuffer"> Buffer to send over UDP. </param>
@@ -274,24 +302,43 @@ namespace QTMRealTimeSDK.Network
 
             try
             {
-                foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
+                if (networkInterfaces.Length > 0)
                 {
-                    if (nic.OperationalStatus != OperationalStatus.Up)
-                        continue;
-                    if (nic.NetworkInterfaceType != 0)
+                    foreach (NetworkInterface nic in networkInterfaces)
                     {
-                        if (nic.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
-                            nic.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
-                        continue;
-                    }
-                    foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
-                    {
-                        if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        if (nic.OperationalStatus != OperationalStatus.Up)
+                            continue;
+                        if (nic.NetworkInterfaceType != 0)
                         {
-                            var broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-                            if (broadcastAddress == null)
+                            if (nic.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
+                                nic.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
                                 continue;
+                        }
+                        foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
+                        {
+                            if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            {
+                                var broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
+                                if (broadcastAddress == null)
+                                    continue;
 
+                                IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
+                                mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Try and find out the local ip address and broadcast using standard mask.
+                    var localIPs = GetLocalIPAddresses();
+                    foreach (var ip in localIPs)
+                    {
+                        var ipv4Mask = IPAddress.Parse("255.255.255.0");
+                        var broadcastAddress = ip.GetBroadcastAddress(ipv4Mask);
+                        if (broadcastAddress != null)
+                        {
                             IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
                             mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
                         }
