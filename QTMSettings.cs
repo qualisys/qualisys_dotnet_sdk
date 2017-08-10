@@ -717,7 +717,7 @@ namespace QTMRealTimeSDK.Settings
         ModelProReflex500,
         [XmlEnum("ProReflex 1000")]
         ModelProReflex1000,
-        [XmlEnum("Oqus 100 ")]
+        [XmlEnum("Oqus 100")]
         ModelQqus100,
         [XmlEnum("Oqus 300")]
         ModelQqus300,
