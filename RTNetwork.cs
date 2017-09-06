@@ -47,6 +47,10 @@ namespace QTMRealTimeSDK.Network
                 }
 
                 mTCPClient = new TcpClient();
+                // Adding timeout to connection, otherwise system sometimes
+                // hangs when attempting to connect to an invalid host; programs won't
+                // continue after mTCPClient.Connect() until a new request is made 
+                mTCPClient.SendTimeout = 500;
                 mTCPClient.Connect(serverIP[0], port);
                 // Disable Nagle's algorithm
                 mTCPClient.NoDelay = true;
@@ -76,12 +80,10 @@ namespace QTMRealTimeSDK.Network
             {
                 if (mTCPClient.Client != null)
                 {
-                    mTCPClient.Client.Shutdown(SocketShutdown.Send);
-                    // Empty receive buffer
-                    while (mTCPClient.Available > 0)
+                    // If this is not checked, I keep getting a "The socket is not connected" exception
+                    if (mTCPClient.Client.Connected)
                     {
-                        byte[] buffer = new byte[mTCPClient.ReceiveBufferSize];
-                        mTCPClient.Client.Receive(buffer);
+                        mTCPClient.Client.Shutdown(SocketShutdown.Send);
                     }
                 }
                 mTCPClient.Close();
