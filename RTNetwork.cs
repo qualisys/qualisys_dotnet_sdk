@@ -319,12 +319,22 @@ namespace QTMRealTimeSDK.Network
                         }
                         foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
                         {
-                            if (ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                            {
-                                var broadcastAddress = ip.Address.GetBroadcastAddress(ip.IPv4Mask);
-                                if (broadcastAddress == null)
+                            if (ip.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
                                     continue;
 
+                            IPAddress ipv4Mask;
+                            try
+                            {
+                                // On older Mono versions this command throw not implemented.
+                                ipv4Mask = ip.IPv4Mask;
+                            }
+                            catch (Exception)
+                            {
+                                ipv4Mask = IPAddress.Parse("255.255.255.0");
+                            }
+                            var broadcastAddress = ip.Address.GetBroadcastAddress(ipv4Mask);
+                            if (broadcastAddress != null)
+                            {
                                 IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
                                 mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
                             }
