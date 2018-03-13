@@ -320,7 +320,7 @@ namespace QTMRealTimeSDK.Network
                         foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
                         {
                             if (ip.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
-                                    continue;
+                                continue;
 
                             IPAddress ipv4Mask;
                             try
