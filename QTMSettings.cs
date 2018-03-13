@@ -735,6 +735,8 @@ namespace QTMRealTimeSDK.Settings
         ModelQqus700,
         [XmlEnum("Oqus 700 Plus")]
         ModelQqus700Plus,
+        [XmlEnum("Oqus 600 Plus")]
+        ModelQqus600Plus,
         [XmlEnum("Miqus M1")]
         ModelMiqusM1,
         [XmlEnum("Miqus M3")]
@@ -745,6 +747,8 @@ namespace QTMRealTimeSDK.Settings
         ModelMiqusSU,
         [XmlEnum("Miqus Video")]
         ModelMiqusVideo,
+        [XmlEnum("Miqus Video Color")]
+        ModelMiqusVideoColor,
     }
 
     /// <summary>Camera modes</summary>
