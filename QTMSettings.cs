@@ -132,7 +132,7 @@ namespace QTMRealTimeSDK.Settings
             Third = "Yaw";
         }
 
-        [XmlElement("First"), ]
+        [XmlElement("First")]
         public string First;
         [XmlElement("Second")]
         public string Second;
