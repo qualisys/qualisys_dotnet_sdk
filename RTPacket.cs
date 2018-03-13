@@ -131,16 +131,16 @@ namespace QTMRealTimeSDK.Data
         public float Third;
     }
     /// <summary>Data from a force plate, includes samples</summary>
-	public struct ForcePlate
+    public struct ForcePlate
     {
         /// <summary>ID of plate</summary>
-		public int PlateId;
+        public int PlateId;
         /// <summary>Number of forces in frame</summary>
-		public int ForceCount;
+        public int ForceCount;
         /// <summary>Force number, increased with the force frequency</summary>
-		public int ForceNumber;
+        public int ForceNumber;
         /// <summary>Samples collected from plate</summary>
-		public ForceSample[] ForceSamples;
+        public ForceSample[] ForceSamples;
     }
 
     /// <summary>samples for a force plat</summary>
@@ -223,18 +223,18 @@ namespace QTMRealTimeSDK.Data
     }
 
     /// <summary>Data for camera image</summary>
-	public struct CameraImage
+    public struct CameraImage
     {
         /// <summary>Id of camera image originates from</summary>
-		public uint CameraID;
+        public uint CameraID;
         /// <summary>Image format</summary>
-		public ImageFormat ImageFormat;
+        public ImageFormat ImageFormat;
         /// <summary>Width of image</summary>
-		public uint Width;
+        public uint Width;
         /// <summary>Height of image</summary>
-		public uint Height;
+        public uint Height;
         /// <summary>Scaled value of cropping from left</summary>
-		public float LeftCrop;
+        public float LeftCrop;
         /// <summary>Scaled value of cropping from top</summary>
         public float TopCrop;
         /// <summary>Scaled value of cropping from right</summary>
@@ -242,9 +242,9 @@ namespace QTMRealTimeSDK.Data
         /// <summary>Scaled value of cropping from bottom</summary>
         public float BottomCrop;
         /// <summary>Size of image data</summary>
-		public int ImageSize;
+        public int ImageSize;
         /// <summary>Actual image data</summary>
-		public byte[] ImageData;
+        public byte[] ImageData;
     }
 
     /// <summary>Data for Gaze vector.</summary>
@@ -414,7 +414,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="majorVersion">Major version of packet.</param>
         /// <param name="minorVersion">Minor version of packet.</param>
-		public void GetVersion(ref int majorVersion, ref int minorVersion)
+        public void GetVersion(ref int majorVersion, ref int minorVersion)
         {
             majorVersion = mMajorVersion;
             minorVersion = mMinorVersion;
@@ -423,7 +423,7 @@ namespace QTMRealTimeSDK.Data
         /// <summary>
         /// Clear packet from data.
         /// </summary>
-		private void ClearData()
+        private void ClearData()
         {
             mData = null;
             mPacketSize = -1;
@@ -1064,7 +1064,7 @@ namespace QTMRealTimeSDK.Data
         /// Get error string from this packet.
         /// </summary>
         /// <returns>error string, null if the packet is not an error packet.</returns>
-		public string GetErrorString()
+        public string GetErrorString()
         {
             if (mPacketType == PacketType.PacketError)
                 return System.Text.Encoding.ASCII.GetString(mData, RTProtocol.Constants.PACKET_HEADER_SIZE, GetPacketSize(mData) - RTProtocol.Constants.PACKET_HEADER_SIZE - 1);
@@ -1075,7 +1075,7 @@ namespace QTMRealTimeSDK.Data
         /// Get command string from this packet.
         /// </summary>
         /// <returns>command string, null if the packet is not a command packet.</returns>
-		public string GetCommandString()
+        public string GetCommandString()
         {
             if (mPacketType == PacketType.PacketCommand)
             {
@@ -1088,7 +1088,7 @@ namespace QTMRealTimeSDK.Data
         /// Get XML string from this packet.
         /// </summary>
         /// <returns>XML string, null if the packet is not a XML packet.</returns>
-		public string GetXMLString()
+        public string GetXMLString()
         {
             if (mPacketType == PacketType.PacketXML)
             {
@@ -1508,7 +1508,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.(not camera index!)</param>
         /// <returns>Timecode from index</returns>
-        public Timecode GetTimecodeData(int index=0)
+        public Timecode GetTimecodeData(int index = 0)
         {
             lock (packetLock)
             {
@@ -1521,7 +1521,7 @@ namespace QTMRealTimeSDK.Data
         /// </summary>
         /// <param name="index">index to get data from.(not camera index!)</param>
         /// <returns>Timecode type from index</returns>
-        public TimecodeType GetTimecodeType(int index=0)
+        public TimecodeType GetTimecodeType(int index = 0)
         {
             lock (packetLock)
             {
