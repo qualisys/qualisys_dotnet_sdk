@@ -15,7 +15,7 @@ namespace QTMRealTimeSDK.Network
         private TcpClient mTCPClient = null;
 
         string mErrorString;
-        private SocketError mErrorCode = SocketError.NotConnected;
+        private SocketError mSocketError = SocketError.NotConnected;
 
         /// <summary>
         /// Default constructor
@@ -58,7 +58,7 @@ namespace QTMRealTimeSDK.Network
             catch (SocketException e)
             {
                 mErrorString = e.Message;
-                mErrorCode = e.SocketErrorCode;
+                mSocketError = e.SocketErrorCode;
 
                 if (mTCPClient != null)
                 {
@@ -255,7 +255,7 @@ namespace QTMRealTimeSDK.Network
             catch (SocketException e)
             {
                 mErrorString = e.Message;
-                mErrorCode = e.SocketErrorCode;
+                mSocketError = e.SocketErrorCode;
                 return false;
             }
 
@@ -304,68 +304,80 @@ namespace QTMRealTimeSDK.Network
 
             try
             {
-                var networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
-                if (networkInterfaces.Length > 0)
+                var nics = NetworkInterface.GetAllNetworkInterfaces();
+                if (nics.Length > 0)
                 {
-                    foreach (NetworkInterface nic in networkInterfaces)
+                    foreach (NetworkInterface nic in nics)
                     {
-                        if (nic.OperationalStatus != OperationalStatus.Up)
-                            continue;
-                        if (nic.NetworkInterfaceType != 0)
+                        try
                         {
                             if (nic.NetworkInterfaceType != NetworkInterfaceType.Ethernet &&
                                 nic.NetworkInterfaceType != NetworkInterfaceType.Wireless80211)
                                 continue;
-                        }
-                        foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
-                        {
-                            if (ip.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
-                                continue;
+                            foreach (UnicastIPAddressInformation ip in nic.GetIPProperties().UnicastAddresses)
+                            {
+                                if (ip.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                                    continue;
 
-                            IPAddress ipv4Mask;
-                            try
-                            {
-                                // On older Mono versions this command throw not implemented.
-                                ipv4Mask = ip.IPv4Mask;
+                                IPAddress ipv4Mask;
+                                try
+                                {
+                                    ipv4Mask = ip.IPv4Mask;
+                                }
+                                catch (Exception)
+                                {
+                                    ipv4Mask = IPAddress.Parse("255.255.255.0");
+                                }
+                                var broadcastAddress = ip.Address.GetBroadcastAddress(ipv4Mask);
+                                if (broadcastAddress != null)
+                                {
+                                    IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
+                                    mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
+                                }
                             }
-                            catch (Exception)
-                            {
-                                ipv4Mask = IPAddress.Parse("255.255.255.0");
-                            }
-                            var broadcastAddress = ip.Address.GetBroadcastAddress(ipv4Mask);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore broadcast failure, since we might have more ips to send to
+                        }
+
+                    }
+                }
+                else
+                {
+                    var localIPs = GetLocalIPAddresses();
+                    foreach (var ip in localIPs)
+                    {
+                        try
+                        {
+                            var ipv4Mask = IPAddress.Parse("255.255.255.0");
+                            var broadcastAddress = ip.GetBroadcastAddress(ipv4Mask);
                             if (broadcastAddress != null)
                             {
                                 IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
                                 mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
                             }
                         }
-                    }
-                }
-                else
-                {
-                    // Try and find out the local ip address and broadcast using standard mask.
-                    var localIPs = GetLocalIPAddresses();
-                    foreach (var ip in localIPs)
-                    {
-                        var ipv4Mask = IPAddress.Parse("255.255.255.0");
-                        var broadcastAddress = ip.GetBroadcastAddress(ipv4Mask);
-                        if (broadcastAddress != null)
+                        catch (Exception)
                         {
-                            IPEndPoint e = new IPEndPoint(broadcastAddress, discoverPort);
-                            mUDPBroadcastClient.Client.SendTo(sendBuffer, bufferSize, 0, e);
+                            // Ignore broadcast failure, since we might have more ips to send to
                         }
                     }
                 }
             }
-            catch (SocketException ex)
+            catch (SocketException e)
             {
-                mErrorCode = ex.SocketErrorCode;
-                mErrorString = ex.Message;
+                mSocketError = e.SocketErrorCode;
+                mErrorString = e.Message;
+                return false;
+            }
+            catch (Exception e)
+            {
+                mErrorString = e.Message;
                 return false;
             }
             return true;
         }
-
         /// <summary>
         /// Error string related to errors that could have occurred during execution of commands
         /// </summary>
@@ -381,7 +393,7 @@ namespace QTMRealTimeSDK.Network
         /// <returns>Socket error</returns>
         internal SocketError GetError()
         {
-            return mErrorCode;
+            return mSocketError;
         }
 
         protected virtual void Dispose(bool disposing)
