@@ -15,7 +15,8 @@ namespace RTClientSDK.Net.Example
             RTProtocol mRtProtocol = new RTProtocol();
             string mIpAddress = "127.0.0.1";
 
-            Example example = new Example3D(mRtProtocol, mIpAddress);
+            Example example = new ExampleSkeleton(mRtProtocol, mIpAddress);
+            //Example example = new Example3D(mRtProtocol, mIpAddress);
             //Example example = new ExampleImage(mRtProtocol, mIpAddress);
             //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
