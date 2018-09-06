@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTClientSDK.Net", "RTClientSDK.Net.csproj", "{0DF35107-DDE5-4E9E-9284-F5D05BB47146}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTClientSDK.Net.Example", "RTClientSDK.Net.Example\RTClientSDK.Net.Example.csproj", "{BCE44203-1741-4285-AC6D-A61EA8683D4C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SixDofViewer", "SixDofViewer\SixDofViewer\SixDofViewer.csproj", "{B1B965A6-95E7-4145-AF01-1BB8CC55342B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTClientSDK.Net.SimpleExample", "RTClientSDK.Net.SimpleExample\RTClientSDK.Net.SimpleExample.csproj", "{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +29,15 @@ Global
 		{B1B965A6-95E7-4145-AF01-1BB8CC55342B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1B965A6-95E7-4145-AF01-1BB8CC55342B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1B965A6-95E7-4145-AF01-1BB8CC55342B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9CFAA768-35CC-44DE-9F69-EBF32DC3DFA3}
 	EndGlobalSection
 EndGlobal
