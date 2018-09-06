@@ -741,8 +741,8 @@ namespace QTMRealTimeSDK.Data
                             *   X - 4 bytes
                             *   Y - 4 bytes
                             *   Z - 4 bytes
-                            *   Residual - 4 bytes
                             *   ID - 4 bytes
+                            *   Residual - 4 bytes
                             */
                             int markerCount = BitConvert.GetInt32(mData, ref position);
                             m2DDropRate = BitConvert.GetUShort(mData, ref position);
@@ -752,8 +752,8 @@ namespace QTMRealTimeSDK.Data
                             {
                                 Q3D marker = new Q3D();
                                 marker.Position = BitConvert.GetPoint(mData, ref position);
-                                marker.Residual = BitConvert.GetFloat(mData, ref position);
                                 marker.Id = BitConvert.GetUInt32(mData, ref position);
+                                marker.Residual = BitConvert.GetFloat(mData, ref position);
 
                                 m3DMarkerNoLabelResidualData.Add(marker);
                             }
