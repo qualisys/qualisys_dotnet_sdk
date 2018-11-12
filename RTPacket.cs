@@ -309,7 +309,7 @@ namespace QTMRealTimeSDK.Data
     }
 
     /// <summary>Data for Skeleton joint</summary>
-    public struct SkeletonJoint
+    public struct SkeletonSegment
     {
         /// <summary>ID</summary>
         public uint ID;
@@ -321,12 +321,12 @@ namespace QTMRealTimeSDK.Data
     /// <summary>Data for Skeleton</summary>
     public struct Skeleton
     {
-        // <summary>Joint data</summary>
-        public List<SkeletonJoint> Joints;
+        // <summary>Segment data</summary>
+        public List<SkeletonSegment> Segments;
         /// <summary>Sample number</summary>
         public uint SampleNumber;
         /// <summary>Number of joints</summary>
-        public uint JointCount;
+        public uint SegmentCount;
     }
 
     #endregion
@@ -993,19 +993,19 @@ namespace QTMRealTimeSDK.Data
                             {
                                 Skeleton skeleton = new Skeleton();
 
-                                skeleton.JointCount = BitConvert.GetUInt32(mData, ref position);
+                                skeleton.SegmentCount = BitConvert.GetUInt32(mData, ref position);
 
-                                skeleton.Joints = new List<SkeletonJoint>();
-                                for (int joint = 0; joint < skeleton.JointCount; joint++)
+                                skeleton.Segments = new List<SkeletonSegment>();
+                                for (int joint = 0; joint < skeleton.SegmentCount; joint++)
                                 {
-                                    SkeletonJoint skeletonJoint = new SkeletonJoint();
-                                    skeletonJoint.ID = BitConvert.GetUInt32(mData, ref position);
-                                    skeletonJoint.Position = BitConvert.GetPoint(mData, ref position);
-                                    skeletonJoint.Rotation.X = BitConvert.GetFloat(mData, ref position);
-                                    skeletonJoint.Rotation.Y = BitConvert.GetFloat(mData, ref position);
-                                    skeletonJoint.Rotation.Z = BitConvert.GetFloat(mData, ref position);
-                                    skeletonJoint.Rotation.W = BitConvert.GetFloat(mData, ref position);
-                                    skeleton.Joints.Add(skeletonJoint);
+                                    SkeletonSegment skeletonSegment = new SkeletonSegment();
+                                    skeletonSegment.ID = BitConvert.GetUInt32(mData, ref position);
+                                    skeletonSegment.Position = BitConvert.GetPoint(mData, ref position);
+                                    skeletonSegment.Rotation.X = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.Y = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.Z = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.W = BitConvert.GetFloat(mData, ref position);
+                                    skeleton.Segments.Add(skeletonSegment);
                                 }
                                 mSkeletonData.Add(skeleton);
                             }

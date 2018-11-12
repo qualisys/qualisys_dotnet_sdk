@@ -193,8 +193,8 @@ namespace QTMRealTimeSDK.Settings
         public List<SettingGazeVector> GazeVectors;
     }
 
-    /// <summary>Joint</summary>
-    public class SettingSkeletonJoint
+    /// <summary>Segment</summary>
+    public class SettingSkeletonSegment
     {
         [XmlAttribute("Name")]
         public string Name;
@@ -209,8 +209,8 @@ namespace QTMRealTimeSDK.Settings
     {
         [XmlAttribute("Name")]
         public string Name;
-        [XmlElement("Joint")]
-        public List<SettingSkeletonJoint> Joints;
+        [XmlElement("Segment")]
+        public List<SettingSkeletonSegment> Segments;
     }
 
     /// <summary>Skeleton Settings from QTM</summary>

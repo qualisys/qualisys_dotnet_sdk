@@ -57,12 +57,12 @@ namespace RTClientSDK.Net.Example
                     {
                         var skeleton = skeletonData[skeletonIndex];
                         var skeletonSetting = mRtProtocol.SkeletonSettings.Skeletons[skeletonIndex];
-                        var numberOfJoints = skeletonData[skeletonIndex].JointCount;
-                        for (int jointIndex = 0; jointIndex < numberOfJoints; jointIndex++)
+                        var numberOfSegments = skeletonData[skeletonIndex].SegmentCount;
+                        for (int jointIndex = 0; jointIndex < numberOfSegments; jointIndex++)
                         {
-                            var jointSetting = skeletonSetting.Joints[jointIndex];
-                            var joint = skeletonData[skeletonIndex].Joints[jointIndex];
-                            Console.WriteLine("Frame:{0:D5} Skeleton:{1,16} Joint:{2,16} ID:{3,4} PID:{4,4} X:{5,7:F1} Y:{6,7:F1} Z:{7,7:F1} A:{8,7:F2} B:{9,7:F2} C:{10,7:F2} D:{11,7:F2}",
+                            var jointSetting = skeletonSetting.Segments[jointIndex];
+                            var joint = skeletonData[skeletonIndex].Segments[jointIndex];
+                            Console.WriteLine("Frame:{0:D5} Skeleton:{1,16} Segment:{2,16} ID:{3,4} PID:{4,4} X:{5,7:F1} Y:{6,7:F1} Z:{7,7:F1} A:{8,7:F2} B:{9,7:F2} C:{10,7:F2} D:{11,7:F2}",
                                 mRtProtocol.GetRTPacket().Frame,
                                 skeletonSetting.Name,
                                 jointSetting.Name,
