@@ -308,7 +308,7 @@ namespace QTMRealTimeSDK.Data
         public uint Frame;
     }
 
-    /// <summary>Data for Skeleton joint</summary>
+    /// <summary>Data for Skeleton segment</summary>
     public struct SkeletonSegment
     {
         /// <summary>ID</summary>
@@ -325,7 +325,7 @@ namespace QTMRealTimeSDK.Data
         public List<SkeletonSegment> Segments;
         /// <summary>Sample number</summary>
         public uint SampleNumber;
-        /// <summary>Number of joints</summary>
+        /// <summary>Number of segments</summary>
         public uint SegmentCount;
     }
 
@@ -996,7 +996,7 @@ namespace QTMRealTimeSDK.Data
                                 skeleton.SegmentCount = BitConvert.GetUInt32(mData, ref position);
 
                                 skeleton.Segments = new List<SkeletonSegment>();
-                                for (int joint = 0; joint < skeleton.SegmentCount; joint++)
+                                for (int segment = 0; segment < skeleton.SegmentCount; segment++)
                                 {
                                     SkeletonSegment skeletonSegment = new SkeletonSegment();
                                     skeletonSegment.ID = BitConvert.GetUInt32(mData, ref position);
