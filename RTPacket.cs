@@ -63,6 +63,8 @@ namespace QTMRealTimeSDK.Data
         ComponentGazeVector = 16,
         // Timecode component
         ComponentTimecode = 17,
+        // Skeleton component
+        ComponentSkeleton = 18,
         // Nothing
         ComponentNone = 18,
     }
@@ -121,6 +123,18 @@ namespace QTMRealTimeSDK.Data
         public float Y;
         [XmlElement("Z")]
         public float Z;
+    }
+    /// <summary>Struct for quaterinion </summary>
+    public struct QuatRotation
+    {
+        [XmlElement("A")]
+        public float X;
+        [XmlElement("B")]
+        public float Y;
+        [XmlElement("C")]
+        public float Z;
+        [XmlElement("D")]
+        public float W;
     }
 
     /// <summary>Struct for Euler rotation</summary>
@@ -272,7 +286,6 @@ namespace QTMRealTimeSDK.Data
         {
             return this.FormatTimestamp();
         }
-
     }
 
     /// <summary> IRIG timecode struct </summary>
@@ -293,6 +306,27 @@ namespace QTMRealTimeSDK.Data
         public uint Minute;
         public uint Second;
         public uint Frame;
+    }
+
+    /// <summary>Data for Skeleton segment</summary>
+    public struct SkeletonSegment
+    {
+        /// <summary>ID</summary>
+        public uint ID;
+        /// <summary>Skeleton position</summary>
+        public Point Position;
+        /// <summary>Skeleton rotation</summary>
+        public QuatRotation Rotation;
+    }
+    /// <summary>Data for Skeleton</summary>
+    public struct Skeleton
+    {
+        // <summary>Segment data</summary>
+        public List<SkeletonSegment> Segments;
+        /// <summary>Sample number</summary>
+        public uint SampleNumber;
+        /// <summary>Number of segments</summary>
+        public uint SegmentCount;
     }
 
     #endregion
@@ -360,6 +394,7 @@ namespace QTMRealTimeSDK.Data
         List<CameraImage> mImageData;
         List<GazeVector> mGazeVectorData;
         List<Timecode> mTimecodeData;
+        List<Skeleton> mSkeletonData;
 
 
         /// <summary>
@@ -404,6 +439,7 @@ namespace QTMRealTimeSDK.Data
             mGazeVectorData = new List<GazeVector>();
 
             mTimecodeData = new List<Timecode>();
+            mSkeletonData = new List<Skeleton>();
 
             ClearData();
         }
@@ -448,7 +484,7 @@ namespace QTMRealTimeSDK.Data
             mImageData.Clear();
             mGazeVectorData.Clear();
             mTimecodeData.Clear();
-
+            mSkeletonData.Clear();
         }
 
         private Object packetLock = new Object();
@@ -950,9 +986,33 @@ namespace QTMRealTimeSDK.Data
                                 mGazeVectorData.Add(gazeVector);
                             }
                         }
+                        else if (componentType == ComponentType.ComponentSkeleton)
+                        {
+                            int skeletonCount = BitConvert.GetInt32(mData, ref position);
+                            for (int i = 0; i < skeletonCount; i++)
+                            {
+                                Skeleton skeleton = new Skeleton();
+
+                                skeleton.SegmentCount = BitConvert.GetUInt32(mData, ref position);
+
+                                skeleton.Segments = new List<SkeletonSegment>();
+                                for (int segment = 0; segment < skeleton.SegmentCount; segment++)
+                                {
+                                    SkeletonSegment skeletonSegment = new SkeletonSegment();
+                                    skeletonSegment.ID = BitConvert.GetUInt32(mData, ref position);
+                                    skeletonSegment.Position = BitConvert.GetPoint(mData, ref position);
+                                    skeletonSegment.Rotation.X = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.Y = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.Z = BitConvert.GetFloat(mData, ref position);
+                                    skeletonSegment.Rotation.W = BitConvert.GetFloat(mData, ref position);
+                                    skeleton.Segments.Add(skeletonSegment);
+                                }
+                                mSkeletonData.Add(skeleton);
+                            }
+                        }
                         else
                         {
-                            System.Diagnostics.Debug.Fail("For what componenttype are we missing support?");
+                            // Any missing component types?
                         }
                     }
                 }
@@ -1552,6 +1612,29 @@ namespace QTMRealTimeSDK.Data
             }
         }
 
+        /// <summary>
+        /// Get skeleton from all cameras
+        /// </summary>
+        /// <returns>list of all images</returns>
+        public List<Skeleton> GetSkeletonData()
+        {
+            lock (packetLock)
+            {
+                return mSkeletonData.ToList();
+            }
+        }
+        /// <summary>
+        /// Get skeleton data from cameras at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>Gaze vector from index</returns>
+        public Skeleton GetSkeletonData(int index)
+        {
+            lock (packetLock)
+            {
+                return mSkeletonData[index];
+            }
+        }
         #endregion
     }
 }
