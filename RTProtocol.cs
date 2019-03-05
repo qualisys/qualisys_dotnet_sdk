@@ -586,6 +586,11 @@ namespace QTMRealTimeSDK
             return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
         }
 
+        public bool StreamAllFrames(List<ComponentType> component, int port = -1, string ipAddress = "")
+        {
+            return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
+        }
+
         /// <summary>Stream frames from QTM server</summary>
         /// <param name="streamRate">what rate server should stream at</param>
         /// <param name="streamValue">related to streamrate, not used if all frames are streamed</param>
