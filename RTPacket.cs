@@ -577,13 +577,13 @@ namespace QTMRealTimeSDK.Data
                         else if (componentType == ComponentType.ComponentAnalog)
                         {
                             /* Analog Device count - 4 bytes
-                            * [Repeated per device]
-                            *   Device id - 4 bytes
-                            *   Channel count - 4 bytes
-                            *   Sample count - 4 bytes
-                            *   Sample number - 4 bytes
-                            *   Analog data - 4 * channelcount * sampleCount
-                            */
+                             * [Repeated per device]
+                             *   Device id - 4 bytes
+                             *   Channel count - 4 bytes
+                             *   Sample count - 4 bytes
+                             *   Sample number - 4 bytes
+                             *   Analog data - 4 * channelcount * sampleCount
+                             */
                             uint deviceCount = BitConvert.GetUInt32(mData, ref position);
                             for (int i = 0; i < deviceCount; i++)
                             {
@@ -591,22 +591,30 @@ namespace QTMRealTimeSDK.Data
                                 analogDeviceData.DeviceID = BitConvert.GetUInt32(mData, ref position);
                                 analogDeviceData.ChannelCount = BitConvert.GetUInt32(mData, ref position);
                                 analogDeviceData.Channels = new AnalogChannelData[analogDeviceData.ChannelCount];
-
                                 uint sampleCount = BitConvert.GetUInt32(mData, ref position);
+                                analogDeviceData.SampleNumber = BitConvert.GetUInt32(mData, ref position);
                                 if (sampleCount > 0)
                                 {
-                                    analogDeviceData.SampleNumber = BitConvert.GetUInt32(mData, ref position);
                                     for (uint j = 0; j < analogDeviceData.ChannelCount; j++)
                                     {
-                                        AnalogChannelData sample = new AnalogChannelData();
-                                        sample.Samples = new float[sampleCount];
+                                        AnalogChannelData analogChannelData = new AnalogChannelData();
+                                        analogChannelData.Samples = new float[sampleCount];
                                         for (uint k = 0; k < sampleCount; k++)
                                         {
-                                            sample.SampleNumber = analogDeviceData.SampleNumber + k;
-                                            sample.Samples[k] = BitConvert.GetFloat(mData, ref position);
+                                            analogChannelData.SampleNumber = analogDeviceData.SampleNumber + k;
+                                            analogChannelData.Samples[k] = BitConvert.GetFloat(mData, ref position);
                                         }
-
-                                        analogDeviceData.Channels[j] = sample;
+                                        analogDeviceData.Channels[j] = analogChannelData;
+                                    }
+                                }
+                                else
+                                {
+                                    for (uint j = 0; j < analogDeviceData.ChannelCount; j++)
+                                    {
+                                        AnalogChannelData analogChannelData = new AnalogChannelData();
+                                        analogChannelData.Samples = new float[0];
+                                        analogChannelData.SampleNumber = 0;
+                                        analogDeviceData.Channels[j] = analogChannelData;
                                     }
                                 }
                                 mAnalogData.Add(analogDeviceData);
