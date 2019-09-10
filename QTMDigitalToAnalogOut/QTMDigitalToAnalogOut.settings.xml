@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfSettings6dofToAnalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Settings6dofToAnalog>
+    <Name>L-frame</Name>
+    <DataType>PositionX</DataType>
+    <BoardId>19D4A6D</BoardId>
+    <Channel>0</Channel>
+    <MinimumValueInput>0</MinimumValueInput>
+    <MaximumValueInput>1000</MaximumValueInput>
+    <MinimumValueOutput>-10</MinimumValueOutput>
+    <MaximumValueOutput>10</MaximumValueOutput>
+  </Settings6dofToAnalog>
+  <Settings6dofToAnalog>
+    <Name>L-frame</Name>
+    <DataType>Residual</DataType>
+    <BoardId>19D4A6D</BoardId>
+    <Channel>1</Channel>
+    <MinimumValueInput>1.2</MinimumValueInput>
+    <MaximumValueInput>1.4</MaximumValueInput>
+    <MinimumValueOutput>-10</MinimumValueOutput>
+    <MaximumValueOutput>10</MaximumValueOutput>
+  </Settings6dofToAnalog>
+  <Settings6dofToAnalog>
+    <Name>L-frame</Name>
+    <DataType>Existent</DataType>
+    <BoardId>19D4A6D</BoardId>
+    <Channel>2</Channel>
+    <MinimumValueInput>0</MinimumValueInput>
+    <MaximumValueInput>10</MaximumValueInput>
+    <MinimumValueOutput>-5</MinimumValueOutput>
+    <MaximumValueOutput>5</MaximumValueOutput>
+  </Settings6dofToAnalog>
+</ArrayOfSettings6dofToAnalog>

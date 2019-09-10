@@ -4,38 +4,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
+using CommandLine.Text;
 
 namespace QTMDigitalToAnalogOut
 {
     class Program
     {
-        
-            [Verb("stream", HelpText = "Stream data to analog device")]
-            class StreamOptions
-            {
-                [Value(0)]
-                public string ipAddress { get; set; }
-                [Value(1)]
-                public string pathToSettings { get; set; }
-            }
-            [Verb("list", HelpText = "List connected devices")]
-            class ListOptions { }
-            [Verb("test", HelpText = "Test devices")]
-            class TestOptions { }
-        
-        private 
-        static void Main(string[] args)
+        [Verb("stream", HelpText = "Stream data to analog device")]
+        class StreamOptions
         {
-            Parser.Default.ParseArguments< StreamOptions ,ListOptions, TestOptions> (args)
-                .MapResult(
-                (StreamOptions opts) => StreamData(opts),
-                (ListOptions opts) => ListDevices(opts),
-                (TestOptions opts) => TestDevices(opts),
-                errs => 1);
+            [Option("ip", Required = false, HelpText = "Ip address of computer running QTM.", Default = Defaults.IpAddress)]
+            public string IpAddress { get; set; }
+            [Option("settings", Required = false, HelpText = "Settings file for 6dof to analog calculations.", Default = Defaults.PathToSettings)]
+            public string PathToSettings { get; set; }
+            [Option("output", Required = false, HelpText = "Set to output verbose messages.", Default = true)]
+            public bool DebugOutput { get; set; }
+        }
 
-            int StreamData(StreamOptions opts)
+        [Verb("list", HelpText = "List connected devices")]
+        class ListOptions { }
+
+        [Verb("test", HelpText = "Test devices")]
+        class TestOptions { }
+        
+        private static void Main(string[] args)
+        {
+            Parser.Default.ParseArguments<StreamOptions ,ListOptions, TestOptions>(args)
+                .MapResult(
+                    (StreamOptions opts) => StreamData(opts),
+                    (ListOptions opts) => ListDevices(opts),
+                    (TestOptions opts) => TestDevices(opts),
+                    errs => 1);
+
+            int StreamData(StreamOptions options)
             {
-                Transfer6dofToAnalog transfer6dofToAnalog = new Transfer6dofToAnalog(opts.ipAddress, opts.pathToSettings);
+                Transfer6dofToAnalog transfer6dofToAnalog = new Transfer6dofToAnalog(options.IpAddress, options.PathToSettings, options.DebugOutput);
                 transfer6dofToAnalog.Start();
                 while (true)
                 {
@@ -49,20 +52,18 @@ namespace QTMDigitalToAnalogOut
                 transfer6dofToAnalog.Stop();
                 return 0;
             }
-            int ListDevices(ListOptions opts)
+
+            int ListDevices(ListOptions options)
             {
-                ListAnalogDevices listAnalogDevices = new ListAnalogDevices();
-                listAnalogDevices.list();
+                Devices.List();
                 return 0;
             }
-            int TestDevices(TestOptions opts)
+
+            int TestDevices(TestOptions options)
             {
-                TestDevices testDevices = new TestDevices();
-                testDevices.test();
+                Devices.Test();
                 return 0;
             }
         }
     }
-
-
 }

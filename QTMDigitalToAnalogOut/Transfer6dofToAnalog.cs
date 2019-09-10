@@ -4,11 +4,7 @@ using QTMRealTimeSDK.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-
-using DigitalIO;
 using MccDaq;
 using AnalogIO;
 using ErrorDefs;
@@ -18,18 +14,24 @@ using System.Diagnostics;
 
 namespace QTMDigitalToAnalogOut
 {
+    public class Defaults
+    {
+        public const string IpAddress = "127.0.0.1";
+        public const string PathToSettings = "QTMDigitalToAnalogOut.settings.xml";
+    }
+
     public class Transfer6dofToAnalog
     {
-        public Transfer6dofToAnalog(string ipAddress, string pathToSettings)
+        public Transfer6dofToAnalog(string ipAddress, string pathToSettings, bool debugOutput)
         {
-            if (ipAddress != null)
-                IpAddress = ipAddress;
-            if (pathToSettings != null)
-                PathToSettings = pathToSettings;
+            IpAddress = ipAddress;
+            PathToSettings = pathToSettings;
+            DebugOutput = debugOutput;
         }
-        private string IpAddress = "127.0.0.1";
-        private string PathToSettings = "QTMDigitalToAnalogOut.settings.xml";
         private RTProtocol mRtProtocol;
+
+        private string IpAddress;
+        private string PathToSettings;
 
         class BoardInfo
         {
@@ -123,56 +125,6 @@ namespace QTMDigitalToAnalogOut
 
             mRtProtocol = new RTProtocol();
 
-/*
-            // TODO::: Read settings from xml file.
-            Settings6dofToAnalog settings6dofToAnalog = new Settings6dofToAnalog()
-            {
-                BoardId = "19D4A6D",
-                Channel = 0,
-                DataType = SixDofDataType.PositionX,
-                Name = "New Body #1",
-                MinimumValueInput = 0,
-                MaximumValueInput = 1000,
-                MinimumValueOutput = -10,
-                MaximumValueOutput = 10
-            };
-            Settings6dofToAnalog settings6dofToAnalog1 = new Settings6dofToAnalog()
-            {
-                BoardId = "19D4A6D",
-                Channel = 1,
-                DataType = SixDofDataType.Residual,
-                Name = "New Body #1",
-                MinimumValueInput = 0,
-                MaximumValueInput = 2,
-                MinimumValueOutput = -10,
-                MaximumValueOutput = 10,
-            };
-            Settings6dofToAnalog settings6dofToAnalog2 = new Settings6dofToAnalog()
-            {
-                BoardId = "19D4A6D",
-                Channel = 2,
-                DataType = SixDofDataType.Existent,
-                Name = "New Body #1",
-                MinimumValueInput = 0,
-                MaximumValueInput = 10,
-                MinimumValueOutput = -5,
-                MaximumValueOutput = 5,
-            };
-            settings6dofToAnalog.CalculateStartValues();
-            settings6dofToAnalog1.CalculateStartValues();
-            settings6dofToAnalog2.CalculateStartValues();
-            mSettings6dofToAnalog.Add(settings6dofToAnalog.Name, settings6dofToAnalog);
-            mSettings6dofToAnalog.Add(settings6dofToAnalog1.Name, settings6dofToAnalog1);
-            mSettings6dofToAnalog.Add(settings6dofToAnalog2.Name, settings6dofToAnalog2);
-            mSettings.Add(settings6dofToAnalog);
-            mSettings.Add(settings6dofToAnalog1);
-            mSettings.Add(settings6dofToAnalog2);
-
-            SaveSettings();
-            
-            mSettings6dofToAnalog.Clear();
-            mSettings.Clear();
-*/
         }
 
         private void ReleaseDAQDevices()
@@ -180,9 +132,6 @@ namespace QTMDigitalToAnalogOut
             foreach (var boardInfo in mBoards)
             {
                 // Release resources associated with the specified board number within the Universal Library with cbReleaseDaqDevice()
-                //    Parameters:
-                //    	MccBoard:			Board object
-
                 MccDaq.MccService.WinBufFreeEx(boardInfo.mMemHandle);
                 MccDaq.DaqDeviceManager.ReleaseDaqDevice(boardInfo.mBoard);
             }
@@ -196,17 +145,18 @@ namespace QTMDigitalToAnalogOut
             mRtProtocol.Dispose();
         }
 
-        public bool debugOutput = true;
+        public bool DebugOutput = true;
 
-       
-
-        private Dictionary<string, Settings6DOF> mSettings6D;
         private List<Settings6DOF> mSettings6DList;
 
         private void Get6dofSettingsFromRT()
         {
-            mSettings6D = mRtProtocol.Settings6DOF.Bodies.ToDictionary(a => a.Name);
             mSettings6DList = mRtProtocol.Settings6DOF.Bodies;
+        }
+
+        private void Clear6dofSettingsFromRT()
+        {
+            mSettings6DList.Clear();
         }
 
         public enum SixDofDataType
@@ -296,14 +246,12 @@ namespace QTMDigitalToAnalogOut
             }
         }
 
-        //Random random = new Random();
-        //bool started = false;
-
+        private bool startedStreaming = false;
         public void TransferData()
         {
             if (!mRtProtocol.IsConnected())
             {
-                if (!mRtProtocol.Connect(IpAddress, 15425))
+                if (!mRtProtocol.Connect(IpAddress))
                 {
                     Console.WriteLine("QTM: Trying to connect");
                     Thread.Sleep(1000);
@@ -320,32 +268,22 @@ namespace QTMDigitalToAnalogOut
                     Thread.Sleep(500);
                     return;
                 }
-                Console.WriteLine("QTM: 6DOF data available");
-
+                Console.WriteLine("QTM: Getting 6DOF settings");
                 Get6dofSettingsFromRT();
-                mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual, 15425);
-                Console.WriteLine("QTM: Starting to stream data");
-                Thread.Sleep(500);
             }
 
-            PacketType packetTypeTemp;
+            if (!startedStreaming)
+            { 
+                mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual);
+                Console.WriteLine("QTM: 6DOF data streaming");
+                startedStreaming = true;
+            }
+
             PacketType packetType;
-            while (true)
-            {
-                Console.WriteLine(mRtProtocol.ReceiveRTPacket(out packetTypeTemp, false));
-                Console.WriteLine(mRtProtocol.GetErrorString());
-                packetType = packetTypeTemp;
-                break;
-                
-            }
-
+            mRtProtocol.ReceiveRTPacket(out packetType, false);
 
             if (packetType == PacketType.PacketData)
             {
-                if (debugOutput)
-                {
-                    Console.Clear();
-                }
                 var sixDofData = mRtProtocol.GetRTPacket().Get6DOFEulerResidualData();
                 if (sixDofData != null)
                 {
@@ -357,7 +295,7 @@ namespace QTMDigitalToAnalogOut
                         if (settings == null)
                             continue;
 
-                        if (debugOutput)
+                        if (DebugOutput)
                         {
                             var frameNumber = mRtProtocol.GetRTPacket().Frame;
                             Console.WriteLine("Frame:{0:D5} X:{1:F2} Y:{2:F2} Z:{3:F2} 1:{4:F2} 2:{5:F2} 3:{6:F2} R:{7:F2}",
@@ -423,10 +361,11 @@ namespace QTMDigitalToAnalogOut
                                 }
                                 var volt = setting.CalculateAdjustedValue(attributeValue);
                                 
-                                if (debugOutput)
+                                if (DebugOutput)
                                 {
                                     Console.WriteLine("Device: {5} Channel: {0} Body: {1} DataType: {2} => value: {3:F2} => volt: {4:F2}", setting.Channel, setting.Name, setting.DataType, attributeValue, volt , setting.BoardId);
                                 }
+
                                 var board = mBoards.Find(x => x.mDeviceId == setting.BoardId);
                                 board.mBoard.FromEngUnits(Range.Bip10Volts, setting.CalculateAdjustedValue(attributeValue), out ushort dataValue);
                                 errorInfo = boardInfo.mBoard.AOut(setting.Channel, MccDaq.Range.Bip10Volts, dataValue);
@@ -440,19 +379,43 @@ namespace QTMDigitalToAnalogOut
             {
                 // If an event comes from QTM then print it out
                 var qtmEvent = mRtProtocol.GetRTPacket().GetEvent();
-                if (qtmEvent == QTMEvent.EventConnected ||
+                if (
+                    qtmEvent == QTMEvent.EventConnected ||
                     qtmEvent == QTMEvent.EventConnectionClosed ||
                     qtmEvent == QTMEvent.EventRTFromFileStarted ||
                     qtmEvent == QTMEvent.EventRTFromFileStopped ||
                     qtmEvent == QTMEvent.EventCaptureStarted ||
-                    qtmEvent == QTMEvent.EventCaptureStopped)
+                    qtmEvent == QTMEvent.EventCaptureStopped ||
+                    qtmEvent == QTMEvent.EventCalibrationStarted ||
+                    qtmEvent == QTMEvent.EventCalibrationStopped)
                 {
+                    if (startedStreaming)
+                    {
+                        mRtProtocol.StreamFramesStop();
+                        startedStreaming = false;
+                    }
+                    Clear6dofSettingsFromRT();
                     mRtProtocol.ClearSettings();
                 }
-                if (debugOutput)
+                else if (qtmEvent == QTMEvent.EventQTMShuttingDown)
+                {
+                    if (startedStreaming)
+                    {
+                        mRtProtocol.StreamFramesStop();
+                        startedStreaming = false;
+                    }
+                    Clear6dofSettingsFromRT();
+                    mRtProtocol.ClearSettings();
+                    mRtProtocol.Disconnect();
+                }
+                if (DebugOutput)
                 {
                     Console.WriteLine("Event: {0}", qtmEvent);
                 }
+            }
+            else if (packetType == PacketType.PacketError)
+            {
+                Console.WriteLine(mRtProtocol.GetErrorString());
             }
         }
     }
