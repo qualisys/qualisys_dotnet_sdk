@@ -47,7 +47,7 @@ namespace QTMRealTimeSDK
             /// <summary>Latest major version of protocol</summary>
             public const int MAJOR_VERSION = 1;
             /// <summary>Latest minor version of protocol</summary>
-            public const int MINOR_VERSION = 17;
+            public const int MINOR_VERSION = 18;
             /// <summary>Maximum camera count</summary>
             public const int MAX_CAMERA_COUNT = 256;
             /// <summary>Maximum Analog device count</summary>
@@ -162,6 +162,10 @@ namespace QTMRealTimeSDK
         private SettingsGazeVectors mGazeVectorSettings;
         /// <summary>Gaze vector settings from QTM</summary>
         public SettingsGazeVectors GazeVectorSettings { get { return mGazeVectorSettings; } }
+
+        private SettingsSkeletons mSkeletonSettings;
+        /// <summary>Skeleton settings from QTM</summary>
+        public SettingsSkeletons SkeletonSettings { get { return mSkeletonSettings; } }
 
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
@@ -333,6 +337,7 @@ namespace QTMRealTimeSDK
             mAnalogSettings = null;
             mForceSettings = null;
             mGazeVectorSettings = null;
+            mSkeletonSettings = null;
             mGeneralSettings = null;
             mImageSettings = null;
         }
@@ -577,6 +582,11 @@ namespace QTMRealTimeSDK
         /// <summary>Stream all frames from QTM server</summary>
         /// <returns>true if streaming started ok</returns>
         public bool StreamAllFrames(ComponentType component, int port = -1, string ipAddress = "")
+        {
+            return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
+        }
+
+        public bool StreamAllFrames(List<ComponentType> component, int port = -1, string ipAddress = "")
         {
             return StreamFrames(StreamRate.RateAllFrames, 1, component, port, ipAddress);
         }
@@ -911,6 +921,13 @@ namespace QTMRealTimeSDK
             return GetSettings("GazeVector", "Gaze_Vector", out mGazeVectorSettings);
         }
 
+        /// <summary>Get Skeleton settings from QTM Server</summary>
+        /// <returns>Returns true if settings was retrieved</returns>
+        public bool GetSkeletonSettings()
+        {
+            return GetSettings("Skeleton", "Skeletons", out mSkeletonSettings);
+        }
+
         internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject)
         {
             string xml;
@@ -1193,6 +1210,9 @@ namespace QTMRealTimeSDK
                         break;
                     case ComponentType.ComponentGazeVector:
                         command += " GazeVector";
+                        break;
+                    case ComponentType.ComponentSkeleton:
+                        command += " Skeleton";
                         break;
                 }
             }

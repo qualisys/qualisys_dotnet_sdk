@@ -193,6 +193,34 @@ namespace QTMRealTimeSDK.Settings
         public List<SettingGazeVector> GazeVectors;
     }
 
+    /// <summary>Segment</summary>
+    public class SettingSkeletonSegment
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlAttribute("ID")]
+        public string ID;
+        [XmlAttribute("Parent_ID")]
+        public string ParentID;
+    }
+
+    /// <summary>Skeleton</summary>
+    public class SettingSkeleton
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlElement("Segment")]
+        public List<SettingSkeletonSegment> Segments;
+    }
+
+    /// <summary>Skeleton Settings from QTM</summary>
+    [XmlRoot("Skeletons")]
+    public class SettingsSkeletons : SettingsBase
+    {
+        [XmlElement("Skeleton")]
+        public List<SettingSkeleton> Skeletons;
+    }
+
     /// <summary>General settings for Camera System</summary>
     public struct SettingsGeneralCameraSystem
     {

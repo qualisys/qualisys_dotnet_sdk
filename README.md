@@ -86,7 +86,7 @@ namespace RTSDKExample
             // Check for available 6DOF data in the stream
             if (rtProtocol.Settings6DOF == null)
             {
-                if (!rtProtocol.Get6DSettings())
+                if (!rtProtocol.Get6dSettings())
                 {
                     Console.WriteLine("QTM: Trying to get 6DOF settings");
                     Thread.Sleep(500);
@@ -113,7 +113,7 @@ namespace RTSDKExample
                     for (int body = 0; body < sixDofData.Count; body++)
                     {
                         var sixDofBody = sixDofData[body];
-                        var bodySetting = rtProtocol.Settings6DOF.bodies[body];
+                        var bodySetting = rtProtocol.Settings6DOF.Bodies[body];
                         Console.WriteLine("Frame:{0:D5} Body:{1,20} X:{2,7:F1} Y:{3,7:F1} Z:{4,7:F1} First Angle:{5,7:F1} Second Angle:{6,7:F1} Third Angle:{7,7:F1} Residual:{8,7:F1}",
                             rtProtocol.GetRTPacket().Frame,
                             bodySetting.Name,
