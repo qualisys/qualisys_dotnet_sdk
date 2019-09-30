@@ -220,8 +220,9 @@ namespace QTMDigitalToAnalogOut
                     xmlSerializer.Serialize(writer, mSettings);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e.ToString());
             }
         }
         
@@ -240,9 +241,10 @@ namespace QTMDigitalToAnalogOut
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 // Ignore any kind of error and use default settings
+                Console.WriteLine(e.ToString());
             }
         }
 
