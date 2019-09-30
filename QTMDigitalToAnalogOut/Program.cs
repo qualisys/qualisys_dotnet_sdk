@@ -29,6 +29,8 @@ namespace QTMDigitalToAnalogOut
         
         private static void Main(string[] args)
         {
+            DisableConsoleQuickEdit.Run();
+
             Parser.Default.ParseArguments<StreamOptions ,ListOptions, TestOptions>(args)
                 .MapResult(
                     (StreamOptions opts) => StreamData(opts),
