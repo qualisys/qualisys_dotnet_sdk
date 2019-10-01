@@ -22,6 +22,12 @@ namespace QTMDigitalToAnalogOut
 
     public class Transfer6dofToAnalog
     {
+        private void LogMessage(string format, params object[] parameters)
+        {
+            Console.Write($"{DateTime.Now.ToString("hh:mm:ss:fff")} - ");
+            Console.WriteLine(format, parameters);
+        }
+
         public Transfer6dofToAnalog(string ipAddress, string pathToSettings, bool debugOutput)
         {
             IpAddress = ipAddress;
@@ -120,7 +126,7 @@ namespace QTMDigitalToAnalogOut
             }
             catch (ULException ule)
             {
-                Console.WriteLine(ule.Message);
+                LogMessage(ule.Message);
             }
 
             mRtProtocol = new RTProtocol();
@@ -222,7 +228,7 @@ namespace QTMDigitalToAnalogOut
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                LogMessage(e.ToString());
             }
         }
         
@@ -244,7 +250,7 @@ namespace QTMDigitalToAnalogOut
             catch (Exception e)
             {
                 // Ignore any kind of error and use default settings
-                Console.WriteLine(e.ToString());
+                LogMessage(e.ToString());
             }
         }
 
@@ -255,29 +261,29 @@ namespace QTMDigitalToAnalogOut
             {
                 if (!mRtProtocol.Connect(IpAddress))
                 {
-                    Console.WriteLine("QTM: Trying to connect");
+                    LogMessage("QTM: Trying to connect");
                     Thread.Sleep(1000);
                     return;
                 }
-                Console.WriteLine("QTM: Connected");
+                LogMessage("QTM: Connected");
             }
 
             if (mRtProtocol.Settings6DOF == null)
             {
                 if (!mRtProtocol.Get6dSettings())
                 {
-                    Console.WriteLine("QTM: Trying to get 6DOF settings");
+                    LogMessage("QTM: Trying to get 6DOF settings");
                     Thread.Sleep(500);
                     return;
                 }
-                Console.WriteLine("QTM: Getting 6DOF settings");
+                LogMessage("QTM: Getting 6DOF settings");
                 Get6dofSettingsFromRT();
             }
 
             if (!startedStreaming)
             { 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual);
-                Console.WriteLine("QTM: 6DOF data streaming");
+                LogMessage("QTM: 6DOF data streaming");
                 startedStreaming = true;
             }
 
@@ -300,8 +306,17 @@ namespace QTMDigitalToAnalogOut
                         if (DebugOutput)
                         {
                             var frameNumber = mRtProtocol.GetRTPacket().Frame;
-                            Console.WriteLine("Frame:{0:D5} X:{1:F2} Y:{2:F2} Z:{3:F2} 1:{4:F2} 2:{5:F2} 3:{6:F2} R:{7:F2}",
-                                frameNumber.ToString(), sixDof.Position.X, sixDof.Position.Y, sixDof.Position.Z, sixDof.Rotation.First, sixDof.Rotation.Second, sixDof.Rotation.Third, sixDof.Residual);
+                            var frameTime = mRtProtocol.GetRTPacket().TimeStamp;
+                            LogMessage(
+                                $"Frame:{frameNumber.ToString():D5} " +
+                                $"Time:{frameTime:D5} " +
+                                $"X:{sixDof.Position.X:F2} " +
+                                $"Y:{sixDof.Position.Y:F2} " +
+                                $"Z:{sixDof.Position.Z:F2} " +
+                                $"1:{sixDof.Rotation.First:F2} " +
+                                $"2:{sixDof.Rotation.Second:F2} " +
+                                $"3:{sixDof.Rotation.Third:F2} " +
+                                $"R:{sixDof.Residual:F2}");
                         }
 
                         MccDaq.ErrorInfo errorInfo;
@@ -365,7 +380,7 @@ namespace QTMDigitalToAnalogOut
                                 
                                 if (DebugOutput)
                                 {
-                                    Console.WriteLine("Device: {5} Channel: {0} Body: {1} DataType: {2} => value: {3:F2} => volt: {4:F2}", setting.Channel, setting.Name, setting.DataType, attributeValue, volt , setting.BoardId);
+                                    LogMessage("Device: {5} Channel: {0} Body: {1} DataType: {2} => value: {3:F2} => volt: {4:F2}", setting.Channel, setting.Name, setting.DataType, attributeValue, volt , setting.BoardId);
                                 }
 
                                 var board = mBoards.Find(x => x.mDeviceId == setting.BoardId);
@@ -412,12 +427,12 @@ namespace QTMDigitalToAnalogOut
                 }
                 if (DebugOutput)
                 {
-                    Console.WriteLine("Event: {0}", qtmEvent);
+                    LogMessage("Event: {0}", qtmEvent);
                 }
             }
             else if (packetType == PacketType.PacketError)
             {
-                Console.WriteLine(mRtProtocol.GetErrorString());
+                LogMessage(mRtProtocol.GetErrorString());
             }
         }
     }
