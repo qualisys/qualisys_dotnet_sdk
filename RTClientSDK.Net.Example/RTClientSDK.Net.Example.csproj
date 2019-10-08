@@ -49,6 +49,7 @@
     <Compile Include="ExampleImage.cs" />
     <Compile Include="ExampleSkeleton.cs" />
     <Compile Include="ExampleTimecode.cs" />
+    <Compile Include="ExampleUDP.cs" />
     <Compile Include="IExample.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -7,15 +7,16 @@ using System.Threading;
 
 namespace RTClientSDK.Net.Example
 {
-    class ExampleTimecode : Example
+    class ExampleUDP : Example
     {
-        public ExampleTimecode(RTProtocol rtProtocol, string ipAddress) : base(rtProtocol, ipAddress)
+        public ExampleUDP(RTProtocol rtProtocol, string ipAddress) : base(rtProtocol, ipAddress)
         {
         }
 
+        private string ipAddressToSendUdpPacketsTo = "192.168.10.45";
+
         public override void HandleStreaming()
         {
-            // Check if connection to QTM is possible
             if (!mRtProtocol.IsConnected())
             {
                 if (!mRtProtocol.Connect(mIpAddress))
@@ -27,19 +28,19 @@ namespace RTClientSDK.Net.Example
                 Console.WriteLine("QTM: Connected");
             }
 
-            // Check for available 3DOF with residual data in the stream
-            if (mRtProtocol.GeneralSettings == null)
+            // Check for available 6DOF data in the stream
+            if (mRtProtocol.Settings6DOF == null)
             {
-                if (!mRtProtocol.GetGeneralSettings())
+                if (!mRtProtocol.Get6dSettings())
                 {
-                    Console.WriteLine("QTM: Trying to get general settings");
+                    Console.WriteLine("QTM: Trying to get 6DOF settings");
                     Thread.Sleep(500);
                     return;
                 }
-                Console.WriteLine("QTM: General settings available");
+                Console.WriteLine("QTM: 6DOF settings available");
 
-                mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.ComponentTimecode);
-                Console.WriteLine("QTM: Starting to stream timecode data");
+                mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual, 3456, ipAddressToSendUdpPacketsTo);
+                Console.WriteLine("QTM: Starting to stream 6DOF data");
             }
 
             // Get RTPacket from stream
@@ -49,15 +50,7 @@ namespace RTClientSDK.Net.Example
             // Handle data packet
             if (packetType == PacketType.PacketData)
             {
-                var packet = mRtProtocol.GetRTPacket();
-                var timecodeData = packet.GetTimecodeData();
-                if (timecodeData != null)
-                {
-                    foreach (var timecode in timecodeData)
-                    {
-                        Console.WriteLine("Frame: {0:D5} Type: {1} Timestamp: {2}", packet.Frame, timecode.Type.ToString(), timecode.ToString());
-                    }
-                }
+                // NOTE: No data will arrive here, since we say that the data should be sent using udp to another computer.
             }
 
             // Handle event packet

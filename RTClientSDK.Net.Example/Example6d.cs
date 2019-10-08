@@ -39,7 +39,6 @@ namespace RTClientSDK.Net.Example
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual);
                 Console.WriteLine("QTM: Starting to stream 6DOF data");
-                Thread.Sleep(500);
             }
 
             // Get RTPacket from stream

@@ -39,7 +39,6 @@ namespace RTClientSDK.Net.Example
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.ComponentGazeVector);
                 Console.WriteLine("QTM: Starting to stream Gaze vector data");
-                Thread.Sleep(500);
             }
 
             // Get RTPacket from stream

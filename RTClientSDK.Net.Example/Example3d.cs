@@ -45,7 +45,6 @@ namespace RTClientSDK.Net.Example
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component3dResidual);
                 Console.WriteLine("QTM: Starting to stream marker data");
-                Thread.Sleep(500);
             }
 
             // Get RTPacket from stream

@@ -45,7 +45,6 @@ namespace RTClientSDK.Net.Example
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component2d);
                 Console.WriteLine("QTM: Starting to stream 2d data");
-                Thread.Sleep(500);
             }
 
             // Get RTPacket from stream

@@ -39,7 +39,6 @@ namespace RTClientSDK.Net.Example
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.ComponentSkeleton);
                 Console.WriteLine("QTM: Starting to stream Skeleton data");
-                Thread.Sleep(500);
             }
 
             // Get RTPacket from stream
