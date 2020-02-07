@@ -72,23 +72,23 @@ namespace QTMRealTimeSDK.Data
     /// <summary>Events sent from QTM via RT</summary>
     public enum QTMEvent
     {
-        EventConnected = 1,
-        EventConnectionClosed,
-        EventCaptureStarted,
-        EventCaptureStopped,
-        EventCaptureFetchingFinished,
-        EventCalibrationStarted,
-        EventCalibrationStopped,
-        EventRTFromFileStarted,
-        EventRTFromFileStopped,
-        EventWaitingForTrigger,
-        EventCameraSettingsChanged,
-        EventQTMShuttingDown,
-        EventCaptureSaved,
-        EventReprocessingStarted,
-        EventReprocessingStopped,
-        EventTrigger,
-        EventNone
+        Connected = 1,
+        ConnectionClosed,
+        CaptureStarted,
+        CaptureStopped,
+        CaptureFetchingFinished,
+        CalibrationStarted,
+        CalibrationStopped,
+        RTFromFileStarted,
+        RTFromFileStopped,
+        WaitingForTrigger,
+        CameraSettingsChanged,
+        QTMShuttingDown,
+        CaptureSaved,
+        ReprocessingStarted,
+        ReprocessingStopped,
+        Trigger,
+        None
     }
 
     // <summary>Timecode types available from QTM</summary>
@@ -1174,7 +1174,7 @@ namespace QTMRealTimeSDK.Data
             {
                 return (QTMEvent)mData[RTProtocol.Constants.PACKET_HEADER_SIZE];
             }
-            return QTMEvent.EventNone;
+            return QTMEvent.None;
         }
 
         #endregion

@@ -72,8 +72,8 @@ namespace RTClientSDK.Net.Example
             {
                 // If an event comes from QTM then print it out
                 var qtmEvent = mRtProtocol.GetRTPacket().GetEvent();
-                if (qtmEvent == QTMEvent.EventConnectionClosed ||
-                    qtmEvent == QTMEvent.EventRTFromFileStopped)
+                if (qtmEvent == QTMEvent.ConnectionClosed ||
+                    qtmEvent == QTMEvent.RTFromFileStopped)
                 {
                     mRtProtocol.ClearSettings();
                 }

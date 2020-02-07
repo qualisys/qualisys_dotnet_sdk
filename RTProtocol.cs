@@ -672,7 +672,7 @@ namespace QTMRealTimeSDK
                 }
                 while (nReceived > 0);
             }
-            respondedEvent = QTMEvent.EventNone;
+            respondedEvent = QTMEvent.None;
             return false;
         }
 

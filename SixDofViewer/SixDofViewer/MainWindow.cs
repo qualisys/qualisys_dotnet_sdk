@@ -146,11 +146,11 @@ namespace SixDofViewer
                 var qtmEvent = rtProtocol.GetRTPacket().GetEvent();
                 switch (qtmEvent)
                 {
-                    case QTMEvent.EventConnectionClosed:
-                    case QTMEvent.EventCaptureStopped:
-                    case QTMEvent.EventCalibrationStopped:
-                    case QTMEvent.EventRTFromFileStopped:
-                    case QTMEvent.EventQTMShuttingDown:
+                    case QTMEvent.ConnectionClosed:
+                    case QTMEvent.CaptureStopped:
+                    case QTMEvent.CalibrationStopped:
+                    case QTMEvent.RTFromFileStopped:
+                    case QTMEvent.QTMShuttingDown:
 
                         // If QTM is shutting down then handle it, disconnect and empty labels
                         rtProtocol.StreamFramesStop();
