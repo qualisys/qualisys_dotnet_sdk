@@ -460,8 +460,18 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Export to Matlab file</summary>
         [XmlElement("ExportMatlabFile")]
         public bool ExportMatlab;
+        /// <summary>Export to AVI</summary>
         [XmlElement("ExportAviFile")]
         public bool ExportAviFile;
+        /// <summary>Export to FBX</summary>
+        [XmlElement("ExportFbx")]
+        public bool ExportFbx;
+        /// <summary>Start Program</summary>
+        [XmlElement("StartProgram")]
+        public bool StartProgram;
+        /// <summary>Solve skeletons</summary>
+        [XmlElement("SkeletonSolve")]
+        public bool SkeletonSolve;
     }
 
     /// <summary>Settings regarding external Time Base</summary>
@@ -777,6 +787,8 @@ namespace QTMRealTimeSDK.Settings
         ModelMiqusVideo,
         [XmlEnum("Miqus Video Color")]
         ModelMiqusVideoColor,
+        [XmlEnum("Miqus Hybrid")]
+        ModelMiqusHybrid,
     }
 
     /// <summary>Camera modes</summary>
@@ -887,8 +899,8 @@ namespace QTMRealTimeSDK.Settings
         VideoResolution_720p,
         [XmlEnum("540p")]
         VideoResolution_540p,
-        [XmlEnum("420p")]
-        VideoResolution_420p,
+        [XmlEnum("480p")]
+        VideoResolution_480p,
     }
     /// <summary>Video aspect ratio settings for video cameras</summary>
     public enum SettingsVideoAspectRatio
