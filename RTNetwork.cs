@@ -266,7 +266,7 @@ namespace QTMRealTimeSDK.Network
         /// Try and get all the local ip adresses
         /// </summary>
         /// <returns></returns>
-        private List<IPAddress> GetLocalIPAddresses()
+        private static List<IPAddress> GetLocalIPAddresses()
         {
             try
             {
