@@ -223,9 +223,9 @@ namespace QTMRealTimeSDK.Settings
         [XmlAttribute("Name")]
         public string Name;
         [XmlAttribute("ID")]
-        public string ID;
+        public uint Id;
         [XmlAttribute("Parent_ID")]
-        public string ParentID;
+        public uint ParentId;
         [XmlElement("Position")]
         public Position Position;
         [XmlElement("Rotation")]
