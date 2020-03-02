@@ -270,7 +270,7 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Camera mode the camera is set to</summary>
         [XmlElement("Mode")]
         public CameraMode Mode;
-       /// <summary>Values for camera video mode, current, min and max</summary>
+        /// <summary>Values for camera video mode, current, min and max</summary>
         [XmlElement("Video_Frequency")]
         public int VideoFrequency;
         /// <summary>Values for camera video exposure, current, min and max</summary>
@@ -527,6 +527,21 @@ namespace QTMRealTimeSDK.Settings
         public float NonPeriodicTimeout;
     }
 
+    /// <summary>Struct for 6dof point information</summary>
+    public struct Settings6DOFPoint
+    {
+        [XmlElement("X")]
+        public float X;
+        [XmlElement("Y")]
+        public float Y;
+        [XmlElement("Z")]
+        public float Z;
+        [XmlElement("PhysicalId")]
+        public int PhysicalId;
+        [XmlElement("Virtual")]
+        public bool Virtual;
+    }
+
     /// <summary>Settings for 6DOF bodies</summary>
     public struct Settings6DOF
     {
@@ -538,7 +553,7 @@ namespace QTMRealTimeSDK.Settings
         public int ColorRGB;
         /// <summary>List of points in 6DOF body</summary>
         [XmlElement("Point")]
-        public List<Point> Points;
+        public List<Settings6DOFPoint> Points;
     }
 
     /// <summary>General settings for Analog devices</summary>
