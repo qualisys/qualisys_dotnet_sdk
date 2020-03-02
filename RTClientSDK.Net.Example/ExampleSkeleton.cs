@@ -65,8 +65,8 @@ namespace RTClientSDK.Net.Example
                                 mRtProtocol.GetRTPacket().Frame,
                                 skeletonSetting.Name,
                                 segmentSetting.Name,
-                                segmentSetting.ID,
-                                segmentSetting.ParentID,
+                                segmentSetting.Id,
+                                segmentSetting.ParentId,
                                 segment.Position.X, segment.Position.Y, segment.Position.Z,
                                 segment.Rotation.X, segment.Rotation.Y, segment.Rotation.Z, segment.Rotation.W);
                         }
