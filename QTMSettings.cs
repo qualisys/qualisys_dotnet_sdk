@@ -193,6 +193,30 @@ namespace QTMRealTimeSDK.Settings
         public List<SettingGazeVector> GazeVectors;
     }
 
+    /// <summary>Position</summary>
+    public class Position
+    {
+        [XmlAttribute("X")]
+        public float X;
+        [XmlAttribute("Y")]
+        public float Y;
+        [XmlAttribute("Z")]
+        public float Z;
+    }
+
+    /// <summary>Rotation</summary>
+    public class Rotation
+    {
+        [XmlAttribute("X")]
+        public float X;
+        [XmlAttribute("Y")]
+        public float Y;
+        [XmlAttribute("Z")]
+        public float Z;
+        [XmlAttribute("W")]
+        public float W;
+    }
+
     /// <summary>Segment</summary>
     public class SettingSkeletonSegment
     {
@@ -202,6 +226,10 @@ namespace QTMRealTimeSDK.Settings
         public string ID;
         [XmlAttribute("Parent_ID")]
         public string ParentID;
+        [XmlElement("Position")]
+        public Position Position;
+        [XmlElement("Rotation")]
+        public Rotation Rotation;
     }
 
     /// <summary>Skeleton</summary>
