@@ -56,13 +56,15 @@ namespace RTClientSDK.Net.Example
                     {
                         var gazeVector = gazeVectors[gazeVectorIndex];
                         var gazeVectorSetting = mRtProtocol.GazeVectorSettings.GazeVectors[gazeVectorIndex];
-                        Console.WriteLine("Frame:{0:D5} Gaze vector:{1,20} Frequency:{2,5} PosX:{3,7:F1} PosY:{4,7:F1} PosZ:{5,7:F1} GazeX:{6,7:F1} GazeY:{7,7:F1} GazeZ:{8,7:F1} SampleNumber:{9,5}",
-                            mRtProtocol.GetRTPacket().Frame,
+                        Console.WriteLine("Gaze vector:{0,20} Frequency:{1,5}",
                             gazeVectorSetting.Name,
-                            gazeVectorSetting.Frequency,
-                            gazeVector.Position.X, gazeVector.Position.Y, gazeVector.Position.Z,
-                            gazeVector.Gaze.X, gazeVector.Gaze.Y, gazeVector.Gaze.Z,
-                            gazeVector.SampleNumber);
+                            gazeVectorSetting.Frequency);
+                        var sampleNumber = gazeVector.SampleNumber;
+                        foreach (var sample in gazeVector.GazeVectorData)
+                        {
+                            Console.WriteLine("      SampleNumber:{0,-5} PosX:{1,7:F1} PosY:{2,7:F1} PosZ:{3,7:F1} GazeX:{4,7:F1} GazeY:{5,7:F1} GazeZ:{6,7:F1}",
+                                sampleNumber++, sample.Position.X, sample.Position.Y, sample.Position.Z, sample.Gaze.X, sample.Gaze.Y, sample.Gaze.Z);
+                        }
                     }
                 }
             }

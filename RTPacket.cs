@@ -266,23 +266,35 @@ namespace QTMRealTimeSDK.Data
     /// <summary>Data for Gaze vector.</summary>
     public struct GazeVector
     {
+        /// <summary>Sample number</summary>
+        public uint SampleNumber;
+        /// <summary>Gaze vector data array</summary>
+        public GazeVectorSample[] GazeVectorData;
+    }
+    public struct GazeVectorSample
+    {
         /// <summary>Gaze vector</summary>
         public Point Gaze;
         /// <summary>Gaze vector position</summary>
         public Point Position;
-        /// <summary>Sample number</summary>
-        public uint SampleNumber;
     }
 
     /// <summary>Data for Eye tracker.</summary>
     public struct EyeTracker
     {
+        /// <summary>Sample number</summary>
+        public uint SampleNumber;
+        /// <summary>Eye tracker data array</summary>
+        public EyeTrackerSample[] EyeTrackerData;
+    }
+
+    /// <summary>Data for Eye tracker.</summary>
+    public struct EyeTrackerSample
+    {
         /// <summary>Left Pupil Position</summary>
         public float LeftPupilDiameter;
         /// <summary>Right Pupil Position</summary>
         public float RightPupilDiameter;
-        /// <summary>Sample number</summary>
-        public uint SampleNumber;
     }
 
     /// <summary>Data for Timecode.</summary>
@@ -1001,10 +1013,11 @@ namespace QTMRealTimeSDK.Data
                                 {
                                     uint sampleNumber = BitConvert.GetUInt32(mData, ref position);
                                     gazeVector.SampleNumber = sampleNumber;
+                                    gazeVector.GazeVectorData = new GazeVectorSample[sampleCount];
                                     for (var sample = 0; sample < sampleCount; sample++)
                                     {
-                                        gazeVector.Gaze = BitConvert.GetPoint(mData, ref position);
-                                        gazeVector.Position = BitConvert.GetPoint(mData, ref position);
+                                        gazeVector.GazeVectorData[sample].Gaze = BitConvert.GetPoint(mData, ref position);
+                                        gazeVector.GazeVectorData[sample].Position = BitConvert.GetPoint(mData, ref position);
                                     }
                                 }
                                 mGazeVectorData.Add(gazeVector);
@@ -1028,10 +1041,11 @@ namespace QTMRealTimeSDK.Data
                                 {
                                     uint sampleNumber = BitConvert.GetUInt32(mData, ref position);
                                     eyeTracker.SampleNumber = sampleNumber;
+                                    eyeTracker.EyeTrackerData = new EyeTrackerSample[sampleCount];
                                     for (var sample = 0; sample < sampleCount; sample++)
                                     {
-                                        eyeTracker.LeftPupilDiameter = BitConvert.GetFloat(mData, ref position);
-                                        eyeTracker.RightPupilDiameter = BitConvert.GetFloat(mData, ref position);
+                                        eyeTracker.EyeTrackerData[sample].LeftPupilDiameter = BitConvert.GetFloat(mData, ref position);
+                                        eyeTracker.EyeTrackerData[sample].RightPupilDiameter = BitConvert.GetFloat(mData, ref position);
                                     }
                                 }
                                 mEyeTrackerData.Add(eyeTracker);

@@ -56,11 +56,15 @@ namespace RTClientSDK.Net.Example
                     {
                         var eyeTracker = eyeTrackers[eyeTrackerIndex];
                         var eyeTrackerSetting = mRtProtocol.EyeTrackerSettings.EyeTrackers[eyeTrackerIndex];
-                        Console.WriteLine("Frame:{0:D5} Eye tracker: {1,-20} Frequency: {2,-5} LeftEyeDiameter: {3,-7:F1} RightEyeDiameter: {4,-7:F1} SampleNumber:{5,-5}",
-                            mRtProtocol.GetRTPacket().Frame,
+                        Console.WriteLine("Eye tracker: {0,-20} Frequency: {1,-5}",
                             eyeTrackerSetting.Name,
-                            eyeTrackerSetting.Frequency,
-                            eyeTracker.LeftPupilDiameter, eyeTracker.RightPupilDiameter, eyeTracker.SampleNumber);
+                            eyeTrackerSetting.Frequency);
+                        var sampleNumber = eyeTracker.SampleNumber;
+                        foreach (var sample in eyeTracker.EyeTrackerData )
+                        {
+                            Console.WriteLine("      SampleNumber:{0,-5} LeftEyeDiameter: {1,-7:F1} RightEyeDiameter: {2,-7:F1}",
+                                sampleNumber++, sample.LeftPupilDiameter, sample.RightPupilDiameter);
+                        }
                     }
                 }
             }
