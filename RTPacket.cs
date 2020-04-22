@@ -65,8 +65,10 @@ namespace QTMRealTimeSDK.Data
         ComponentTimecode = 17,
         // Skeleton component
         ComponentSkeleton = 18,
+        // Eye tracker component
+        ComponentEyeTracker = 19,
         // Nothing
-        ComponentNone = 18,
+        ComponentNone = 20,
     }
 
     /// <summary>Events sent from QTM via RT</summary>
@@ -272,6 +274,17 @@ namespace QTMRealTimeSDK.Data
         public uint SampleNumber;
     }
 
+    /// <summary>Data for Eye tracker.</summary>
+    public struct EyeTracker
+    {
+        /// <summary>Left Pupil Position</summary>
+        public float LeftPupilDiameter;
+        /// <summary>Right Pupil Position</summary>
+        public float RightPupilDiameter;
+        /// <summary>Sample number</summary>
+        public uint SampleNumber;
+    }
+
     /// <summary>Data for Timecode.</summary>
     public struct Timecode
     {
@@ -393,6 +406,7 @@ namespace QTMRealTimeSDK.Data
         List<ForcePlate> mForceSinglePlateData;
         List<CameraImage> mImageData;
         List<GazeVector> mGazeVectorData;
+        List<EyeTracker> mEyeTrackerData;
         List<Timecode> mTimecodeData;
         List<Skeleton> mSkeletonData;
 
@@ -437,6 +451,7 @@ namespace QTMRealTimeSDK.Data
 
             mImageData = new List<CameraImage>();
             mGazeVectorData = new List<GazeVector>();
+            mEyeTrackerData = new List<EyeTracker>();
 
             mTimecodeData = new List<Timecode>();
             mSkeletonData = new List<Skeleton>();
@@ -483,6 +498,7 @@ namespace QTMRealTimeSDK.Data
             mForceSinglePlateData.Clear();
             mImageData.Clear();
             mGazeVectorData.Clear();
+            mEyeTrackerData.Clear();
             mTimecodeData.Clear();
             mSkeletonData.Clear();
         }
@@ -992,6 +1008,33 @@ namespace QTMRealTimeSDK.Data
                                     }
                                 }
                                 mGazeVectorData.Add(gazeVector);
+                            }
+                        }
+                        else if (componentType == ComponentType.ComponentEyeTracker)
+                        {
+                            /* Eye tracker count - 4 bytes
+                            * Eye tracker sample count - 4 bytes
+                            * Eye tracker sample number - 4 bytes (omitted if sample count is 0)
+                            * [Repeated per eye tracker (omitted if sample count is 0)]
+                            * Eye tracker data - 8 bytes
+                            */
+
+                            int eyeTrackerCount = BitConvert.GetInt32(mData, ref position);
+                            for (int i = 0; i < eyeTrackerCount; i++)
+                            {
+                                EyeTracker eyeTracker = new EyeTracker();
+                                uint sampleCount = BitConvert.GetUInt32(mData, ref position);
+                                if (sampleCount > 0)
+                                {
+                                    uint sampleNumber = BitConvert.GetUInt32(mData, ref position);
+                                    eyeTracker.SampleNumber = sampleNumber;
+                                    for (var sample = 0; sample < sampleCount; sample++)
+                                    {
+                                        eyeTracker.LeftPupilDiameter = BitConvert.GetFloat(mData, ref position);
+                                        eyeTracker.RightPupilDiameter = BitConvert.GetFloat(mData, ref position);
+                                    }
+                                }
+                                mEyeTrackerData.Add(eyeTracker);
                             }
                         }
                         else if (componentType == ComponentType.ComponentSkeleton)
@@ -1597,9 +1640,9 @@ namespace QTMRealTimeSDK.Data
         }
 
         /// <summary>
-        /// Get gaze vectors from all cameras
+        /// Get all gaze vectors
         /// </summary>
-        /// <returns>list of all images</returns>
+        /// <returns>list of all gaze vectors</returns>
         public List<GazeVector> GetGazeVectorData()
         {
             lock (packetLock)
@@ -1608,7 +1651,7 @@ namespace QTMRealTimeSDK.Data
             }
         }
         /// <summary>
-        /// Get gaze vector data from cameras at index
+        /// Get gaze vector at index
         /// </summary>
         /// <param name="index">index to get data from.(not camera index!)</param>
         /// <returns>Gaze vector from index</returns>
@@ -1617,6 +1660,30 @@ namespace QTMRealTimeSDK.Data
             lock (packetLock)
             {
                 return mGazeVectorData[index];
+            }
+        }
+
+        /// <summary>
+        /// Get all eye trackers
+        /// </summary>
+        /// <returns>list of all eye trackers</returns>
+        public List<EyeTracker> GetEyeTrackerData()
+        {
+            lock (packetLock)
+            {
+                return mEyeTrackerData.ToList();
+            }
+        }
+        /// <summary>
+        /// Get eye tracker at index
+        /// </summary>
+        /// <param name="index">index to get data from.(not camera index!)</param>
+        /// <returns>Eye tracker from index</returns>
+        public EyeTracker GetEyeTrackerData(int index)
+        {
+            lock (packetLock)
+            {
+                return mEyeTrackerData[index];
             }
         }
 
