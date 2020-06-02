@@ -832,6 +832,10 @@ namespace QTMRealTimeSDK.Settings
         ModelMiqusVideoColor,
         [XmlEnum("Miqus Hybrid")]
         ModelMiqusHybrid,
+        [XmlEnum("Arqus A5")]
+        ModelArqusA5,
+        [XmlEnum("Arqus A12")]
+        ModelArqusA12,
     }
 
     /// <summary>Camera modes</summary>
