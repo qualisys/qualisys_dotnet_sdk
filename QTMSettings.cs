@@ -217,7 +217,142 @@ namespace QTMRealTimeSDK.Settings
         public float W;
     }
 
-    /// <summary>Segment</summary>
+    /// <summary>Transform</summary>
+    public class Transform
+    {
+        [XmlElement("Position")]
+        public Position Position;
+        [XmlElement("Rotation")]
+        public Rotation Rotation;
+    }
+
+    /// <summary>DefaultTransform</summary>
+    public class DefaultTransform
+    {
+        [XmlElement("Position")]
+        public Position Position;
+        [XmlElement("Rotation")]
+        public Rotation Rotation;
+    }
+
+    /// <summary>Boundry</summary>
+    public class Boundry
+    {
+        [XmlAttribute("LowerBound")]
+        public float LowerBound;
+        [XmlAttribute("UpperBound")]
+        public float UpperBound;
+    }
+
+    /// <summary>DegreesOfFreedom</summary>
+    public class DegreesOfFreedom
+    {
+        [XmlElement("RotationX")]
+        public Boundry RotationX;
+        [XmlElement("RotationY")]
+        public Boundry RotationY;
+        [XmlElement("RotationZ")]
+        public Boundry RotationZ;
+        [XmlElement("TranslationX")]
+        public Boundry TranslationX;
+        [XmlElement("TranslationY")]
+        public Boundry TranslationY;
+        [XmlElement("TranslationZ")]
+        public Boundry TranslationZ;
+    }
+
+    /// <summary>Marker</summary>
+    public class Marker
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlElement("Position")]
+        public Position Position;
+        [XmlElement("Weight")]
+        public float Weight;
+    }
+
+    /// <summary>Markers</summary>
+    public class Markers
+    {
+        [XmlElement("Marker")]
+        public List<Marker> MarkerList;
+    }
+
+    /// <summary>RigidBody</summary>
+    public class RigidBody
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlElement("Transform")]
+        public Transform Transform;
+        [XmlElement("Weight")]
+        public float Weight;
+    }
+
+    /// <summary>RigidBodies</summary>
+    public class RigidBodies
+    {
+        [XmlElement("RigidBody")]
+        public List<RigidBody> RigidBodyList;
+    }
+
+    /// <summary>Skeleton segment</summary>
+    public class SettingSkeletonSegmentRecursive
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlAttribute("ID")]
+        public uint Id;
+        [XmlElement("Transform")]
+        public Transform Transform;
+        [XmlElement("DefaultTransform")]
+        public DefaultTransform DefaultTransform;
+        [XmlElement("DegreesOfFreedom")]
+        public DegreesOfFreedom DegreesOfFreedom;
+        [XmlElement("Endpoint")]
+        public Position Endpoint;
+        [XmlElement("Markers")]
+        public Markers Markers;
+        [XmlElement("RigidBodies")]
+        public RigidBodies RigidBodies;
+        [XmlElement("Segment")]
+        public List<SettingSkeletonSegmentRecursive> Segments;
+    }
+
+    /// <summary>Skeleton segments</summary>
+    public class SegmentsRecursive
+    {
+        [XmlElement("Segment")]
+        public List<SettingSkeletonSegmentRecursive> Segments;
+    }
+
+
+    /// <summary>Skeleton</summary>
+    public class SettingSkeletonRecursive
+    {
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlElement("Solver")]
+        public string Solver;
+        [XmlElement("Scale")]
+        public string Scale;
+        [XmlElement("Segments")]
+        public SegmentsRecursive Segments;
+    }
+
+    /// <summary>
+    /// Skeleton Settings from QTM.
+    /// The skeleton is stored recursively.
+    /// </summary>
+    [XmlRoot("Skeletons")]
+    public class SettingsSkeletonsRecursive : SettingsBase
+    {
+        [XmlElement("Skeleton")]
+        public List<SettingSkeletonRecursive> Skeletons;
+    }
+
+    /// <summary>Skeleton segment</summary>
     public class SettingSkeletonSegment
     {
         [XmlAttribute("Name")]
@@ -241,7 +376,10 @@ namespace QTMRealTimeSDK.Settings
         public List<SettingSkeletonSegment> Segments;
     }
 
-    /// <summary>Skeleton Settings from QTM</summary>
+    /// <summary>
+    /// Skeleton Settings from QTM.
+    /// The skeleton is stored in a vector.
+    /// </summary>
     [XmlRoot("Skeletons")]
     public class SettingsSkeletons : SettingsBase
     {
@@ -303,22 +441,25 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Video Field Of View, left, top, right and bottom coordinates</summary>
         [XmlElement("Video_FOV")]
         public FieldOfView VideoFOV;
-        /// <summary>Sync out settings for Oqus sync out or Miqus Sync Unit Out1</summary>
+        /// <summary>Sync out settings for Oqus sync out or Sync Unit Out1</summary>
         [XmlElement("Sync_Out")]
         public SettingsSyncOut SyncOut;
-        /// <summary>Sync out settings for Miqus Sync Unit Out2</summary>
+        /// <summary>Sync out settings for Sync Unit Out2</summary>
         [XmlElement("Sync_Out2")]
         public SettingsSyncOut SyncOut2;
-        /// <summary>Sync out settings for Miqus Sync Unit Measurement Time (MT)</summary>
+        /// <summary>Sync out settings for Sync Unit Measurement Time (MT)</summary>
         [XmlElement("Sync_Out_MT")]
         public SettingsSyncOut SyncOutMT;
         /// <summary>Lens Control settings for camera equipped with motorized lens</summary>
         [XmlElement("LensControl")]
         public SettingsLensControl LensControl;
+        /// <summary>Auto exposure settings for video camera</summary>
         [XmlElement("AutoExposure")]
         public SettingsAutoExposure AutoExposure;
+        /// <summary>Video resolution for non-marker cameras</summary>
         [XmlElement("Video_Resolution")]
         public SettingsVideoResolution VideoResolution;
+        /// <summary>Video aspect ratio for non-marker cameras</summary>
         [XmlElement("Video_Aspect_Ratio")]
         public SettingsVideoAspectRatio VideoAspectRatio;
     }
@@ -326,8 +467,10 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Settings regarding Lens Control for camera equipped with motorized lens</summary>
     public struct SettingsLensControl
     {
+        /// <summary>Camera focus lens control</summary>
         [XmlElement("Focus")]
         public SettingsLensControlValues Focus;
+        /// <summary>Camera aperture lens control</summary>
         [XmlElement("Aperture")]
         public SettingsLensControlValues Aperture;
     }

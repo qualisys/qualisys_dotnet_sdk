@@ -47,7 +47,7 @@ namespace QTMRealTimeSDK
             /// <summary>Latest major version of protocol</summary>
             public const int MAJOR_VERSION = 1;
             /// <summary>Latest minor version of protocol</summary>
-            public const int MINOR_VERSION = 18;
+            public const int MINOR_VERSION = 21;
             /// <summary>Maximum camera count</summary>
             public const int MAX_CAMERA_COUNT = 256;
             /// <summary>Maximum Analog device count</summary>
@@ -166,6 +166,10 @@ namespace QTMRealTimeSDK
         private SettingsSkeletons mSkeletonSettings;
         /// <summary>Skeleton settings from QTM</summary>
         public SettingsSkeletons SkeletonSettings { get { return mSkeletonSettings; } }
+
+        private SettingsSkeletonsRecursive mSkeletonSettingsRecursive;
+        /// <summary>Skeleton settings from QTM</summary>
+        public SettingsSkeletonsRecursive SkeletonSettingsRecursive { get { return mSkeletonSettingsRecursive; } }
 
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
@@ -890,7 +894,7 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get6dSettings()
         {
-            return GetSettings("6D", "The_6D", out m6DOFSettings);
+            return GetSettings("6D", "The_6D", out m6DOFSettings, true);
         }
 
         /// <summary>Get Analog settings from QTM Server</summary>
@@ -925,16 +929,70 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetSkeletonSettings()
         {
-            return GetSettings("Skeleton", "Skeletons", out mSkeletonSettings);
+            if (mMajorVersion == 1 && mMinorVersion < 21)
+            {
+                return GetSettings("Skeleton", "Skeletons", out mSkeletonSettings);
+            }
+            else
+            {
+                if (GetSettings("Skeleton", "Skeletons", out mSkeletonSettingsRecursive))
+                {
+                    mSkeletonSettings = new SettingsSkeletons();
+                    mSkeletonSettings.Skeletons = new List<SettingSkeleton>();
+
+                    foreach (var skeleton in mSkeletonSettingsRecursive.Skeletons)
+                    {
+                        Action<List<SettingSkeletonSegment>, SettingSkeletonSegmentRecursive, uint> RecurseSegments = null;
+                        RecurseSegments = (segmentList, segment, parentId) =>
+                        {
+                            SettingSkeletonSegment newSegment = new SettingSkeletonSegment
+                            {
+                                Name = segment.Name,
+                                Id = segment.Id,
+                                ParentId = parentId,
+                                Position = segment.Transform.Position,
+                                Rotation = segment.Transform.Rotation
+                            };
+                            segmentList.Add(newSegment);
+                            foreach (var childSegment in segment.Segments)
+                            {
+                                RecurseSegments(segmentList, childSegment, segment.Id);
+                            }
+                        };
+
+                        SettingSkeleton settingSkeleton = new SettingSkeleton
+                        {
+                            Name = skeleton.Name
+                        };
+                        settingSkeleton.Segments = new List<SettingSkeletonSegment>();
+                        foreach (var segment in skeleton.Segments.Segments)
+                        {
+                            RecurseSegments(settingSkeleton.Segments, segment, 0);
+                        }
+                        mSkeletonSettings.Skeletons.Add(settingSkeleton);
+                    }
+                    return true;
+                }
+            }
+            mSkeletonSettings = default;
+            mSkeletonSettingsRecursive = default;
+            return false;
         }
 
-        internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject)
+        internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject, bool manualParse = false)
         {
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters " + settingsName, out xml))
             {
                 string error;
-                settingObject = ReadSettings<TSettings>(settingXmlName, xml, out error);
+                if (manualParse)
+                {
+                    settingObject = ParseSettings<TSettings>(settingXmlName, xml, out error);
+                }
+                else
+                {
+                    settingObject = ReadSettings<TSettings>(settingXmlName, xml, out error);
+                }
                 if (settingObject != null)
                 {
                     return true;
@@ -946,6 +1004,49 @@ namespace QTMRealTimeSDK
 
             }
             settingObject = default(TSettings);
+            return false;
+        }
+
+        public bool SetGeneralSettings(in SettingsGeneral settings)
+        {
+            return SetSettings("General", "General", in settings);
+        }
+
+        public bool Set6DSettings(in Settings6D settings)
+        {
+            return SetSettings("6D", "The_6D", in settings);
+        }
+
+        public bool SetForceSettings(in SettingsForce settings)
+        {
+            return SetSettings("Force", "Force", in settings);
+        }
+
+        public bool SetImageSettings(in SettingsImage settings)
+        {
+            return SetSettings("Image", "Image", in settings);
+        }
+
+        public bool SetSkeletonSettings(in SettingsSkeletonsRecursive settings)
+        {
+            return SetSettings("Skeleton", "Skeletons", in settings);
+        }
+
+        public bool SetSettings<TSettings>(string settingsName, string settingXmlName, in TSettings settingObject)
+        {
+            var xmlSettings = RTProtocol.CreateSettingsXml(settingObject, out mErrorString);
+            if (xmlSettings != string.Empty)
+            {
+                string response;
+                if (SendXML(xmlSettings, out response))
+                {
+                    return true;
+                }
+                else
+                {
+                    mErrorString = response;
+                }
+            }
             return false;
         }
 
@@ -1019,6 +1120,118 @@ namespace QTMRealTimeSDK
                 xmlReader.Close();
             }
             return settings;
+        }
+
+        internal static TSettings ParseSettings<TSettings>(string name, string xmldata, out string error)
+        {
+            xmldata = ReplaceBadXMLCharacters(xmldata);
+
+            error = string.Empty;
+            TSettings settings = default(TSettings);
+
+            XmlDocument xmlDoc = new XmlDocument();
+            try
+            {
+                xmlDoc.LoadXml(xmldata);
+                switch (xmlDoc.FirstChild.FirstChild.Name)
+                {
+                    case "The_6D":
+                        settings = Parse6DOF<TSettings>(xmlDoc.FirstChild.FirstChild, out error);
+                        break;
+                    case "Skeletons":
+                        settings = Parse6DOF<TSettings>(xmlDoc.FirstChild.FirstChild, out error);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                error = e.Message;
+            }
+            return settings;
+        }
+
+        internal static TSettings Parse6DOF<TSettings>(XmlNode xmlNode, out string error)
+        {
+            Settings6D settings = default(Settings6D);
+            foreach(XmlNode node in xmlNode.ChildNodes)
+            {
+                if(node.Name == "Body")
+                {
+
+                }
+            }
+            /*
+            while (xmlReader.Read())
+            {
+                if (xmlReader.NodeType == XmlNodeType.Element)
+                {
+                    if (xmlReader.Name == "DeleteCurrentBodies")
+                    {
+
+                    }
+                    else if (xmlReader.Name == "Body")
+                    {
+                        Settings6DOF body = default(Settings6DOF);
+                        while(xmlReader.Read())
+                        {
+                            if (xmlReader.NodeType == XmlNodeType.Element)
+                            {
+                                switch(xmlReader.Name)
+                                {
+                                    case "Name":
+                                    {
+                                        xmlReader.Read();
+                                        body.Name = xmlReader.Value;
+                                        break;
+                                    }
+                                    case "Color":
+                                    {
+                                        if(xmlReader.HasAttributes)
+                                        {
+                                            int r = int.Parse(xmlReader.GetAttribute("R"));
+                                            int g = int.Parse(xmlReader.GetAttribute("G"));
+                                            int b = int.Parse(xmlReader.GetAttribute("B"));
+                                            body.ColorRGB = (r & 0xff) | (g << 8 & 0xff00) | (b << 16 & 0xff0000);
+                                        }
+                                        break;
+                                    }
+                                    case "MaximumResidual":
+                                        xmlReader.Read();
+                                        body.MaximumResidual = float.Parse(xmlReader.Value);
+                                        break;
+                                    case "MinimumMarkersInBody":
+                                        xmlReader.Read();
+                                        body.MinimumMarkersInBody = int.Parse(xmlReader.Value);
+                                        break;
+                                    case "BoneLengthTolerance":
+                                        xmlReader.Read();
+                                        body.BoneLengthTolerance = float.Parse(xmlReader.Value);
+                                        break;
+                                    case "Filter":
+                                    {
+                                        if (xmlReader.HasAttributes)
+                                        {
+                                            body.Filter.Preset = xmlReader.GetAttribute("Preset");
+                                        }
+                                        break;
+                                    }
+                                    case "Mesh":
+                                    {
+                                        while (xmlReader.Read())
+                                        {
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        settings.Bodies.Add(body);
+                    }
+                }
+            }*/
+            error = ";";
+
+            return default(TSettings);
         }
         #endregion
 
