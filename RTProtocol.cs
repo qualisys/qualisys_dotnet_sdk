@@ -894,7 +894,25 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get6dSettings()
         {
-            return GetSettings("6D", "The_6D", out m6DOFSettings, true);
+            if (mMajorVersion > 1 || mMinorVersion > 20)
+            {
+                Settings6D_V2 settings6D_v2;
+                if (GetSettings("6D", "The_6D", out settings6D_v2))
+                {
+                    m6DOFSettings = Settings6D_V2.ConvertToSettings6DOF(settings6D_v2);
+                    return true;
+                }
+            }
+            else
+            {
+                Settings6D_V1 settings6D_v1;
+                if (GetSettings("6D", "The_6D", out settings6D_v1))
+                {
+                    m6DOFSettings = Settings6D_V1.ConvertToSettings6DOF(settings6D_v1);
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>Get Analog settings from QTM Server</summary>
@@ -979,20 +997,13 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject, bool manualParse = false)
+        internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject)
         {
             string xml;
             if (SendCommandExpectXMLResponse("GetParameters " + settingsName, out xml))
             {
                 string error;
-                if (manualParse)
-                {
-                    settingObject = ParseSettings<TSettings>(settingXmlName, xml, out error);
-                }
-                else
-                {
-                    settingObject = ReadSettings<TSettings>(settingXmlName, xml, out error);
-                }
+                settingObject = ReadSettings<TSettings>(settingXmlName, xml, out error);
                 if (settingObject != null)
                 {
                     return true;
@@ -1014,7 +1025,13 @@ namespace QTMRealTimeSDK
 
         public bool Set6DSettings(in Settings6D settings)
         {
-            return SetSettings("6D", "The_6D", in settings);
+            if (mMajorVersion > 1 || mMinorVersion > 20)
+            {
+                Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
+                return SetSettings("6D", "The_6D", in settings6D_v2);
+            }
+            mErrorString = "Can not set 6D settings in protocol versions prior to 1.21";
+            return false;
         }
 
         public bool SetForceSettings(in SettingsForce settings)
@@ -1121,118 +1138,7 @@ namespace QTMRealTimeSDK
             }
             return settings;
         }
-
-        internal static TSettings ParseSettings<TSettings>(string name, string xmldata, out string error)
-        {
-            xmldata = ReplaceBadXMLCharacters(xmldata);
-
-            error = string.Empty;
-            TSettings settings = default(TSettings);
-
-            XmlDocument xmlDoc = new XmlDocument();
-            try
-            {
-                xmlDoc.LoadXml(xmldata);
-                switch (xmlDoc.FirstChild.FirstChild.Name)
-                {
-                    case "The_6D":
-                        settings = Parse6DOF<TSettings>(xmlDoc.FirstChild.FirstChild, out error);
-                        break;
-                    case "Skeletons":
-                        settings = Parse6DOF<TSettings>(xmlDoc.FirstChild.FirstChild, out error);
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                error = e.Message;
-            }
-            return settings;
-        }
-
-        internal static TSettings Parse6DOF<TSettings>(XmlNode xmlNode, out string error)
-        {
-            Settings6D settings = default(Settings6D);
-            foreach(XmlNode node in xmlNode.ChildNodes)
-            {
-                if(node.Name == "Body")
-                {
-
-                }
-            }
-            /*
-            while (xmlReader.Read())
-            {
-                if (xmlReader.NodeType == XmlNodeType.Element)
-                {
-                    if (xmlReader.Name == "DeleteCurrentBodies")
-                    {
-
-                    }
-                    else if (xmlReader.Name == "Body")
-                    {
-                        Settings6DOF body = default(Settings6DOF);
-                        while(xmlReader.Read())
-                        {
-                            if (xmlReader.NodeType == XmlNodeType.Element)
-                            {
-                                switch(xmlReader.Name)
-                                {
-                                    case "Name":
-                                    {
-                                        xmlReader.Read();
-                                        body.Name = xmlReader.Value;
-                                        break;
-                                    }
-                                    case "Color":
-                                    {
-                                        if(xmlReader.HasAttributes)
-                                        {
-                                            int r = int.Parse(xmlReader.GetAttribute("R"));
-                                            int g = int.Parse(xmlReader.GetAttribute("G"));
-                                            int b = int.Parse(xmlReader.GetAttribute("B"));
-                                            body.ColorRGB = (r & 0xff) | (g << 8 & 0xff00) | (b << 16 & 0xff0000);
-                                        }
-                                        break;
-                                    }
-                                    case "MaximumResidual":
-                                        xmlReader.Read();
-                                        body.MaximumResidual = float.Parse(xmlReader.Value);
-                                        break;
-                                    case "MinimumMarkersInBody":
-                                        xmlReader.Read();
-                                        body.MinimumMarkersInBody = int.Parse(xmlReader.Value);
-                                        break;
-                                    case "BoneLengthTolerance":
-                                        xmlReader.Read();
-                                        body.BoneLengthTolerance = float.Parse(xmlReader.Value);
-                                        break;
-                                    case "Filter":
-                                    {
-                                        if (xmlReader.HasAttributes)
-                                        {
-                                            body.Filter.Preset = xmlReader.GetAttribute("Preset");
-                                        }
-                                        break;
-                                    }
-                                    case "Mesh":
-                                    {
-                                        while (xmlReader.Read())
-                                        {
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        settings.Bodies.Add(body);
-                    }
-                }
-            }*/
-            error = ";";
-
-            return default(TSettings);
-        }
+        
         #endregion
 
         #region Generic communication methods

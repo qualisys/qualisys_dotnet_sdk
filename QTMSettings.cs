@@ -1,5 +1,7 @@
 ﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2018 Qualisys AB
 //
+using System;
+using System.Reflection;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Collections.Generic;
@@ -52,6 +54,9 @@ namespace QTMRealTimeSDK.Settings
 
         [XmlElement("Reprocessing_Actions")]
         public SettingProcessingActions ReprocessingActions;
+
+        [XmlElement("EulerAngles")]
+        public SettingsEulerAngles EulerAngles;
 
         /// <summary>Camera Settings </summary>
         [XmlElement("Camera")]
@@ -107,17 +112,17 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>6D Settings from QTM</summary>
     [XmlRoot("The_6D")]
-    public class Settings6D : SettingsBase
+    public class Settings6D_V1 : SettingsBase
     {
-        public Settings6D()
+        internal static Settings6D ConvertToSettings6DOF(Settings6D_V1 settings)
         {
-            EulerNames = new EulerNames();
+            return new Settings6D(settings.Xml, settings.BodyCount, settings.Bodies.ConvertAll<Settings6DOF>(Settings6DOF_V1.ConvertToSettings6DOF), settings.EulerNames);
         }
 
         [XmlElement("Bodies")]
         public int BodyCount;
         [XmlElement("Body")]
-        public List<Settings6DOF> Bodies;
+        public List<Settings6DOF_V1> Bodies;
         [XmlElement("Euler")]
         public EulerNames EulerNames;
     }
@@ -138,7 +143,44 @@ namespace QTMRealTimeSDK.Settings
         public string Second;
         [XmlElement("Third")]
         public string Third;
+    }
 
+    /// <summary>6D Settings from QTM</summary>
+    [XmlRoot("The_6D")]
+    public class Settings6D_V2 : SettingsBase
+    {
+        public Settings6D_V2() { }
+        internal Settings6D_V2(Settings6D settings)
+        {
+            Bodies = settings.Bodies.ConvertAll<Settings6DOF_V2>(Settings6DOF.ConvertToSettings6DOF_V2);
+        }
+
+        internal static Settings6D ConvertToSettings6DOF(Settings6D_V2 settings)
+        {
+            return new Settings6D(settings.Xml, settings.Bodies.Count, settings.Bodies.ConvertAll<Settings6DOF>(Settings6DOF_V2.ConvertToSettings6DOF), new EulerNames());
+        }
+        [XmlElement("Body")]
+        public List<Settings6DOF_V2> Bodies;
+    }
+
+    public class Settings6D : SettingsBase
+    {
+        public Settings6D()
+        {
+            EulerNames = new EulerNames();
+        }
+        public Settings6D(string xml, int bodyCount, List<Settings6DOF> bodies, EulerNames eulerNames)
+        {
+            Xml = xml;
+            BodyCount = bodyCount;
+            Bodies = bodies;
+            EulerNames = eulerNames;
+        }
+
+        public int BodyCount;
+        public List<Settings6DOF> Bodies;
+        [Obsolete("EulerNames is moved to general settings from protocol version 1.21.", false)]
+        public EulerNames EulerNames;
     }
 
     /// <summary>Analog Settings from QTM</summary>
@@ -670,9 +712,23 @@ namespace QTMRealTimeSDK.Settings
         public float NonPeriodicTimeout;
     }
 
-    /// <summary>Struct for 6dof point information</summary>
-    public struct Settings6DOFPoint
+    public struct SettingsEulerAngles
     {
+        [XmlAttribute("First")]
+        public string First;
+        [XmlAttribute("Second")]
+        public string Second;
+        [XmlAttribute("Third")]
+        public string Third;
+    }
+
+    /// <summary>Struct for 6dof point information</summary>
+    public struct Settings6DOFPoint_V1
+    {
+        internal static Settings6DOFPoint ConvertToSettingsPoint(Settings6DOFPoint_V1 settingsPoint)
+        {
+            return new Settings6DOFPoint("", settingsPoint.X, settingsPoint.Y, settingsPoint.Z, settingsPoint.Virtual, settingsPoint.PhysicalId);
+        }
         [XmlElement("X")]
         public float X;
         [XmlElement("Y")]
@@ -686,8 +742,13 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Settings for 6DOF bodies</summary>
-    public struct Settings6DOF
+    public struct Settings6DOF_V1
     {
+        internal static Settings6DOF ConvertToSettings6DOF(Settings6DOF_V1 settings6DOF)
+        {
+            return new Settings6DOF(settings6DOF.Name, settings6DOF.ColorRGB, 0, 0, 0, new Settings6DOFFilter(), new Settings6DOFMesh(),
+                settings6DOF.Points.ConvertAll<Settings6DOFPoint>(Settings6DOFPoint_V1.ConvertToSettingsPoint), new Settings6DOFDataOrigin(), new Settings6DOFDataOrientation());
+        }
         /// <summary>Name of 6DOF body</summary>
         [XmlElement("Name")]
         public string Name;
@@ -696,7 +757,229 @@ namespace QTMRealTimeSDK.Settings
         public int ColorRGB;
         /// <summary>List of points in 6DOF body</summary>
         [XmlElement("Point")]
+        public List<Settings6DOFPoint_V1> Points;
+    }
+
+    /// <summary>Struct for 6dof filter</summary>
+    public struct Settings6DOFColor_V2
+    {
+        internal Settings6DOFColor_V2(int ColorRGB)
+        {
+            R = (ColorRGB & 0xff);
+            G = ((ColorRGB >> 8) & 0xff);
+            B = ((ColorRGB >> 16) & 0xff);
+        }
+        [XmlAttribute("R")]
+        public int R;
+        [XmlAttribute("G")]
+        public int G;
+        [XmlAttribute("B")]
+        public int B;
+    }
+
+    /// <summary>Struct for 6dof filter</summary>
+    public struct Settings6DOFFilter
+    {
+        [XmlAttribute("Preset")]
+        public string Preset;
+    }
+
+    /// <summary>Struct for 6dof mesh position</summary>
+    public struct Settings6DOFMeshPosition
+    {
+        [XmlAttribute("X")]
+        public float X;
+        [XmlAttribute("Y")]
+        public float Y;
+        [XmlAttribute("Z")]
+        public float Z;
+    }
+
+    /// <summary>Struct for 6dof mesh rotation</summary>
+    public struct Settings6DOFMeshRotation
+    {
+        [XmlAttribute("X")]
+        public float X;
+        [XmlAttribute("Y")]
+        public float Y;
+        [XmlAttribute("Z")]
+        public float Z;
+    }
+
+    /// <summary>Struct for 6dof mesh</summary>
+    public struct Settings6DOFMesh
+    {
+        [XmlElement("Name")]
+        public string Name;
+        [XmlElement("Position")]
+        public Settings6DOFMeshPosition Position;
+        [XmlElement("Rotation")]
+        public Settings6DOFMeshRotation Rotation;
+        [XmlElement("Scale")]
+        public float Scale;
+        [XmlElement("Opacity")]
+        public float Opacity;
+    }
+
+    /// <summary>Struct for 6dof data origin</summary>
+    public struct Settings6DOFDataOrigin
+    {
+        [XmlText]
+        public string Type;
+        [XmlElement("X")]
+        public float X;
+        [XmlElement("Y")]
+        public float Y;
+        [XmlElement("Z")]
+        public float Z;
+        [XmlElement("RelativeBody")]
+        public int RelativeBody;
+    }
+
+    /// <summary>Struct for 6dof data orientation</summary>
+    public struct Settings6DOFDataOrientation
+    {
+        [XmlText]
+        public string Type;
+        [XmlElement("R11")]
+        public float R11;
+        [XmlElement("R12")]
+        public float R12;
+        [XmlElement("R13")]
+        public float R13;
+        [XmlElement("R21")]
+        public float R21;
+        [XmlElement("R22")]
+        public float R22;
+        [XmlElement("R23")]
+        public float R23;
+        [XmlElement("R31")]
+        public float R31;
+        [XmlElement("R32")]
+        public float R32;
+        [XmlElement("R33")]
+        public float R33;
+    }
+
+    public struct Settings6DOF_V2
+    {
+        internal Settings6DOF_V2(Settings6DOF settings)
+        {
+            Name = settings.Name;
+            Color = new Settings6DOFColor_V2(settings.ColorRGB);
+            MaximumResidual = settings.MaximumResidual;
+            MinimumMarkersInBody = settings.MinimumMarkersInBody;
+            BoneLengthTolerance = settings.BoneLengthTolerance;
+            Filter = settings.Filter;
+            Mesh = settings.Mesh;
+            Points = settings.Points;
+            DataOrigin = settings.DataOrigin;
+            DataOrientation = settings.DataOrientation;
+        }
+        internal static Settings6DOF ConvertToSettings6DOF(Settings6DOF_V2 settings6DOF)
+        {
+            int colorRGB = (settings6DOF.Color.R & 0xff) | ((settings6DOF.Color.G << 8) & 0xff00) | ((settings6DOF.Color.B << 16) & 0xff0000);
+            return new Settings6DOF(settings6DOF.Name, colorRGB, settings6DOF.MaximumResidual, settings6DOF.MinimumMarkersInBody, settings6DOF.BoneLengthTolerance,
+                settings6DOF.Filter, settings6DOF.Mesh, settings6DOF.Points, settings6DOF.DataOrigin, settings6DOF.DataOrientation);
+        }
+        /// <summary>Name of 6DOF body</summary>
+        [XmlElement("Name")]
+        public string Name;
+        /// <summary>Color of 6DOF body</summary>
+        [XmlElement("Color")]
+        public Settings6DOFColor_V2 Color;
+        /// <summary>Maximum residual of 6DOF body</summary>
+        [XmlElement("MaximumResidual")]
+        public float MaximumResidual;
+        /// <summary>Minimum markers in 6DOF body</summary>
+        [XmlElement("MinimumMarkersInBody")]
+        public int MinimumMarkersInBody;
+        /// <summary>Bone length tolerance of 6DOF body</summary>
+        [XmlElement("BoneLengthTolerance")]
+        public float BoneLengthTolerance;
+        /// <summary>Filter of 6DOF body</summary>
+        [XmlElement("Filter")]
+        public Settings6DOFFilter Filter;
+        /// <summary>Mesh of 6DOF body</summary>
+        [XmlElement("Mesh")]
+        public Settings6DOFMesh Mesh;
+        /// <summary>List of points in 6DOF body</summary>
+        [XmlArray("Points")]
+        [XmlArrayItem("Point")]
         public List<Settings6DOFPoint> Points;
+        /// <summary>Data origin of 6DOF body</summary>
+        [XmlElement("Data_origin")]
+        public Settings6DOFDataOrigin DataOrigin;
+        /// <summary>Data orientation of 6DOF body</summary>
+        [XmlElement("Data_orientation")]
+        public Settings6DOFDataOrientation DataOrientation;
+    }
+
+    public struct Settings6DOFPoint
+    {
+        public Settings6DOFPoint(string name, float x, float y, float z, bool _virtual, int physicalId)
+        {
+            Name = name;
+            X = x;
+            Y = y;
+            Z = z;
+            Virtual = _virtual;
+            PhysicalId = physicalId;
+        }
+        [XmlAttribute("Name")]
+        public string Name;
+        [XmlAttribute("X")]
+        public float X;
+        [XmlAttribute("Y")]
+        public float Y;
+        [XmlAttribute("Z")]
+        public float Z;
+        [XmlAttribute("Virtual")]
+        public bool Virtual;
+        [XmlAttribute("PhysicalId")]
+        public int PhysicalId;
+    }
+
+    public struct Settings6DOF
+    {
+        internal static Settings6DOF_V2 ConvertToSettings6DOF_V2(Settings6DOF settings)
+        {
+            return new Settings6DOF_V2(settings);
+        }
+        public Settings6DOF(string name, int colorRGB, float maxResidual, int minimumMarkersInBody, float boneLengthTolerance, Settings6DOFFilter filter, Settings6DOFMesh mesh,
+            List<Settings6DOFPoint> points, Settings6DOFDataOrigin dataOrigin, Settings6DOFDataOrientation dataOrientation)
+        {
+            Name = name;
+            ColorRGB = colorRGB;
+            MaximumResidual = maxResidual;
+            MinimumMarkersInBody = minimumMarkersInBody;
+            BoneLengthTolerance = boneLengthTolerance;
+            Filter = filter;
+            Mesh = mesh;
+            Points = points;
+            DataOrigin = dataOrigin;
+            DataOrientation = dataOrientation;
+        }
+        /// <summary>Name of 6DOF body</summary>
+        public string Name;
+        /// <summary>Color of 6DOF body</summary>
+        public int ColorRGB;
+        /// <summary>Maximum residual of 6DOF body</summary>
+        public float MaximumResidual;
+        /// <summary>Minimum markers in 6DOF body</summary>
+        public int MinimumMarkersInBody;
+        /// <summary>Bone length tolerance of 6DOF body</summary>
+        public float BoneLengthTolerance;
+        /// <summary>Filter of 6DOF body</summary>
+        public Settings6DOFFilter Filter;
+        /// <summary>Mesh of 6DOF body</summary>
+        public Settings6DOFMesh Mesh;
+        /// <summary>List of points in 6DOF body</summary>
+        public List<Settings6DOFPoint> Points;
+        /// <summary>Data origin of 6DOF body</summary>
+        public Settings6DOFDataOrigin DataOrigin;
+        /// <summary>Data orientation of 6DOF body</summary>
+        public Settings6DOFDataOrientation DataOrientation;
     }
 
     /// <summary>General settings for Analog devices</summary>
