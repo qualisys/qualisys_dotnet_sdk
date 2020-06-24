@@ -44,6 +44,9 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("External_Time_Base")]
         public SettingsExternalTimeBase ExternalTimebase;
 
+        [XmlElement("External_Timestamp")]
+        public SettingsExternalTimestamp ExternalTimestamp;
+
         [XmlElement("Processing_Actions")]
         public SettingProcessingActions ProcessingActions;
 
@@ -527,6 +530,17 @@ namespace QTMRealTimeSDK.Settings
         public float NonPeriodicTimeout;
     }
 
+    /// <summary>Settings regarding external time stamp</summary>
+    public struct SettingsExternalTimestamp
+    {
+        [XmlElement("Enabled")]
+        public bool Enabled;
+        [XmlElement("Type")]
+        public TimestampType Type;
+        [XmlElement("Frequency")]
+        public int Frequency;
+    }
+
     /// <summary>Struct for 6dof point information</summary>
     public struct Settings6DOFPoint
     {
@@ -955,5 +969,14 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("1x1")]
         AspectRatio_1x1,
     }
-
+    /// <summary>Signal Edge</summary>
+    public enum TimestampType
+    {
+        [XmlEnum("SMPTE")]
+        SMPTE = 0,
+        [XmlEnum("IRIG")]
+        IRIG,
+        [XmlEnum("CameraTime")]
+        CameraTime,
+    }
 }
