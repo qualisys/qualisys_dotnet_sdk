@@ -167,9 +167,9 @@ namespace QTMRealTimeSDK
         /// <summary>Skeleton settings from QTM</summary>
         public SettingsSkeletons SkeletonSettings { get { return mSkeletonSettings; } }
 
-        private SettingsSkeletonsRecursive mSkeletonSettingsRecursive;
+        private SettingsSkeletonsHierarchical mSkeletonSettingsHierarchical;
         /// <summary>Skeleton settings from QTM</summary>
-        public SettingsSkeletonsRecursive SkeletonSettingsRecursive { get { return mSkeletonSettingsRecursive; } }
+        public SettingsSkeletonsHierarchical SkeletonSettingsHierarchical { get { return mSkeletonSettingsHierarchical; } }
 
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
@@ -953,15 +953,15 @@ namespace QTMRealTimeSDK
             }
             else
             {
-                if (GetSettings("Skeleton", "Skeletons", out mSkeletonSettingsRecursive))
+                if (GetSettings("Skeleton", "Skeletons", out mSkeletonSettingsHierarchical))
                 {
                     mSkeletonSettings = new SettingsSkeletons();
-                    mSkeletonSettings.Xml = mSkeletonSettingsRecursive.Xml;
+                    mSkeletonSettings.Xml = mSkeletonSettingsHierarchical.Xml;
                     mSkeletonSettings.Skeletons = new List<SettingSkeleton>();
 
-                    foreach (var skeleton in mSkeletonSettingsRecursive.Skeletons)
+                    foreach (var skeleton in mSkeletonSettingsHierarchical.Skeletons)
                     {
-                        Action<List<SettingSkeletonSegment>, SettingSkeletonSegmentRecursive, uint> RecurseSegments = null;
+                        Action<List<SettingSkeletonSegment>, SettingSkeletonSegmentHierarchical, uint> RecurseSegments = null;
                         RecurseSegments = (segmentList, segment, parentId) =>
                         {
                             SettingSkeletonSegment newSegment = new SettingSkeletonSegment
@@ -994,7 +994,7 @@ namespace QTMRealTimeSDK
                 }
             }
             mSkeletonSettings = default;
-            mSkeletonSettingsRecursive = default;
+            mSkeletonSettingsHierarchical = default;
             return false;
         }
 
@@ -1045,7 +1045,7 @@ namespace QTMRealTimeSDK
             return SetSettings("Image", "Image", in settings);
         }
 
-        public bool SetSkeletonSettings(in SettingsSkeletonsRecursive settings)
+        public bool SetSkeletonSettings(in SettingsSkeletonsHierarchical settings)
         {
             return SetSettings("Skeleton", "Skeletons", in settings);
         }

@@ -340,7 +340,7 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Skeleton segment</summary>
-    public class SettingSkeletonSegmentRecursive
+    public class SettingSkeletonSegmentHierarchical
     {
         [XmlAttribute("Name")]
         public string Name;
@@ -359,19 +359,19 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("RigidBodies")]
         public RigidBodies RigidBodies;
         [XmlElement("Segment")]
-        public List<SettingSkeletonSegmentRecursive> Segments;
+        public List<SettingSkeletonSegmentHierarchical> Segments;
     }
 
     /// <summary>Skeleton segments</summary>
-    public class SegmentsRecursive
+    public class SegmentsHierarchical
     {
         [XmlElement("Segment")]
-        public List<SettingSkeletonSegmentRecursive> Segments;
+        public List<SettingSkeletonSegmentHierarchical> Segments;
     }
 
 
     /// <summary>Skeleton</summary>
-    public class SettingSkeletonRecursive
+    public class SettingSkeletonHierarchical
     {
         [XmlAttribute("Name")]
         public string Name;
@@ -380,18 +380,18 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Scale")]
         public string Scale;
         [XmlElement("Segments")]
-        public SegmentsRecursive Segments;
+        public SegmentsHierarchical Segments;
     }
 
     /// <summary>
     /// Skeleton Settings from QTM.
-    /// The skeleton is stored recursively.
+    /// The skeleton is stored hierarchicaly.
     /// </summary>
     [XmlRoot("Skeletons")]
-    public class SettingsSkeletonsRecursive : SettingsBase
+    public class SettingsSkeletonsHierarchical : SettingsBase
     {
         [XmlElement("Skeleton")]
-        public List<SettingSkeletonRecursive> Skeletons;
+        public List<SettingSkeletonHierarchical> Skeletons;
     }
 
     /// <summary>Skeleton segment</summary>
