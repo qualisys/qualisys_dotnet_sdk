@@ -193,6 +193,23 @@ namespace QTMRealTimeSDK.Settings
         public List<SettingGazeVector> GazeVectors;
     }
 
+    /// <summary>Eye tracker</summary>
+    public class SettingEyeTracker
+    {
+        [XmlElement("Name")]
+        public string Name;
+        [XmlElement("Frequency")]
+        public float Frequency;
+    }
+
+    /// <summary>Eye tracker Settings from QTM</summary>
+    [XmlRoot("Eye_Tracker")]
+    public class SettingsEyeTrackers : SettingsBase
+    {
+        [XmlElement("Device")]
+        public List<SettingEyeTracker> EyeTrackers;
+    }
+
     /// <summary>Position</summary>
     public class Position
     {
