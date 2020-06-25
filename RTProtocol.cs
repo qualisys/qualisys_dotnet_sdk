@@ -956,6 +956,7 @@ namespace QTMRealTimeSDK
                 if (GetSettings("Skeleton", "Skeletons", out mSkeletonSettingsRecursive))
                 {
                     mSkeletonSettings = new SettingsSkeletons();
+                    mSkeletonSettings.Xml = mSkeletonSettingsRecursive.Xml;
                     mSkeletonSettings.Skeletons = new List<SettingSkeleton>();
 
                     foreach (var skeleton in mSkeletonSettingsRecursive.Skeletons)
