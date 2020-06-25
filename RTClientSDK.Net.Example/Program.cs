@@ -21,6 +21,7 @@ namespace RTClientSDK.Net.Example
             //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
             //Example example = new ExampleGaze(mRtProtocol, mIpAddress);
+            //Example example = new ExampleEyeTracker(mRtProtocol, mIpAddress);
             //Example example = new ExampleTimecode(mRtProtocol, mIpAddress);
             Example example = new ExampleUDP(mRtProtocol, mIpAddress);
             MainExample mainExample = new MainExample(example, mRtProtocol, mIpAddress);

@@ -163,6 +163,10 @@ namespace QTMRealTimeSDK
         /// <summary>Gaze vector settings from QTM</summary>
         public SettingsGazeVectors GazeVectorSettings { get { return mGazeVectorSettings; } }
 
+        private SettingsEyeTrackers mEyeTrackerSettings;
+        /// <summary>Eye tracker settings from QTM</summary>
+        public SettingsEyeTrackers EyeTrackerSettings { get { return mEyeTrackerSettings; } }
+
         private SettingsSkeletons mSkeletonSettings;
         /// <summary>Skeleton settings from QTM</summary>
         public SettingsSkeletons SkeletonSettings { get { return mSkeletonSettings; } }
@@ -943,6 +947,13 @@ namespace QTMRealTimeSDK
             return GetSettings("GazeVector", "Gaze_Vector", out mGazeVectorSettings);
         }
 
+        /// <summary>Get eye tracker settings from QTM Server</summary>
+        /// <returns>Returns true if settings was retrieved</returns>
+        public bool GetEyeTrackerSettings()
+        {
+            return GetSettings("EyeTracker", "Eye_Tracker", out mEyeTrackerSettings);
+        }
+
         /// <summary>Get Skeleton settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetSkeletonSettings()
@@ -1330,6 +1341,9 @@ namespace QTMRealTimeSDK
                         break;
                     case ComponentType.ComponentGazeVector:
                         command += " GazeVector";
+                        break;
+                    case ComponentType.ComponentEyeTracker:
+                        command += " EyeTracker";
                         break;
                     case ComponentType.ComponentSkeleton:
                         command += " Skeleton";
