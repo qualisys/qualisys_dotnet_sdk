@@ -969,7 +969,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("1x1")]
         AspectRatio_1x1,
     }
-    /// <summary>Signal Edge</summary>
+    /// <summary>Timestamp type</summary>
     public enum TimestampType
     {
         [XmlEnum("SMPTE")]
