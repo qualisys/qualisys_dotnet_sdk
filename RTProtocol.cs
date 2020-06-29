@@ -1004,8 +1004,8 @@ namespace QTMRealTimeSDK
                     return true;
                 }
             }
-            mSkeletonSettings = default;
-            mSkeletonSettingsHierarchical = default;
+            mSkeletonSettings = default(SettingsSkeletons);
+            mSkeletonSettingsHierarchical = default(SettingsSkeletonsHierarchical);
             return false;
         }
 
@@ -1030,38 +1030,38 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        public bool SetGeneralSettings(in SettingsGeneral settings)
+        public bool SetGeneralSettings(SettingsGeneral settings)
         {
-            return SetSettings("General", "General", in settings);
+            return SetSettings("General", "General", settings);
         }
 
-        public bool Set6DSettings(in Settings6D settings)
+        public bool Set6DSettings(Settings6D settings)
         {
             if (mMajorVersion > 1 || mMinorVersion > 20)
             {
                 Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
-                return SetSettings("6D", "The_6D", in settings6D_v2);
+                return SetSettings("6D", "The_6D", settings6D_v2);
             }
             mErrorString = "Can not set 6D settings in protocol versions prior to 1.21";
             return false;
         }
 
-        public bool SetForceSettings(in SettingsForce settings)
+        public bool SetForceSettings(SettingsForce settings)
         {
-            return SetSettings("Force", "Force", in settings);
+            return SetSettings("Force", "Force", settings);
         }
 
-        public bool SetImageSettings(in SettingsImage settings)
+        public bool SetImageSettings(SettingsImage settings)
         {
-            return SetSettings("Image", "Image", in settings);
+            return SetSettings("Image", "Image", settings);
         }
 
-        public bool SetSkeletonSettings(in SettingsSkeletonsHierarchical settings)
+        public bool SetSkeletonSettings(SettingsSkeletonsHierarchical settings)
         {
-            return SetSettings("Skeleton", "Skeletons", in settings);
+            return SetSettings("Skeleton", "Skeletons", settings);
         }
 
-        public bool SetSettings<TSettings>(string settingsName, string settingXmlName, in TSettings settingObject)
+        public bool SetSettings<TSettings>(string settingsName, string settingXmlName, TSettings settingObject)
         {
             var xmlSettings = RTProtocol.CreateSettingsXml(settingObject, out mErrorString);
             if (xmlSettings != string.Empty)

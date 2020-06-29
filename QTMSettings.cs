@@ -294,8 +294,8 @@ namespace QTMRealTimeSDK.Settings
         public Rotation Rotation;
     }
 
-    /// <summary>Boundry</summary>
-    public class Boundry
+    /// <summary>Boundary</summary>
+    public class Boundary
     {
         [XmlAttribute("LowerBound")]
         public float LowerBound;
@@ -307,17 +307,17 @@ namespace QTMRealTimeSDK.Settings
     public class DegreesOfFreedom
     {
         [XmlElement("RotationX")]
-        public Boundry RotationX;
+        public Boundary RotationX;
         [XmlElement("RotationY")]
-        public Boundry RotationY;
+        public Boundary RotationY;
         [XmlElement("RotationZ")]
-        public Boundry RotationZ;
+        public Boundary RotationZ;
         [XmlElement("TranslationX")]
-        public Boundry TranslationX;
+        public Boundary TranslationX;
         [XmlElement("TranslationY")]
-        public Boundry TranslationY;
+        public Boundary TranslationY;
         [XmlElement("TranslationZ")]
-        public Boundry TranslationZ;
+        public Boundary TranslationZ;
     }
 
     /// <summary>Marker</summary>
