@@ -47,7 +47,7 @@ namespace QTMRealTimeSDK
             /// <summary>Latest major version of protocol</summary>
             public const int MAJOR_VERSION = 1;
             /// <summary>Latest minor version of protocol</summary>
-            public const int MINOR_VERSION = 20;
+            public const int MINOR_VERSION = 21;
             /// <summary>Maximum camera count</summary>
             public const int MAX_CAMERA_COUNT = 256;
             /// <summary>Maximum Analog device count</summary>
@@ -170,6 +170,10 @@ namespace QTMRealTimeSDK
         private SettingsSkeletons mSkeletonSettings;
         /// <summary>Skeleton settings from QTM</summary>
         public SettingsSkeletons SkeletonSettings { get { return mSkeletonSettings; } }
+
+        private SettingsSkeletonsHierarchical mSkeletonSettingsHierarchical;
+        /// <summary>Skeleton settings from QTM</summary>
+        public SettingsSkeletonsHierarchical SkeletonSettingsHierarchical { get { return mSkeletonSettingsHierarchical; } }
 
         private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
@@ -894,7 +898,25 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get6dSettings()
         {
-            return GetSettings("6D", "The_6D", out m6DOFSettings);
+            if (mMajorVersion > 1 || mMinorVersion > 20)
+            {
+                Settings6D_V2 settings6D_v2;
+                if (GetSettings("6D", "The_6D", out settings6D_v2))
+                {
+                    m6DOFSettings = Settings6D_V2.ConvertToSettings6DOF(settings6D_v2);
+                    return true;
+                }
+            }
+            else
+            {
+                Settings6D_V1 settings6D_v1;
+                if (GetSettings("6D", "The_6D", out settings6D_v1))
+                {
+                    m6DOFSettings = Settings6D_V1.ConvertToSettings6DOF(settings6D_v1);
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>Get Analog settings from QTM Server</summary>
@@ -936,7 +958,55 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetSkeletonSettings()
         {
-            return GetSettings("Skeleton", "Skeletons", out mSkeletonSettings);
+            if (mMajorVersion == 1 && mMinorVersion < 21)
+            {
+                return GetSettings("Skeleton", "Skeletons", out mSkeletonSettings);
+            }
+            else
+            {
+                if (GetSettings("Skeleton", "Skeletons", out mSkeletonSettingsHierarchical))
+                {
+                    mSkeletonSettings = new SettingsSkeletons();
+                    mSkeletonSettings.Xml = mSkeletonSettingsHierarchical.Xml;
+                    mSkeletonSettings.Skeletons = new List<SettingSkeleton>();
+
+                    foreach (var skeleton in mSkeletonSettingsHierarchical.Skeletons)
+                    {
+                        Action<List<SettingSkeletonSegment>, SettingSkeletonSegmentHierarchical, uint> RecurseSegments = null;
+                        RecurseSegments = (segmentList, segment, parentId) =>
+                        {
+                            SettingSkeletonSegment newSegment = new SettingSkeletonSegment
+                            {
+                                Name = segment.Name,
+                                Id = segment.Id,
+                                ParentId = parentId,
+                                Position = segment.Transform.Position,
+                                Rotation = segment.Transform.Rotation
+                            };
+                            segmentList.Add(newSegment);
+                            foreach (var childSegment in segment.Segments)
+                            {
+                                RecurseSegments(segmentList, childSegment, segment.Id);
+                            }
+                        };
+
+                        SettingSkeleton settingSkeleton = new SettingSkeleton
+                        {
+                            Name = skeleton.Name
+                        };
+                        settingSkeleton.Segments = new List<SettingSkeletonSegment>();
+                        foreach (var segment in skeleton.Segments.Segments)
+                        {
+                            RecurseSegments(settingSkeleton.Segments, segment, 0);
+                        }
+                        mSkeletonSettings.Skeletons.Add(settingSkeleton);
+                    }
+                    return true;
+                }
+            }
+            mSkeletonSettings = default(SettingsSkeletons);
+            mSkeletonSettingsHierarchical = default(SettingsSkeletonsHierarchical);
+            return false;
         }
 
         internal bool GetSettings<TSettings>(string settingsName, string settingXmlName, out TSettings settingObject)
@@ -957,6 +1027,55 @@ namespace QTMRealTimeSDK
 
             }
             settingObject = default(TSettings);
+            return false;
+        }
+
+        public bool SetGeneralSettings(SettingsGeneral settings)
+        {
+            return SetSettings("General", "General", settings);
+        }
+
+        public bool Set6DSettings(Settings6D settings)
+        {
+            if (mMajorVersion > 1 || mMinorVersion > 20)
+            {
+                Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
+                return SetSettings("6D", "The_6D", settings6D_v2);
+            }
+            mErrorString = "Can not set 6D settings in protocol versions prior to 1.21";
+            return false;
+        }
+
+        public bool SetForceSettings(SettingsForce settings)
+        {
+            return SetSettings("Force", "Force", settings);
+        }
+
+        public bool SetImageSettings(SettingsImage settings)
+        {
+            return SetSettings("Image", "Image", settings);
+        }
+
+        public bool SetSkeletonSettings(SettingsSkeletonsHierarchical settings)
+        {
+            return SetSettings("Skeleton", "Skeletons", settings);
+        }
+
+        public bool SetSettings<TSettings>(string settingsName, string settingXmlName, TSettings settingObject)
+        {
+            var xmlSettings = RTProtocol.CreateSettingsXml(settingObject, out mErrorString);
+            if (xmlSettings != string.Empty)
+            {
+                string response;
+                if (SendXML(xmlSettings, out response))
+                {
+                    return true;
+                }
+                else
+                {
+                    mErrorString = response;
+                }
+            }
             return false;
         }
 
@@ -1031,6 +1150,7 @@ namespace QTMRealTimeSDK
             }
             return settings;
         }
+        
         #endregion
 
         #region Generic communication methods
