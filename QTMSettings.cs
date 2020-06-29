@@ -46,6 +46,9 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("External_Time_Base")]
         public SettingsExternalTimeBase ExternalTimebase;
 
+        [XmlElement("External_Timestamp")]
+        public SettingsExternalTimestamp ExternalTimestamp;
+
         [XmlElement("Processing_Actions")]
         public SettingProcessingActions ProcessingActions;
 
@@ -728,7 +731,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Non_Periodic_Timeout")]
         public float NonPeriodicTimeout;
     }
-
+  
     public struct SettingsEulerAngles
     {
         [XmlAttribute("First")]
@@ -737,6 +740,17 @@ namespace QTMRealTimeSDK.Settings
         public string Second;
         [XmlAttribute("Third")]
         public string Third;
+    }
+  
+    /// <summary>Settings regarding external time stamp</summary>
+    public struct SettingsExternalTimestamp
+    {
+        [XmlElement("Enabled")]
+        public bool Enabled;
+        [XmlElement("Type")]
+        public TimestampType Type;
+        [XmlElement("Frequency")]
+        public int Frequency;
     }
 
     /// <summary>Struct for 6dof point information</summary>
@@ -1275,6 +1289,10 @@ namespace QTMRealTimeSDK.Settings
         ModelMiqusVideoColor,
         [XmlEnum("Miqus Hybrid")]
         ModelMiqusHybrid,
+        [XmlEnum("Arqus A5")]
+        ModelArqusA5,
+        [XmlEnum("Arqus A12")]
+        ModelArqusA12,
     }
 
     /// <summary>Camera modes</summary>
@@ -1398,5 +1416,14 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("1x1")]
         AspectRatio_1x1,
     }
-
+    /// <summary>Timestamp type</summary>
+    public enum TimestampType
+    {
+        [XmlEnum("SMPTE")]
+        SMPTE = 0,
+        [XmlEnum("IRIG")]
+        IRIG,
+        [XmlEnum("CameraTime")]
+        CameraTime,
+    }
 }
