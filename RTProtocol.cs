@@ -919,6 +919,19 @@ namespace QTMRealTimeSDK
             return false;
         }
 
+        /// <summary>Get 6DOF settings from XML string</summary>
+        /// <returns>Returns true if settings was retrieved</returns>
+        public static bool Get6dSettings(string xmlData, out Settings6D settings, out string error)
+        {
+            xmlData = xmlData.Replace("QTM_Body_File_Ver_1.00", "The_6D");
+            settings = Settings6D_V2.ConvertToSettings6DOF(RTProtocol.ReadSettings<Settings6D_V2>("The_6D", xmlData, out error));
+            if (settings != null)
+            {
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>Get Analog settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetAnalogSettings()
@@ -1046,6 +1059,21 @@ namespace QTMRealTimeSDK
             return false;
         }
 
+        public static bool Set6DSettings(in Settings6D settings, out string xmlData, out string error)
+        {
+            Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
+
+            xmlData = RTProtocol.CreateSettingsXml(settings6D_v2, out error);
+            if (xmlData != string.Empty)
+            {
+                xmlData = xmlData.Replace("</QTM_Settings>", "");
+                xmlData = xmlData.Replace("<QTM_Settings>", "");
+                xmlData = xmlData.Replace("The_6D", "QTM_Body_File_Ver_1.00");
+                return true;
+            }
+            return false;
+        }
+
         public bool SetForceSettings(SettingsForce settings)
         {
             return SetSettings("Force", "Force", settings);
@@ -1087,15 +1115,19 @@ namespace QTMRealTimeSDK
                 XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
                 {
                     OmitXmlDeclaration = true,
+                    Indent = true,
+                    IndentChars = "  ",
                 };
                 StringBuilder settingsOutput = new StringBuilder();
                 using (var writer = XmlWriter.Create(settingsOutput, xmlWriterSettings))
                 {
                     XmlSerializer serializer = new XmlSerializer(typeof(TSettings));
                     serializer.Serialize(writer, settings);
-                    var xmlSettings = "<QTM_Settings>";
-                    xmlSettings += settingsOutput.ToString();
-                    xmlSettings += "</QTM_Settings>";
+                    var xmlSettings = settingsOutput.ToString();
+                    int first = xmlSettings.IndexOf("xmlns") - 1;
+                    int last = xmlSettings.IndexOf(">") - 1;
+                    xmlSettings = xmlSettings.Remove(first, last - first + 1);
+                    xmlSettings = "<QTM_Settings>" + xmlSettings + "</QTM_Settings>";
                     return xmlSettings;
                 }
             }
