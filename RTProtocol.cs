@@ -1123,11 +1123,9 @@ namespace QTMRealTimeSDK
                 {
                     XmlSerializer serializer = new XmlSerializer(typeof(TSettings));
                     serializer.Serialize(writer, settings);
-                    var xmlSettings = settingsOutput.ToString();
-                    int first = xmlSettings.IndexOf("xmlns") - 1;
-                    int last = xmlSettings.IndexOf(">") - 1;
-                    xmlSettings = xmlSettings.Remove(first, last - first + 1);
-                    xmlSettings = "<QTM_Settings>" + xmlSettings + "</QTM_Settings>";
+                    var xmlSettings = "<QTM_Settings>";
+                    xmlSettings += settingsOutput.ToString();
+                    xmlSettings += "</QTM_Settings>";
                     return xmlSettings;
                 }
             }
