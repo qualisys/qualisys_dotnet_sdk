@@ -60,7 +60,7 @@ namespace RTClientSDK.Net.Example
                 var discoveryResponses = mRtProtocol.DiscoveryResponses;
                 foreach (var discoveryResponse in discoveryResponses)
                 {
-                    Console.WriteLine("Host:{0,20}\tIP Adress:{1,15}\tInfo Text:{2,20}\tCamera count:{3,3}", discoveryResponse.HostName, discoveryResponse.IpAddress, discoveryResponse.InfoText, discoveryResponse.CameraCount);
+                    Console.WriteLine("Host:{0,20}\tIP Address:{1,15}\tInfo Text:{2,20}\tCamera count:{3,3}", discoveryResponse.HostName, discoveryResponse.IpAddress, discoveryResponse.InfoText, discoveryResponse.CameraCount);
                 }
             }
         }

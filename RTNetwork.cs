@@ -263,7 +263,7 @@ namespace QTMRealTimeSDK.Network
         }
 
         /// <summary>
-        /// Try and get all the local ip adresses
+        /// Try and get all the local IP addresses
         /// </summary>
         /// <returns></returns>
         private static List<IPAddress> GetLocalIPAddresses()
@@ -338,7 +338,7 @@ namespace QTMRealTimeSDK.Network
                         }
                         catch (Exception)
                         {
-                            // Ignore broadcast failure, since we might have more ips to send to
+                            // Ignore broadcast failure, since we might have more IPs to send to
                         }
 
                     }
@@ -360,7 +360,7 @@ namespace QTMRealTimeSDK.Network
                         }
                         catch (Exception)
                         {
-                            // Ignore broadcast failure, since we might have more ips to send to
+                            // Ignore broadcast failure, since we might have more IPs to send to
                         }
                     }
                 }
@@ -424,32 +424,32 @@ namespace QTMRealTimeSDK.Network
             if (address == null || subnetMask == null)
                 return null;
 
-            byte[] ipAdressBytes = address.GetAddressBytes();
+            byte[] ipAddressBytes = address.GetAddressBytes();
             byte[] subnetMaskBytes = subnetMask.GetAddressBytes();
 
-            if (ipAdressBytes.Length != subnetMaskBytes.Length)
+            if (ipAddressBytes.Length != subnetMaskBytes.Length)
                 throw new ArgumentException("Lengths of IP address and subnet mask do not match.");
 
-            byte[] broadcastAddress = new byte[ipAdressBytes.Length];
+            byte[] broadcastAddress = new byte[ipAddressBytes.Length];
             for (int i = 0; i < broadcastAddress.Length; i++)
             {
-                broadcastAddress[i] = (byte)(ipAdressBytes[i] | (subnetMaskBytes[i] ^ 255));
+                broadcastAddress[i] = (byte)(ipAddressBytes[i] | (subnetMaskBytes[i] ^ 255));
             }
             return new IPAddress(broadcastAddress);
         }
 
         internal static IPAddress GetNetworkAddress(this IPAddress address, IPAddress subnetMask)
         {
-            byte[] ipAdressBytes = address.GetAddressBytes();
+            byte[] ipAddressBytes = address.GetAddressBytes();
             byte[] subnetMaskBytes = subnetMask.GetAddressBytes();
 
-            if (ipAdressBytes.Length != subnetMaskBytes.Length)
+            if (ipAddressBytes.Length != subnetMaskBytes.Length)
                 throw new ArgumentException("Lengths of IP address and subnet mask do not match.");
 
-            byte[] broadcastAddress = new byte[ipAdressBytes.Length];
+            byte[] broadcastAddress = new byte[ipAddressBytes.Length];
             for (int i = 0; i < broadcastAddress.Length; i++)
             {
-                broadcastAddress[i] = (byte)(ipAdressBytes[i] & (subnetMaskBytes[i]));
+                broadcastAddress[i] = (byte)(ipAddressBytes[i] & (subnetMaskBytes[i]));
             }
             return new IPAddress(broadcastAddress);
         }
