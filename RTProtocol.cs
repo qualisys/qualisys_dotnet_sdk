@@ -549,11 +549,14 @@ namespace QTMRealTimeSDK
                 return false;
             }
 
-            if (SendCommandExpectCommandResponse("Version " + majorVersion + "." + minorVersion, out response))
+            if (!SendCommandExpectCommandResponse("Version " + majorVersion + "." + minorVersion, out response))
             {
-                return true;
+                return false;
             }
-            return false;
+
+            this.mMajorVersion = majorVersion;
+            this.mMinorVersion = minorVersion;
+            return true;
         }
 
         /// <summary>Ask QTM server what version is used.</summary>
