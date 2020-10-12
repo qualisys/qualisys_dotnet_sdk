@@ -19,7 +19,7 @@ namespace SixDofViewer
         // Default to first body in project/file if no body name is specified on the command line
         string sixDofBodyNameToUse = "";
         int bodyIndexToUse = 0;
-        public EulerNames eulerNames;
+        public SettingsEulerAngles eulerNames;
 
         public MainWindow()
         {
@@ -104,7 +104,7 @@ namespace SixDofViewer
                     }
                 }
 
-                eulerNames = rtProtocol.Settings6DOF.EulerNames;
+                eulerNames = rtProtocol.GeneralSettings.EulerAngles;
 
                 // Start streaming 6dof euler residual data at 10Hz frequency
                 rtProtocol.StreamFrames(StreamRate.RateFrequency, 10, QTMRealTimeSDK.Data.ComponentType.Component6dEulerResidual);
