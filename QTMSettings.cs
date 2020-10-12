@@ -1291,8 +1291,12 @@ namespace QTMRealTimeSDK.Settings
         ModelMiqusHybrid,
         [XmlEnum("Arqus A5")]
         ModelArqusA5,
+        [XmlEnum("Arqus A9")]
+        ModelArqusA9,
         [XmlEnum("Arqus A12")]
         ModelArqusA12,
+        [XmlEnum("Arqus A26")]
+        ModelArqusA26,
     }
 
     /// <summary>Camera modes</summary>
