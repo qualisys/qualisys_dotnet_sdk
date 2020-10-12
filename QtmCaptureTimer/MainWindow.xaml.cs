@@ -140,8 +140,8 @@ namespace QtmCaptureTimer
                             continue;
                         }
 
-                        // Start streaming 6dof euler residual data at 5Hz frequency
-                        rtProtocol.StreamFrames(StreamRate.RateFrequency, 5, QTMRealTimeSDK.Data.ComponentType.ComponentTimecode);
+                        // Start streaming timecode data at 30Hz frequency
+                        rtProtocol.StreamFrames(StreamRate.RateFrequency, 30, QTMRealTimeSDK.Data.ComponentType.ComponentTimecode);
                     }
 
                     // Get RTPacket from stream
@@ -197,7 +197,7 @@ namespace QtmCaptureTimer
                             }
                         }
                     }
-                    Thread.Sleep(100);
+                    Thread.Sleep(20);
                 }
                 catch(Exception e)
                 {
