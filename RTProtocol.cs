@@ -1,4 +1,4 @@
-﻿// Realtime SDK for Qualisys Track Manager. Copyright 2015-2018 Qualisys AB
+// Realtime SDK for Qualisys Track Manager. Copyright 2015-2018 Qualisys AB
 //
 using QTMRealTimeSDK.Data;
 using QTMRealTimeSDK.Network;
@@ -175,7 +175,6 @@ namespace QTMRealTimeSDK
         /// <summary>Skeleton settings from QTM</summary>
         public SettingsSkeletonsHierarchical SkeletonSettingsHierarchical { get { return mSkeletonSettingsHierarchical; } }
 
-        private bool mBroadcastSocketCreated = false;
         private RTNetwork mNetwork;
         private ushort mUDPport;
         private RTPacket mPacket;
@@ -205,7 +204,6 @@ namespace QTMRealTimeSDK
             mErrorString = "";
 
             mNetwork = new RTNetwork();
-            mBroadcastSocketCreated = false;
             mDiscoveryResponses = new HashSet<DiscoveryResponse>();
         }
 
@@ -353,7 +351,6 @@ namespace QTMRealTimeSDK
         /// <summary>Disconnect from server</summary>
         public void Disconnect()
         {
-            mBroadcastSocketCreated = false;
             mNetwork.Disconnect();
             mDiscoveryResponses.Clear();
 
@@ -473,14 +470,14 @@ namespace QTMRealTimeSDK
 
             byte[] msg = b.ToArray();
 
-            //if we don't have a udp broadcast socket, create one
-            if (mBroadcastSocketCreated || mNetwork.CreateUDPSocket(ref replyPort, true))
+            // Create udp broadcast socket.
+            if (mNetwork.CreateUDPSocket(ref replyPort, true))
             {
-                mBroadcastSocketCreated = true;
                 var sendStatus = mNetwork.SendUDPBroadcast(msg, 10);
                 if (!sendStatus)
                 {
                     // Something major failed when trying to broadcast
+                    mNetwork.Disconnect();
                     return false;
                 }
 
@@ -509,7 +506,7 @@ namespace QTMRealTimeSDK
                 }
                 while (received != -1 && received > 8);
             }
-
+            mNetwork.Disconnect(tcp: false, udp: false, udpBroadcast: true);
             return true;
         }
 
@@ -1027,7 +1024,6 @@ namespace QTMRealTimeSDK
                 {
                     mErrorString = error;
                 }
-
             }
             settingObject = default(TSettings);
             return false;
