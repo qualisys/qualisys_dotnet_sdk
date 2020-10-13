@@ -140,8 +140,7 @@ namespace QtmCaptureTimer
                             continue;
                         }
 
-                        // Start streaming timecode data at 30Hz frequency
-                        rtProtocol.StreamFrames(StreamRate.RateFrequency, 30, QTMRealTimeSDK.Data.ComponentType.ComponentTimecode);
+                        rtProtocol.StreamFrames(StreamRate.RateAllFrames, 0, QTMRealTimeSDK.Data.ComponentType.ComponentTimecode);
                     }
 
                     // Get RTPacket from stream
@@ -197,7 +196,6 @@ namespace QtmCaptureTimer
                             }
                         }
                     }
-                    Thread.Sleep(20);
                 }
                 catch(Exception e)
                 {
