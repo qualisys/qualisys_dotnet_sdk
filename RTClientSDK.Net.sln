@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTClientSDK.Net", "RTClientSDK.Net.csproj", "{0DF35107-DDE5-4E9E-9284-F5D05BB47146}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RTClientSDK.Net.SimpleExample", "RTClientSDK.Net.SimpleExample\RTClientSDK.Net.SimpleExample.csproj", "{D2EC738F-8A59-4EEB-8C70-573FCE3F5C4E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QtmCaptureTimer", "QtmCaptureTimer\QtmCaptureTimer.csproj", "{597C2F44-ED69-42ED-A8D4-6C9C750ECCC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QtmCaptureBroadcasts", "QtmCaptureBroadcasts\QtmCaptureBroadcasts.csproj", "{97B8D704-8FFB-47A4-A45F-F800C4507B10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{597C2F44-ED69-42ED-A8D4-6C9C750ECCC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{597C2F44-ED69-42ED-A8D4-6C9C750ECCC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{597C2F44-ED69-42ED-A8D4-6C9C750ECCC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97B8D704-8FFB-47A4-A45F-F800C4507B10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97B8D704-8FFB-47A4-A45F-F800C4507B10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97B8D704-8FFB-47A4-A45F-F800C4507B10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97B8D704-8FFB-47A4-A45F-F800C4507B10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
