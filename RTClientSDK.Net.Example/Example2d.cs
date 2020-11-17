@@ -40,7 +40,7 @@ namespace RTClientSDK.Net.Example
                 Console.WriteLine("Frequency: {0}", mRtProtocol.GeneralSettings.CaptureFrequency);
                 foreach (var camera in mRtProtocol.GeneralSettings.CameraSettings)
                 {
-                    Console.WriteLine("{0}", camera.Model);
+                    Console.WriteLine("{0}", camera.ModelAsString);
                 }
 
                 mRtProtocol.StreamAllFrames(QTMRealTimeSDK.Data.ComponentType.Component2d);

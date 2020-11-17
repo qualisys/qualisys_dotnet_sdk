@@ -9,6 +9,40 @@ using QTMRealTimeSDK.Data;
 
 namespace QTMRealTimeSDK.Settings
 {
+    static public class EnumHelper
+    {
+        // Find [XmlEnum] attribute tag on enum items
+        static public string GetXmlAttrNameFromEnumValue<T>(T enumValue)
+        {
+            var type = enumValue.GetType();
+            var info = type.GetField(Enum.GetName(typeof(T), enumValue));
+            var attributes = info.GetCustomAttributes(typeof(XmlEnumAttribute), false);
+            if (attributes.Length > 0)
+                return (attributes[0] as XmlEnumAttribute).Name;
+            return null;
+        }
+        /// Convert from [XmlEnum] string to a Enum object (return defaultValue if not found)
+        static public T XmlEnumStringToEnum<T>(string stringValue, T defaultValue)
+        {
+            foreach (T t in (T[])Enum.GetValues(typeof(T)))
+            {
+                if (GetXmlAttrNameFromEnumValue(t) == stringValue)
+                {
+                    return t;
+                }
+            }
+            return defaultValue;
+        }
+        // Convert from Enum type to [XmlEnum] string (return defaultValue if not found)
+        static public string EnumToXmlEnumString<T>(T enumValue)
+        {
+            var name = GetXmlAttrNameFromEnumValue(enumValue);
+            if (name != null)
+                return name;
+            throw new ArgumentException("There is no XmlEnum attribute for this enum value");
+        }
+    }
+
     public class SettingsBase
     {
         [XmlIgnore]
@@ -459,9 +493,24 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>ID of camera</summary>
         [XmlElement("ID")]
         public int CameraId;
+
         /// <summary>Model of camera</summary>
-        [XmlElement("Model")]
+        [XmlIgnore]
         public CameraModel Model;
+
+        [XmlElement("Model")]
+        public string ModelAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(Model);
+            }
+            set
+            {
+                Model = EnumHelper.XmlEnumStringToEnum<CameraModel>(value, CameraModel.Unknown);
+            }
+        }
+
         /// <summary>If the camera is an underwater camera</summary>
         [XmlElement("UnderWater")]
         public bool UnderWater;
@@ -522,12 +571,38 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Auto exposure settings for video camera</summary>
         [XmlElement("AutoExposure")]
         public SettingsAutoExposure AutoExposure;
+
         /// <summary>Video resolution for non-marker cameras</summary>
-        [XmlElement("Video_Resolution")]
+        [XmlIgnore]
         public SettingsVideoResolution VideoResolution;
+        [XmlElement("Video_Resolution")]
+        public string VideoResolutionAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(VideoResolution);
+            }
+            set
+            {
+                VideoResolution = EnumHelper.XmlEnumStringToEnum<SettingsVideoResolution>(value, SettingsVideoResolution.Unknown);
+            }
+        }
+
         /// <summary>Video aspect ratio for non-marker cameras</summary>
-        [XmlElement("Video_Aspect_Ratio")]
+        [XmlIgnore]
         public SettingsVideoAspectRatio VideoAspectRatio;
+        [XmlElement("Video_Aspect_Ratio")]
+        public string VideoAspectRatioAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(VideoAspectRatio);
+            }
+            set
+            {
+                VideoAspectRatio = EnumHelper.XmlEnumStringToEnum<SettingsVideoAspectRatio>(value, SettingsVideoAspectRatio.Unknown);
+            }
+        }
     }
 
     /// <summary>Settings regarding Lens Control for camera equipped with motorized lens</summary>
@@ -565,17 +640,43 @@ namespace QTMRealTimeSDK.Settings
     public struct SettingsSyncOut
     {
         /// <summary>Sync mode for camera</summary>
-        [XmlElement("Mode")]
+        [XmlIgnore]
         public SyncOutFrequencyMode SyncMode;
+        [XmlElement("Mode")]
+        public string SyncModeAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(SyncMode);
+            }
+            set
+            {
+                SyncMode = EnumHelper.XmlEnumStringToEnum<SyncOutFrequencyMode>(value, SyncOutFrequencyMode.Unknown);
+            }
+        }
+
         /// <summary>Sync value, depending on mode</summary>
         [XmlElement("Value")]
         public int SyncValue;
         /// <summary>Output duty cycle in percent</summary>
         [XmlElement("Duty_Cycle")]
         public float DutyCycle;
+
         /// <summary>TTL signal polarity. no used in SRAM or 100Hz mode</summary>
-        [XmlElement("Signal_Polarity")]
+        [XmlIgnore]
         public SignalPolarity SignalPolarity;
+        [XmlElement("Signal_Polarity")]
+        public string SignalPolarityAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(SignalPolarity);
+            }
+            set
+            {
+                SignalPolarity = EnumHelper.XmlEnumStringToEnum<SignalPolarity>(value, SignalPolarity.Unknown);
+            }
+        }
     }
 
     /// <summary>Position for a camera</summary>
@@ -667,9 +768,23 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Preprocessing 2d data</summary>
         [XmlElement("PreProcessing2D")]
         public bool PreProcessing2D;
+
         /// <summary>Tracking processing</summary>
+        [XmlIgnore]
+        public SettingsTrackingProcessingAction TrackingAction;
         [XmlElement("Tracking")]
-        public SettingsTrackingProcessingActions TrackingActions;
+        public string TrackingActionsAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(TrackingAction);
+            }
+            set
+            {
+                TrackingAction = EnumHelper.XmlEnumStringToEnum<SettingsTrackingProcessingAction>(value, SettingsTrackingProcessingAction.Unknown);
+            }
+        }
+
         /// <summary>Twin system merge processing</summary>
         [XmlElement("TwinSystemMerge")]
         public bool TwinSystemMerge;
@@ -751,8 +866,22 @@ namespace QTMRealTimeSDK.Settings
     {
         [XmlElement("Enabled")]
         public bool Enabled;
-        [XmlElement("Type")]
+
+        [XmlIgnore]
         public TimestampType Type;
+        [XmlElement("Type")]
+        public string TimestampTypeAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(Type);
+            }
+            set
+            {
+                Type = EnumHelper.XmlEnumStringToEnum<TimestampType>(value, TimestampType.Unknown);
+            }
+        }
+
         [XmlElement("Frequency")]
         public int Frequency;
     }
@@ -1201,9 +1330,23 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Image streaming on or off</summary>
         [XmlElement("Enabled")]
         public bool Enabled;
+
         /// <summary>Format of image</summary>
-        [XmlElement("Format")]
+        [XmlIgnore]
         public ImageFormat ImageFormat;
+        [XmlElement("Format")]
+        public string ImageFormatAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(ImageFormat);
+            }
+            set
+            {
+                ImageFormat = EnumHelper.XmlEnumStringToEnum<ImageFormat>(value, ImageFormat.Unknown);
+            }
+        }
+
         /// <summary>Image width</summary>
         [XmlElement("Width")]
         public int Width;
@@ -1236,8 +1379,10 @@ namespace QTMRealTimeSDK.Settings
     }
 
     /// <summary>Tracking processing actions</summary>
-    public enum SettingsTrackingProcessingActions
+    public enum SettingsTrackingProcessingAction
     {
+        [XmlEnum("Unknown SettingsTrackingProcessingAction")]
+        Unknown = -1,
         [XmlEnum("false")]
         ProcessingNone = 0,
         [XmlEnum("2D")]
@@ -1249,6 +1394,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Camera models</summary>
     public enum CameraModel
     {
+        [XmlEnum("Unknown CameraModel")]
+        Unknown = -1,
         [XmlEnum("MacReflex")]
         ModelMacReflex = 0,
         [XmlEnum("ProReflex 120")]
@@ -1306,6 +1453,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Camera modes</summary>
     public enum CameraMode
     {
+        [XmlEnum("Unknown CameraMode")]
+        Unknown = -1,
         [XmlEnum("Marker")]
         ModeMarker = 0,
         [XmlEnum("Marker Intensity")]
@@ -1317,6 +1466,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Sync out modes</summary>
     public enum SyncOutFrequencyMode
     {
+        [XmlEnum("Unknown SyncOutFrequencyMode")]
+        Unknown = -1,
         [XmlEnum("Shutter out")]
         ModeShutterOut = 0,
         [XmlEnum("Multiplier")]
@@ -1334,6 +1485,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Signal sources</summary>
     public enum SignalSource
     {
+        [XmlEnum("Unknown SignalSource")]
+        Unknown = -1,
         [XmlEnum("Control port")]
         SourceControlPort = 0,
         [XmlEnum("IR receiver")]
@@ -1349,6 +1502,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Signal modes</summary>
     public enum SignalMode
     {
+        [XmlEnum("Unknown SignalMode")]
+        Unknown = -1,
         [XmlEnum("Periodic")]
         Periodic = 0,
         [XmlEnum("Non-periodic")]
@@ -1358,6 +1513,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Axises</summary>
     public enum Axis
     {
+        [XmlEnum("Unknown Axis")]
+        Unknown = -1,
         [XmlEnum("+X")]
         XAxisUpwards = 0,
         [XmlEnum("-X")]
@@ -1375,6 +1532,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Signal Edge</summary>
     public enum SignalEdge
     {
+        [XmlEnum("Unknown SignalEdge")]
+        Unknown = -1,
         [XmlEnum("Negative")]
         Negative = 0,
         [XmlEnum("Positive")]
@@ -1384,6 +1543,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Signal Polarity</summary>
     public enum SignalPolarity
     {
+        [XmlEnum("Unknown SignalPolarity")]
+        Unknown = -1,
         [XmlEnum("Negative")]
         Negative = 0,
         [XmlEnum("Positive")]
@@ -1393,6 +1554,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Image formats Available</summary>
     public enum ImageFormat
     {
+        [XmlEnum("Unknown ImageFormat")]
+        Unknown = -1,
         [XmlEnum("RAWGrayscale")]
         FormatRawGrayScale = 0,
         [XmlEnum("RAWBGR")]
@@ -1405,6 +1568,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Video resolution settings for video cameras</summary>
     public enum SettingsVideoResolution
     {
+        [XmlEnum("Unknown SettingsVideoResolution")]
+        Unknown = -1,
         [XmlEnum("1080p")]
         VideoResolution_1080p = 0,
         [XmlEnum("720p")]
@@ -1417,6 +1582,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Video aspect ratio settings for video cameras</summary>
     public enum SettingsVideoAspectRatio
     {
+        [XmlEnum("Unknown SettingsVideoAspectRatio")]
+        Unknown = -1,
         [XmlEnum("16x9")]
         AspectRatio_16x9,
         [XmlEnum("4x3")]
@@ -1427,6 +1594,8 @@ namespace QTMRealTimeSDK.Settings
     /// <summary>Timestamp type</summary>
     public enum TimestampType
     {
+        [XmlEnum("Unknown TimestampType")]
+        Unknown = -1,
         [XmlEnum("SMPTE")]
         SMPTE = 0,
         [XmlEnum("IRIG")]
