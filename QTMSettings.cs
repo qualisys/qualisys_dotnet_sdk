@@ -129,8 +129,21 @@ namespace QTMRealTimeSDK.Settings
     [XmlRoot("The_3D")]
     public class Settings3D : SettingsBase
     {
-        [XmlElement("AxisUpwards")]
+        [XmlIgnore]
         public Axis AxisUpwards;
+        [XmlElement("AxisUpwards")]
+        public string ModelAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(AxisUpwards);
+            }
+            set
+            {
+                AxisUpwards = EnumHelper.XmlEnumStringToEnum(value, Axis.Unknown);
+            }
+        }
+
         [XmlElement("CalibrationTime")]
         public string CalibrationTime;
         [XmlElement("Labels")]
@@ -497,7 +510,6 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Model of camera</summary>
         [XmlIgnore]
         public CameraModel Model;
-
         [XmlElement("Model")]
         public string ModelAsString
         {
@@ -507,7 +519,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                Model = EnumHelper.XmlEnumStringToEnum<CameraModel>(value, CameraModel.Unknown);
+                Model = EnumHelper.XmlEnumStringToEnum(value, CameraModel.Unknown);
             }
         }
 
@@ -520,9 +532,24 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Serial number of the selected camera</summary>
         [XmlElement("Serial")]
         public int Serial;
+
         /// <summary>Camera mode the camera is set to</summary>
-        [XmlElement("Mode")]
+        [XmlIgnore]
         public CameraMode Mode;
+        [XmlElement("Mode")]
+        public string ModeAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(Mode);
+            }
+            set
+            {
+                Mode = EnumHelper.XmlEnumStringToEnum(value, CameraMode.Unknown);
+            }
+        }
+
+
         /// <summary>Values for camera video mode, current, min and max</summary>
         [XmlElement("Video_Frequency")]
         public int VideoFrequency;
@@ -584,7 +611,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                VideoResolution = EnumHelper.XmlEnumStringToEnum<SettingsVideoResolution>(value, SettingsVideoResolution.Unknown);
+                VideoResolution = EnumHelper.XmlEnumStringToEnum(value, SettingsVideoResolution.Unknown);
             }
         }
 
@@ -600,7 +627,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                VideoAspectRatio = EnumHelper.XmlEnumStringToEnum<SettingsVideoAspectRatio>(value, SettingsVideoAspectRatio.Unknown);
+                VideoAspectRatio = EnumHelper.XmlEnumStringToEnum(value, SettingsVideoAspectRatio.Unknown);
             }
         }
     }
@@ -651,7 +678,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                SyncMode = EnumHelper.XmlEnumStringToEnum<SyncOutFrequencyMode>(value, SyncOutFrequencyMode.Unknown);
+                SyncMode = EnumHelper.XmlEnumStringToEnum(value, SyncOutFrequencyMode.Unknown);
             }
         }
 
@@ -674,7 +701,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                SignalPolarity = EnumHelper.XmlEnumStringToEnum<SignalPolarity>(value, SignalPolarity.Unknown);
+                SignalPolarity = EnumHelper.XmlEnumStringToEnum(value, SignalPolarity.Unknown);
             }
         }
     }
@@ -781,7 +808,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                TrackingAction = EnumHelper.XmlEnumStringToEnum<SettingsTrackingProcessingAction>(value, SettingsTrackingProcessingAction.Unknown);
+                TrackingAction = EnumHelper.XmlEnumStringToEnum(value, SettingsTrackingProcessingAction.Unknown);
             }
         }
 
@@ -831,10 +858,37 @@ namespace QTMRealTimeSDK.Settings
     {
         [XmlElement("Enabled")]
         public bool Enabled;
-        [XmlElement("Signal_Source")]
+
+        [XmlIgnore]
         public SignalSource SignalSource;
-        [XmlElement("Signal_Mode")]
+        [XmlElement("Signal_Source")]
+        public string SignalSourceAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(SignalSource);
+            }
+            set
+            {
+                SignalSource = EnumHelper.XmlEnumStringToEnum(value, SignalSource.Unknown);
+            }
+        }
+
+        [XmlIgnore]
         public SignalMode SignalMode;
+        [XmlElement("Signal_Mode")]
+        public string SignalModeAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(SignalMode);
+            }
+            set
+            {
+                SignalMode = EnumHelper.XmlEnumStringToEnum(value, SignalMode.Unknown);
+            }
+        }
+
         [XmlElement("Frequency_Multiplier")]
         public int FreqMultiplier;
         [XmlElement("Frequency_Divisor")]
@@ -843,8 +897,22 @@ namespace QTMRealTimeSDK.Settings
         public int FreqTolerance;
         [XmlElement("Nominal_Frequency")]
         public float NominalFrequency;
-        [XmlElement("Signal_Edge")]
+
+        [XmlIgnore]
         public SignalEdge SignalEdge;
+        [XmlElement("Signal_Edge")]
+        public string SignalEdgeAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(SignalEdge);
+            }
+            set
+            {
+                SignalEdge = EnumHelper.XmlEnumStringToEnum(value, SignalEdge.Unknown);
+            }
+        }
+
         [XmlElement("Signal_Shutter_Delay")]
         public int SignalShutterDelay;
         [XmlElement("Non_Periodic_Timeout")]
@@ -878,7 +946,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                Type = EnumHelper.XmlEnumStringToEnum<TimestampType>(value, TimestampType.Unknown);
+                Type = EnumHelper.XmlEnumStringToEnum(value, TimestampType.Unknown);
             }
         }
 
@@ -1343,7 +1411,7 @@ namespace QTMRealTimeSDK.Settings
             }
             set
             {
-                ImageFormat = EnumHelper.XmlEnumStringToEnum<ImageFormat>(value, ImageFormat.Unknown);
+                ImageFormat = EnumHelper.XmlEnumStringToEnum(value, ImageFormat.Unknown);
             }
         }
 
