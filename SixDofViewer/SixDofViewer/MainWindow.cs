@@ -74,6 +74,14 @@ namespace SixDofViewer
                 Color.BackColor = System.Drawing.Color.OrangeRed;
             }
 
+            if (rtProtocol.GeneralSettings == null)
+            {
+                if (!rtProtocol.GetGeneralSettings())
+                {
+                    return;
+                }
+            }
+
             // Check for available 6DOF data in the stream
             if (rtProtocol.Settings6DOF == null)
             {
