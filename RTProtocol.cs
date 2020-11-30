@@ -424,7 +424,7 @@ namespace QTMRealTimeSDK
                     {
                         // As long as we haven't received enough data, wait for more
                         received = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, -1);
-                        if (received < 0)
+                        if (received <= 0)
                         {
                             if (!mNetwork.IsConnected())
                             {
