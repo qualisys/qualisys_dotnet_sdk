@@ -280,9 +280,9 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Frequency")]
         public float Frequency;
         [XmlElement("Hardware_Sync")]
-        public bool hardwareSync;
+        public bool HardwareSync;
         [XmlElement("Filter")]
-        public bool filter;
+        public bool Filter;
     }
 
     /// <summary>Gaze vector Settings from QTM</summary>
@@ -301,7 +301,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Frequency")]
         public float Frequency;
         [XmlElement("Hardware_Sync")]
-        public bool hardwareSync;
+        public bool HardwareSync;
     }
 
     /// <summary>Eye tracker Settings from QTM</summary>
