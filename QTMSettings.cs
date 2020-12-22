@@ -376,8 +376,8 @@ namespace QTMRealTimeSDK.Settings
                 DegreeOfFreedom = EnumHelper.XmlEnumStringToEnum(value, DegreeOfFreedomType.Unknown);
             }
         }
-        [XmlAttribute("Factor")]
-        public float Factor = float.NaN;
+        [XmlAttribute("Coefficient")]
+        public float Coefficient = float.NaN;
     }
 
     /// <summary>Couplings</summary>
