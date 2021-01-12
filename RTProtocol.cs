@@ -24,6 +24,14 @@ namespace QTMRealTimeSDK
         RateFrequencyDivisor
     }
 
+    public enum ReceiveResponseType
+    {
+        success,
+        timeout,
+        error,
+        disconnect
+    };
+
     /// <summary>Data with response from Discovery broadcast</summary>
     public struct DiscoveryResponse
     {
@@ -253,7 +261,7 @@ namespace QTMRealTimeSDK
                 }
 
                 //Get connection response from server
-                if (ReceiveRTPacket(out packetType) > 0)
+                if (Receive(out packetType) == ReceiveResponseType.success)
                 {
                     if (packetType == PacketType.PacketError)
                     {
@@ -372,7 +380,30 @@ namespace QTMRealTimeSDK
         private byte[] data = new byte[65535];
         private Object receiveLock = new Object();
 
-        public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 500000)
+        [Obsolete("ReceiveRTPacket is deprecated and replaced by Receive.", false)]
+        public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 5000000)
+        {
+            int returnVal = -1;
+            var response = Receive(out packetType, skipEvents, timeout);
+
+            switch (response)
+            {
+                case ReceiveResponseType.success:
+                    returnVal = RTPacket.GetPacketSize(data);
+                    break;
+                case ReceiveResponseType.timeout:
+                    returnVal = 0;
+                    break;
+                case ReceiveResponseType.error:
+                case ReceiveResponseType.disconnect:
+                    returnVal = -1;
+                    break;
+            }
+
+            return returnVal;
+        }
+
+        public ReceiveResponseType Receive(out PacketType packetType, bool skipEvents = true, int timeout = 5000000)
         {
             lock (receiveLock)
             {
@@ -385,29 +416,27 @@ namespace QTMRealTimeSDK
                 {
                     receivedTotal = 0;
 
-                    int received = mNetwork.Receive(ref data, 0, data.Length, true, timeout);
-                    if (received == 0)
+                    var response = mNetwork.Receive(ref data, 0, data.Length, true, timeout);
+                    if (response == Response.ResponseType.timeout)
                     {
-                        return 0; // Receive timeout
+                        return ReceiveResponseType.timeout; // Receive timeout
                     }
-                    if (received < sizeof(int) * 2)
+                    if (response == Response.ResponseType.error)
                     {
-                        // QTM header not received.
-                        return -1;
+                        mErrorString = "Socket Error.";
+                        return ReceiveResponseType.error;
                     }
-                    if (received == -1)
+                    if (response == Response.ResponseType.disconnect)
                     {
-                        if (!mNetwork.IsConnected())
-                        {
-                            mErrorString = "Disconnected from server.";
-                        }
-                        else
-                        {
-                            mErrorString = "Socket Error.";
-                        }
-                        return -1;
+                        mErrorString = "Disconnected from server.";
+                        return ReceiveResponseType.disconnect;
                     }
-                    receivedTotal += received;
+                    if (response.received < Constants.PACKET_HEADER_SIZE)
+                    {
+                        mErrorString = "QTM header not received.";
+                        return ReceiveResponseType.error;
+                    }
+                    receivedTotal += response.received;
 
                     frameSize = RTPacket.GetPacketSize(data);
                     packetType = RTPacket.GetPacketType(data);
@@ -423,20 +452,22 @@ namespace QTMRealTimeSDK
                     while (receivedTotal < frameSize)
                     {
                         // As long as we haven't received enough data, wait for more
-                        received = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, -1);
-                        if (received <= 0)
+                        response = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, -1);
+                        if (response == Response.ResponseType.timeout)
                         {
-                            if (!mNetwork.IsConnected())
-                            {
-                                mErrorString = "Disconnected from server.";
-                            }
-                            else
-                            {
-                                mErrorString = "Socket Error.";
-                            }
-                            return -1;
+                            return ReceiveResponseType.timeout; // Receive timeout
                         }
-                        receivedTotal += received;
+                        if (response == Response.ResponseType.error)
+                        {
+                            mErrorString = "Socket Error.";
+                            return ReceiveResponseType.error;
+                        }
+                        if (response == Response.ResponseType.disconnect)
+                        {
+                            mErrorString = "Disconnected from server.";
+                            return ReceiveResponseType.disconnect;
+                        }
+                        receivedTotal += response.received;
                     }
                     mPacket.SetData(data);
                 }
@@ -444,10 +475,11 @@ namespace QTMRealTimeSDK
 
                 if (receivedTotal == frameSize)
                 {
-                    return receivedTotal;
+                    return ReceiveResponseType.success;
                 }
                 mErrorString = "Packet truncated.";
-                return -1;
+
+                return ReceiveResponseType.error;
             }
         }
 
@@ -485,26 +517,26 @@ namespace QTMRealTimeSDK
 
                 const int discoverBufferSize = 65535;
                 byte[] discoverBuffer = new byte[discoverBufferSize];
-                int received = 0;
+                Response response;
                 do
                 {
                     EndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
-                    received = mNetwork.ReceiveBroadcast(ref discoverBuffer, discoverBufferSize, ref remoteEP, 100000);
-                    if (received != -1 && received > 8)
+                    response = mNetwork.ReceiveBroadcast(ref discoverBuffer, discoverBufferSize, ref remoteEP, 100000);
+                    if (response && response.received > 8)
                     {
                         var packetType = RTPacket.GetPacketType(discoverBuffer);
                         if (packetType == PacketType.PacketCommand)
                         {
-                            DiscoveryResponse response;
-                            if (GetDiscoverData(discoverBuffer, out response))
+                            DiscoveryResponse discoverResponse;
+                            if (GetDiscoverData(discoverBuffer, out discoverResponse))
                             {
-                                response.IpAddress = (remoteEP as IPEndPoint).Address.ToString();
-                                mDiscoveryResponses.Add(response);
+                                discoverResponse.IpAddress = (remoteEP as IPEndPoint).Address.ToString();
+                                mDiscoveryResponses.Add(discoverResponse);
                             }
                         }
                     }
                 }
-                while (received != -1 && received > 8);
+                while (response && response.received > 8);
             }
             mNetwork.Disconnect(tcp: false, udp: false, udpBroadcast: true);
             return true;
@@ -667,18 +699,21 @@ namespace QTMRealTimeSDK
         {
             if (SendString("GetState", PacketType.PacketCommand))
             {
-                int nReceived;
+                ReceiveResponseType response;
                 PacketType packetType;
                 do
                 {
-                    nReceived = ReceiveRTPacket(out packetType, false, 2000000);
-                    if (nReceived > 0)
+                    response = Receive(out packetType, false, 2000000);
+                    if (response == ReceiveResponseType.success)
                     {
-                        respondedEvent = mPacket.GetEvent();
-                        return true;
+                        if (packetType == PacketType.PacketEvent)
+                        {
+                            respondedEvent = mPacket.GetEvent();
+                            return true;
+                        }
                     }
                 }
-                while (nReceived > 0);
+                while (response == ReceiveResponseType.success);
             }
             respondedEvent = QTMEvent.None;
             return false;
@@ -1219,7 +1254,7 @@ namespace QTMRealTimeSDK
             {
                 Thread.Sleep(50);
                 PacketType packetType;
-                while (ReceiveRTPacket(out packetType, true) > 0)
+                while (Receive(out packetType, true) == ReceiveResponseType.success)
                 {
                     if (packetType != PacketType.PacketXML)
                     {
@@ -1249,7 +1284,7 @@ namespace QTMRealTimeSDK
             if (SendString(command, PacketType.PacketCommand))
             {
                 PacketType packetType;
-                while (ReceiveRTPacket(out packetType, true) > 0)
+                while (Receive(out packetType, true) == ReceiveResponseType.success)
                 {
                     if (packetType == PacketType.PacketCommand)
                     {
@@ -1276,7 +1311,7 @@ namespace QTMRealTimeSDK
             if (SendString(xmlString, PacketType.PacketXML))
             {
                 PacketType packetType;
-                while (ReceiveRTPacket(out packetType, true) > 0)
+                while (Receive(out packetType, true) == ReceiveResponseType.success)
                 {
                     if (packetType == PacketType.PacketCommand)
                     {

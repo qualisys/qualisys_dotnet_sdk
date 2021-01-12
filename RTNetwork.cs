@@ -8,6 +8,34 @@ using System;
 
 namespace QTMRealTimeSDK.Network
 {
+    internal class Response
+    {
+        internal enum ResponseType
+        {
+            success,
+            timeout,
+            disconnect,
+            error
+        }
+        internal int received;
+        internal ResponseType type;
+
+        internal Response(ResponseType type, int received)
+        {
+            this.type = type;
+            this.received = received;
+        }
+
+        public static implicit operator bool(Response value)
+        {
+            return value.type == ResponseType.success;
+        }
+        public static implicit operator ResponseType(Response value)
+        {
+            return value.type;
+        }
+    }
+
     internal class RTNetwork : IDisposable
     {
         private UdpClient mUDPClient = null;
@@ -145,10 +173,13 @@ namespace QTMRealTimeSDK.Network
             }
         }
 
-        internal int ReceiveBroadcast(ref byte[] receivebuffer, int bufferSize, ref EndPoint remoteEP, int timeout)
+        internal Response ReceiveBroadcast(ref byte[] receivebuffer, int bufferSize, ref EndPoint remoteEP, int timeout)
         {
             if (mUDPBroadcastClient == null)
-                return -1;
+            {
+                mErrorString = "No clients to receive from.";
+                return new Response(Response.ResponseType.error, 0);
+            }
 
             try
             {
@@ -167,11 +198,17 @@ namespace QTMRealTimeSDK.Network
                 {
                     // Error from broadcast socket
                     mErrorString = "Error reading from Broadcast UDP socket";
+                    return new Response(Response.ResponseType.error, 0);
                 }
                 else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
                 {
                     // Receive data from broadcast socket
-                    return mUDPBroadcastClient.Client.ReceiveFrom(receivebuffer, bufferSize, SocketFlags.None, ref remoteEP);
+                    int received = mUDPBroadcastClient.Client.ReceiveFrom(receivebuffer, bufferSize, SocketFlags.None, ref remoteEP);
+                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
+                }
+                else
+                {
+                    return new Response(Response.ResponseType.timeout, 0);
                 }
             }
             catch (SocketException exception)
@@ -179,11 +216,13 @@ namespace QTMRealTimeSDK.Network
                 // Ignore and return
                 mErrorString = exception.Message;
             }
-            return -1;
+            return new Response(Response.ResponseType.error, 0);
         }
 
-        internal int Receive(ref byte[] receivebuffer, int offset, int bufferSize, bool header, int timeout)
+        internal Response Receive(ref byte[] receivebuffer, int offset, int bufferSize, bool header, int timeout)
         {
+            var response = new Response(Response.ResponseType.error, 0);
+            
             try
             {
                 List<Socket> receiveList = new List<Socket>();
@@ -204,30 +243,40 @@ namespace QTMRealTimeSDK.Network
                 if (receiveList.Count == 0)
                 {
                     receivebuffer = null;
-                    return 0;
+                    mErrorString = "No clients to receive from.";
+                    return new Response(Response.ResponseType.error, 0);
                 }
 
                 Socket.Select(receiveList, null, errorList, timeout);
+
 
                 if (mTCPClient != null && errorList.Contains(mTCPClient.Client))
                 {
                     // Error from TCP socket
                     mErrorString = "Error reading from TCP socket";
+                    return new Response(Response.ResponseType.error, 0);
                 }
                 else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
                 {
                     // Receive data from TCP socket
-                    return mTCPClient.Client.Receive(receivebuffer, offset, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
+                    int received = mTCPClient.Client.Receive(receivebuffer, offset, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
+                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
                 }
                 else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
                 {
                     // Error from UDP socket
                     mErrorString = "Error reading from UDP socket";
+                    return new Response(Response.ResponseType.error, 0);
                 }
                 else if (mUDPClient != null && receiveList.Contains(mUDPClient.Client))
                 {
                     // Receive data from UDP socket
-                    return mUDPClient.Client.Receive(receivebuffer, offset, bufferSize, SocketFlags.None);
+                    int received = mUDPClient.Client.Receive(receivebuffer, offset, bufferSize, SocketFlags.None);
+                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
+                }
+                else
+                {
+                    return new Response(Response.ResponseType.timeout, 0);
                 }
             }
             catch (SocketException exception)
@@ -235,7 +284,7 @@ namespace QTMRealTimeSDK.Network
                 // Ignore and return
                 mErrorString = exception.Message;
             }
-            return -1;
+            return new Response(Response.ResponseType.error, 0);
         }
 
         /// <summary>

@@ -49,7 +49,7 @@ namespace RTClientSDK.Net.Example
 
             // Get RTPacket from stream
             PacketType packetType;
-            mRtProtocol.ReceiveRTPacket(out packetType, false);
+            mRtProtocol.Receive(out packetType, false);
 
             // Handle data packet
             if (packetType == PacketType.PacketData)
