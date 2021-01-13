@@ -66,6 +66,8 @@ namespace QTMRealTimeSDK
             public const int STANDARD_BASE_PORT = 22222;
             /// <summary>Port QTM listens to for discovery requests</summary>
             public const int STANDARD_BROADCAST_PORT = 22226;
+            /// <summary>QTM packet data part read timeout in microseconds</summary>
+            public const int SOCKET_READ_TIMEOUT = 5000000; // 5 sec
 
         }
 
@@ -373,7 +375,7 @@ namespace QTMRealTimeSDK
         private Object receiveLock = new Object();
 
         [Obsolete("ReceiveRTPacket is deprecated and replaced by Receive.", false)]
-        public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = 5000000)
+        public int ReceiveRTPacket(out PacketType packetType, bool skipEvents = true, int timeout = Constants.SOCKET_READ_TIMEOUT)
         {
             int returnVal = -1;
             var response = Receive(out packetType, skipEvents, timeout);
@@ -395,7 +397,7 @@ namespace QTMRealTimeSDK
             return returnVal;
         }
 
-        public ResponseType Receive(out PacketType packetType, bool skipEvents = true, int timeout = 5000000)
+        public ResponseType Receive(out PacketType packetType, bool skipEvents = true, int timeout = Constants.SOCKET_READ_TIMEOUT)
         {
             lock (receiveLock)
             {
@@ -444,7 +446,7 @@ namespace QTMRealTimeSDK
                     while (receivedTotal < frameSize)
                     {
                         // As long as we haven't received enough data, wait for more
-                        response = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, 5000000);
+                        response = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, Constants.SOCKET_READ_TIMEOUT);
                         if (response == ResponseType.timeout)
                         {
                             mErrorString = "Packet truncated.";
