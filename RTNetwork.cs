@@ -8,15 +8,16 @@ using System;
 
 namespace QTMRealTimeSDK.Network
 {
-    internal class Response
+    public enum ResponseType
     {
-        internal enum ResponseType
-        {
-            success,
-            timeout,
-            disconnect,
-            error
-        }
+        success,
+        timeout,
+        disconnect,
+        error
+    }
+
+    internal struct Response
+    {
         internal int received;
         internal ResponseType type;
 
@@ -178,7 +179,7 @@ namespace QTMRealTimeSDK.Network
             if (mUDPBroadcastClient == null)
             {
                 mErrorString = "No clients to receive from.";
-                return new Response(Response.ResponseType.error, 0);
+                return new Response(ResponseType.error, 0);
             }
 
             try
@@ -198,17 +199,17 @@ namespace QTMRealTimeSDK.Network
                 {
                     // Error from broadcast socket
                     mErrorString = "Error reading from Broadcast UDP socket";
-                    return new Response(Response.ResponseType.error, 0);
+                    return new Response(ResponseType.error, 0);
                 }
                 else if (mUDPBroadcastClient != null && receiveList.Contains(mUDPBroadcastClient.Client))
                 {
                     // Receive data from broadcast socket
                     int received = mUDPBroadcastClient.Client.ReceiveFrom(receivebuffer, bufferSize, SocketFlags.None, ref remoteEP);
-                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
+                    return new Response((received == 0) ? ResponseType.disconnect : ResponseType.success, received);
                 }
                 else
                 {
-                    return new Response(Response.ResponseType.timeout, 0);
+                    return new Response(ResponseType.timeout, 0);
                 }
             }
             catch (SocketException exception)
@@ -216,12 +217,12 @@ namespace QTMRealTimeSDK.Network
                 // Ignore and return
                 mErrorString = exception.Message;
             }
-            return new Response(Response.ResponseType.error, 0);
+            return new Response(ResponseType.error, 0);
         }
 
         internal Response Receive(ref byte[] receivebuffer, int offset, int bufferSize, bool header, int timeout)
         {
-            var response = new Response(Response.ResponseType.error, 0);
+            var response = new Response(ResponseType.error, 0);
             
             try
             {
@@ -244,7 +245,7 @@ namespace QTMRealTimeSDK.Network
                 {
                     receivebuffer = null;
                     mErrorString = "No clients to receive from.";
-                    return new Response(Response.ResponseType.error, 0);
+                    return new Response(ResponseType.error, 0);
                 }
 
                 Socket.Select(receiveList, null, errorList, timeout);
@@ -254,29 +255,29 @@ namespace QTMRealTimeSDK.Network
                 {
                     // Error from TCP socket
                     mErrorString = "Error reading from TCP socket";
-                    return new Response(Response.ResponseType.error, 0);
+                    return new Response(ResponseType.error, 0);
                 }
                 else if (mTCPClient != null && receiveList.Contains(mTCPClient.Client))
                 {
                     // Receive data from TCP socket
                     int received = mTCPClient.Client.Receive(receivebuffer, offset, header ? RTProtocol.Constants.PACKET_HEADER_SIZE : bufferSize, SocketFlags.None);
-                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
+                    return new Response((received == 0) ? ResponseType.disconnect : ResponseType.success, received);
                 }
                 else if (mUDPClient != null && errorList.Contains(mUDPClient.Client))
                 {
                     // Error from UDP socket
                     mErrorString = "Error reading from UDP socket";
-                    return new Response(Response.ResponseType.error, 0);
+                    return new Response(ResponseType.error, 0);
                 }
                 else if (mUDPClient != null && receiveList.Contains(mUDPClient.Client))
                 {
                     // Receive data from UDP socket
                     int received = mUDPClient.Client.Receive(receivebuffer, offset, bufferSize, SocketFlags.None);
-                    return new Response((received == 0) ? Response.ResponseType.disconnect : Response.ResponseType.success, received);
+                    return new Response((received == 0) ? ResponseType.disconnect : ResponseType.success, received);
                 }
                 else
                 {
-                    return new Response(Response.ResponseType.timeout, 0);
+                    return new Response(ResponseType.timeout, 0);
                 }
             }
             catch (SocketException exception)
@@ -284,7 +285,7 @@ namespace QTMRealTimeSDK.Network
                 // Ignore and return
                 mErrorString = exception.Message;
             }
-            return new Response(Response.ResponseType.error, 0);
+            return new Response(ResponseType.error, 0);
         }
 
         /// <summary>
