@@ -452,10 +452,11 @@ namespace QTMRealTimeSDK
                     while (receivedTotal < frameSize)
                     {
                         // As long as we haven't received enough data, wait for more
-                        response = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, -1);
+                        response = mNetwork.Receive(ref data, receivedTotal, frameSize - receivedTotal, false, 5000000);
                         if (response == Response.ResponseType.timeout)
                         {
-                            return ReceiveResponseType.timeout; // Receive timeout
+                            mErrorString = "Packet truncated.";
+                            return ReceiveResponseType.error;
                         }
                         if (response == Response.ResponseType.error)
                         {
