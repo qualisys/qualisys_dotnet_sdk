@@ -87,7 +87,7 @@ namespace RTSDKExample
 
             // Get RTPacket from stream
             PacketType packetType;
-            rtProtocol.ReceiveRTPacket(out packetType, false);
+            rtProtocol.Receive(out packetType, false);
 
             // Handle 6DOF rigid body data
             if (packetType == PacketType.PacketData)
