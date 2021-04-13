@@ -121,7 +121,7 @@ namespace SixDofViewer
 
             // Get RTPacket from stream
             PacketType packetType;
-            rtProtocol.ReceiveRTPacket(out packetType, false);
+            rtProtocol.Receive(out packetType, false);
 
             // Handle data packet
             if (packetType == PacketType.PacketData)

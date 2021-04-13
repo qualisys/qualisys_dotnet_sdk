@@ -145,7 +145,7 @@ namespace QtmCaptureTimer
 
                     // Get RTPacket from stream
                     PacketType packetType;
-                    if (rtProtocol.ReceiveRTPacket(out packetType, false) > 0)
+                    if (rtProtocol.Receive(out packetType, false) == QTMRealTimeSDK.Network.ResponseType.success)
                     {
 
                         // Handle data packet

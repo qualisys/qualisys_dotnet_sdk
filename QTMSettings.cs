@@ -279,6 +279,10 @@ namespace QTMRealTimeSDK.Settings
         public string Name;
         [XmlElement("Frequency")]
         public float Frequency;
+        [XmlElement("Hardware_Sync")]
+        public bool HardwareSync;
+        [XmlElement("Filter")]
+        public bool Filter;
     }
 
     /// <summary>Gaze vector Settings from QTM</summary>
@@ -296,6 +300,8 @@ namespace QTMRealTimeSDK.Settings
         public string Name;
         [XmlElement("Frequency")]
         public float Frequency;
+        [XmlElement("Hardware_Sync")]
+        public bool HardwareSync;
     }
 
     /// <summary>Eye tracker Settings from QTM</summary>
@@ -1500,6 +1506,9 @@ namespace QTMRealTimeSDK.Settings
         /// <summary>Color of marker</summary>
         [XmlElement("RGBColor")]
         public int ColorRGB;
+        /// <summary>Trajectory type</summary>
+        [XmlElement("Trajectory_Type")]
+        public string TrajectoryType;
     }
 
     /// <summary>Tracking processing actions</summary>
