@@ -1744,14 +1744,14 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("RotationX")]
         RotationX = 0,
         [XmlEnum("RotationY")]
-        RotationY,
+        RotationY = 1,
         [XmlEnum("RotationZ")]
-        RotationZ,
+        RotationZ = 2,
         [XmlEnum("TranslationX")]
-        TranslationX,
+        TranslationX = 3,
         [XmlEnum("TranslationY")]
-        TranslationY,
+        TranslationY = 4,
         [XmlEnum("TranslationZ")]
-        TranslationZ,
+        TranslationZ = 5,
     }
 }
