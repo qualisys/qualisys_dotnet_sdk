@@ -316,24 +316,24 @@ namespace QTMRealTimeSDK.Settings
     public class Position
     {
         [XmlAttribute("X")]
-        public float X;
+        public float X = float.NaN;
         [XmlAttribute("Y")]
-        public float Y;
+        public float Y = float.NaN;
         [XmlAttribute("Z")]
-        public float Z;
+        public float Z = float.NaN;
     }
 
     /// <summary>Rotation</summary>
     public class Rotation
     {
         [XmlAttribute("X")]
-        public float X;
+        public float X = float.NaN;
         [XmlAttribute("Y")]
-        public float Y;
+        public float Y = float.NaN;
         [XmlAttribute("Z")]
-        public float Z;
+        public float Z = float.NaN;
         [XmlAttribute("W")]
-        public float W;
+        public float W = float.NaN;
     }
 
     /// <summary>Transform</summary>
@@ -354,30 +354,84 @@ namespace QTMRealTimeSDK.Settings
         public Rotation Rotation;
     }
 
-    /// <summary>Boundary</summary>
-    public class Boundary
+    /// <summary>Constraint</summary>
+    public class Constraint
     {
         [XmlAttribute("LowerBound")]
-        public float LowerBound;
+        public float LowerBound = float.NaN;
         [XmlAttribute("UpperBound")]
-        public float UpperBound;
+        public float UpperBound = float.NaN;
+    }
+
+    /// <summary>Coupling</summary>
+    public class Coupling
+    {
+        [XmlIgnore]
+        public DegreeOfFreedomType DegreeOfFreedom;
+        [XmlAttribute("Segment")]
+        public string Segment;
+        [XmlAttribute("DegreeOfFreedom")]
+        public string ModelAsString
+        {
+            get
+            {
+                return EnumHelper.EnumToXmlEnumString(DegreeOfFreedom);
+            }
+            set
+            {
+                DegreeOfFreedom = EnumHelper.XmlEnumStringToEnum(value, DegreeOfFreedomType.Unknown);
+            }
+        }
+        [XmlAttribute("Coefficient")]
+        public float Coefficient = float.NaN;
+    }
+
+    /// <summary>Couplings</summary>
+    public class Couplings
+    {
+        [XmlElement("Coupling")]
+        public List<Coupling> CouplingList;
+    }
+
+    /// <summary>Goal</summary>
+    public class Goal
+    {
+        [XmlAttribute("Value")]
+        public float Value = float.NaN;
+        [XmlAttribute("Weight")]
+        public float Weight = float.NaN;
+    }
+    
+    /// <summary>DegreeOfFreedom</summary>
+    public class DegreeOfFreedom
+    {
+        [XmlAttribute("LowerBound")]
+        public float LowerBound = float.NaN;
+        [XmlAttribute("UpperBound")]
+        public float UpperBound = float.NaN;
+        [XmlElement("Constraint")]
+        public Constraint Constraint;
+        [XmlElement("Couplings")]
+        public Couplings Couplings;
+        [XmlElement("Goal")]
+        public Goal Goal;
     }
 
     /// <summary>DegreesOfFreedom</summary>
     public class DegreesOfFreedom
     {
         [XmlElement("RotationX")]
-        public Boundary RotationX;
+        public DegreeOfFreedom RotationX;
         [XmlElement("RotationY")]
-        public Boundary RotationY;
+        public DegreeOfFreedom RotationY;
         [XmlElement("RotationZ")]
-        public Boundary RotationZ;
+        public DegreeOfFreedom RotationZ;
         [XmlElement("TranslationX")]
-        public Boundary TranslationX;
+        public DegreeOfFreedom TranslationX;
         [XmlElement("TranslationY")]
-        public Boundary TranslationY;
+        public DegreeOfFreedom TranslationY;
         [XmlElement("TranslationZ")]
-        public Boundary TranslationZ;
+        public DegreeOfFreedom TranslationZ;
     }
 
     /// <summary>Marker</summary>
@@ -388,7 +442,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Position")]
         public Position Position;
         [XmlElement("Weight")]
-        public float Weight;
+        public float Weight = float.NaN;
     }
 
     /// <summary>Markers</summary>
@@ -406,7 +460,7 @@ namespace QTMRealTimeSDK.Settings
         [XmlElement("Transform")]
         public Transform Transform;
         [XmlElement("Weight")]
-        public float Weight;
+        public float Weight = float.NaN;
     }
 
     /// <summary>RigidBodies</summary>
@@ -423,6 +477,8 @@ namespace QTMRealTimeSDK.Settings
         public string Name;
         [XmlAttribute("ID")]
         public uint Id;
+        [XmlElement("Solver")]
+        public string Solver;
         [XmlElement("Transform")]
         public Transform Transform;
         [XmlElement("DefaultTransform")]
@@ -462,7 +518,7 @@ namespace QTMRealTimeSDK.Settings
 
     /// <summary>
     /// Skeleton Settings from QTM.
-    /// The skeleton is stored hierarchicaly.
+    /// The skeleton is stored hierarchically.
     /// </summary>
     [XmlRoot("Skeletons")]
     public class SettingsSkeletonsHierarchical : SettingsBase
@@ -1679,5 +1735,23 @@ namespace QTMRealTimeSDK.Settings
         IRIG,
         [XmlEnum("CameraTime")]
         CameraTime,
+    }
+    /// <summary>Degree of freedom</summary>
+    public enum DegreeOfFreedomType
+    {
+        [XmlEnum("Unknown DegreeOfFreedom")]
+        Unknown = -1,
+        [XmlEnum("RotationX")]
+        RotationX = 0,
+        [XmlEnum("RotationY")]
+        RotationY = 1,
+        [XmlEnum("RotationZ")]
+        RotationZ = 2,
+        [XmlEnum("TranslationX")]
+        TranslationX = 3,
+        [XmlEnum("TranslationY")]
+        TranslationY = 4,
+        [XmlEnum("TranslationZ")]
+        TranslationZ = 5,
     }
 }

@@ -47,7 +47,7 @@ namespace QTMRealTimeSDK
             /// <summary>Latest major version of protocol</summary>
             public const int MAJOR_VERSION = 1;
             /// <summary>Latest minor version of protocol</summary>
-            public const int MINOR_VERSION = 21;
+            public const int MINOR_VERSION = 22;
             /// <summary>Maximum camera count</summary>
             public const int MAX_CAMERA_COUNT = 256;
             /// <summary>Maximum Analog device count</summary>
@@ -997,6 +997,23 @@ namespace QTMRealTimeSDK
             return GetSettings("EyeTracker", "Eye_Tracker", out mEyeTrackerSettings);
         }
 
+        private void SetDegreeOfFreedomFromConstraint(DegreeOfFreedom dof)
+        {
+            if (dof != null && dof.Constraint != null)
+            {
+                dof.LowerBound = dof.Constraint.LowerBound;
+                dof.UpperBound = dof.Constraint.UpperBound;
+            }
+        }
+
+        private void SetConstraintFromDegreeOfFreedom(DegreeOfFreedom dof)
+        {
+            if (dof != null)
+            {
+                dof.Constraint = new Constraint { LowerBound = dof.LowerBound, UpperBound = dof.UpperBound };
+            }
+        }
+
         /// <summary>Get Skeleton settings from QTM Server</summary>
         /// <returns>Returns true if settings was retrieved</returns>
         public bool GetSkeletonSettings()
@@ -1015,9 +1032,34 @@ namespace QTMRealTimeSDK
 
                     foreach (var skeleton in mSkeletonSettingsHierarchical.Skeletons)
                     {
+                        int solverCount = 0;
+
                         Action<List<SettingSkeletonSegment>, SettingSkeletonSegmentHierarchical, uint> RecurseSegments = null;
                         RecurseSegments = (segmentList, segment, parentId) =>
                         {
+                            if (segment.Solver != null)
+                            {
+                                solverCount++;
+                            }
+                            if (mMajorVersion > 1 || mMinorVersion > 21)
+                            {
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.RotationX);
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.RotationY);
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.RotationZ);
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.TranslationX);
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.TranslationY);
+                                SetDegreeOfFreedomFromConstraint(segment.DegreesOfFreedom.TranslationZ);
+                            }
+                            else if (mMinorVersion == 21)
+                            {
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.RotationX);
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.RotationY);
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.RotationZ);
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.TranslationX);
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.TranslationY);
+                                SetConstraintFromDegreeOfFreedom(segment.DegreesOfFreedom.TranslationZ);
+                            }
+
                             SettingSkeletonSegment newSegment = new SettingSkeletonSegment
                             {
                                 Name = segment.Name,
@@ -1043,6 +1085,18 @@ namespace QTMRealTimeSDK
                             RecurseSegments(settingSkeleton.Segments, segment, 0);
                         }
                         mSkeletonSettings.Skeletons.Add(settingSkeleton);
+
+                        if (skeleton.Segments.Segments.Count > 0)
+                        {
+                            if ((mMajorVersion > 1 || mMinorVersion > 21) && solverCount == 1)
+                            {
+                                skeleton.Solver = skeleton.Segments.Segments[0].Solver;
+                            }
+                            else if (mMinorVersion == 21)
+                            {
+                                skeleton.Segments.Segments[0].Solver = skeleton.Solver;
+                            }
+                        }
                     }
                     return true;
                 }
