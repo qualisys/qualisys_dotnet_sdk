@@ -1142,7 +1142,7 @@ namespace QTMRealTimeSDK
             return false;
         }
 
-        public static bool Set6DSettings(in Settings6D settings, out string xmlData, out string error)
+        public static bool Set6DSettings(Settings6D settings, out string xmlData, out string error)
         {
             Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
 
