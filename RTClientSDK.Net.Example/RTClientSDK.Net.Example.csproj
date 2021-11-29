@@ -48,6 +48,7 @@
     <Compile Include="ExampleEyeTracker.cs" />
     <Compile Include="ExampleGaze.cs" />
     <Compile Include="ExampleImage.cs" />
+    <Compile Include="ExampleSetGeneralSettings.cs" />
     <Compile Include="ExampleSkeleton.cs" />
     <Compile Include="ExampleTimecode.cs" />
     <Compile Include="ExampleUDP.cs" />
