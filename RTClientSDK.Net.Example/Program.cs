@@ -18,12 +18,14 @@ namespace RTClientSDK.Net.Example
             //Example example = new ExampleSkeleton(mRtProtocol, mIpAddress);
             //Example example = new Example3D(mRtProtocol, mIpAddress);
             //Example example = new ExampleImage(mRtProtocol, mIpAddress);
-            Example example = new Example2D(mRtProtocol, mIpAddress);
+            //Example example = new Example2D(mRtProtocol, mIpAddress);
             //Example example = new Example6D(mRtProtocol, mIpAddress);
             //Example example = new ExampleGaze(mRtProtocol, mIpAddress);
             //Example example = new ExampleEyeTracker(mRtProtocol, mIpAddress);
             //Example example = new ExampleTimecode(mRtProtocol, mIpAddress);
             //Example example = new ExampleUDP(mRtProtocol, mIpAddress);
+            //Example example = new ExampleUDP(mRtProtocol, mIpAddress);
+            Example example = new ExampleSetGeneralSettings(mRtProtocol, mIpAddress);
             MainExample mainExample = new MainExample(example, mRtProtocol, mIpAddress);
             mainExample.DiscoverQTMServers(4545);
             Console.WriteLine("Press key to continue");

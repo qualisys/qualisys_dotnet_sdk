@@ -647,13 +647,13 @@ namespace QTMRealTimeSDK.Settings
         public FieldOfView VideoFOV;
         /// <summary>Sync out settings for Oqus sync out or Sync Unit Out1</summary>
         [XmlElement("Sync_Out")]
-        public SettingsSyncOut SyncOut;
+        public SettingsSyncOut? SyncOut;
         /// <summary>Sync out settings for Sync Unit Out2</summary>
         [XmlElement("Sync_Out2")]
-        public SettingsSyncOut SyncOut2;
+        public SettingsSyncOut? SyncOut2;
         /// <summary>Sync out settings for Sync Unit Measurement Time (MT)</summary>
         [XmlElement("Sync_Out_MT")]
-        public SettingsSyncOut SyncOutMT;
+        public SettingsSyncOut? SyncOutMT;
         /// <summary>Lens Control settings for camera equipped with motorized lens</summary>
         [XmlElement("LensControl")]
         public SettingsLensControl LensControl;
