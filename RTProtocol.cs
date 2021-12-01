@@ -810,7 +810,8 @@ namespace QTMRealTimeSDK
             {
                 if (response == "Closing connection" ||
                     response == "No connection to close" ||
-                    response == "Closing file")
+                    response == "Closing file" ||
+                    response == "File closed")
                 {
                     return true;
                 }
