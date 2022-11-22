@@ -1040,7 +1040,7 @@ namespace QTMRealTimeSDK.Settings
     {
         internal static Settings6DOF ConvertToSettings6DOF(Settings6DOF_V1 settings6DOF)
         {
-            return new Settings6DOF(settings6DOF.Name, settings6DOF.ColorRGB, 0, 0, 0, new Settings6DOFFilter(), new Settings6DOFMesh(),
+            return new Settings6DOF(settings6DOF.Name, true, settings6DOF.ColorRGB, 0, 0, 0, new Settings6DOFFilter(), new Settings6DOFMesh(),
                 settings6DOF.Points.ConvertAll<Settings6DOFPoint>(Settings6DOFPoint_V1.ConvertToSettingsPoint), new Settings6DOFDataOrigin(), new Settings6DOFDataOrientation());
         }
         /// <summary>Name of 6DOF body</summary>
@@ -1160,6 +1160,7 @@ namespace QTMRealTimeSDK.Settings
         internal Settings6DOF_V2(Settings6DOF settings)
         {
             Name = settings.Name;
+            Enabled = settings.Enabled;
             Color = new Settings6DOFColor_V2(settings.ColorRGB);
             MaximumResidual = settings.MaximumResidual;
             MinimumMarkersInBody = settings.MinimumMarkersInBody;
@@ -1173,12 +1174,15 @@ namespace QTMRealTimeSDK.Settings
         internal static Settings6DOF ConvertToSettings6DOF(Settings6DOF_V2 settings6DOF)
         {
             int colorRGB = (settings6DOF.Color.R & 0xff) | ((settings6DOF.Color.G << 8) & 0xff00) | ((settings6DOF.Color.B << 16) & 0xff0000);
-            return new Settings6DOF(settings6DOF.Name, colorRGB, settings6DOF.MaximumResidual, settings6DOF.MinimumMarkersInBody, settings6DOF.BoneLengthTolerance,
+            return new Settings6DOF(settings6DOF.Name, settings6DOF.Enabled, colorRGB, settings6DOF.MaximumResidual, settings6DOF.MinimumMarkersInBody, settings6DOF.BoneLengthTolerance,
                 settings6DOF.Filter, settings6DOF.Mesh, settings6DOF.Points, settings6DOF.DataOrigin, settings6DOF.DataOrientation);
         }
         /// <summary>Name of 6DOF body</summary>
         [XmlElement("Name")]
         public string Name;
+        /// <summary>Availability of 6DOF body</summary>
+        [XmlElement("Enabled")]
+        public bool Enabled;
         /// <summary>Color of 6DOF body</summary>
         [XmlElement("Color")]
         public Settings6DOFColor_V2 Color;
@@ -1240,10 +1244,11 @@ namespace QTMRealTimeSDK.Settings
         {
             return new Settings6DOF_V2(settings);
         }
-        public Settings6DOF(string name, int colorRGB, float maxResidual, int minimumMarkersInBody, float boneLengthTolerance, Settings6DOFFilter filter, Settings6DOFMesh mesh,
+        public Settings6DOF(string name, bool enabled, int colorRGB, float maxResidual, int minimumMarkersInBody, float boneLengthTolerance, Settings6DOFFilter filter, Settings6DOFMesh mesh,
             List<Settings6DOFPoint> points, Settings6DOFDataOrigin dataOrigin, Settings6DOFDataOrientation dataOrientation)
         {
             Name = name;
+            Enabled = enabled;
             ColorRGB = colorRGB;
             MaximumResidual = maxResidual;
             MinimumMarkersInBody = minimumMarkersInBody;
@@ -1256,6 +1261,8 @@ namespace QTMRealTimeSDK.Settings
         }
         /// <summary>Name of 6DOF body</summary>
         public string Name;
+        /// <summary>Availability of 6DOF body</summary>
+        public bool Enabled;
         /// <summary>Color of 6DOF body</summary>
         public int ColorRGB;
         /// <summary>Maximum residual of 6DOF body</summary>
