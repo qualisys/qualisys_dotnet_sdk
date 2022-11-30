@@ -164,8 +164,6 @@ namespace QTMRealTimeSDK.Settings
     [XmlRoot("The_6D")]
     public class Settings6D : SettingsBase
     {
-        [XmlElement("Bodies")]
-        public int BodyCount;
         [XmlElement("Body")]
         public List<Settings6DOF> Bodies;
     }
