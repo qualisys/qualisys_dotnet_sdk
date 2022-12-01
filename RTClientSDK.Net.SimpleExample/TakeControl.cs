@@ -100,12 +100,15 @@ namespace RTSDKExample
                     {
                         var sixDofBody = sixDofData[body];
                         var bodySetting = rtProtocol.Settings6DOF.Bodies[body];
-                        Console.WriteLine("Frame:{0:D5} Body:{1,20} X:{2,7:F1} Y:{3,7:F1} Z:{4,7:F1} First Angle:{5,7:F1} Second Angle:{6,7:F1} Third Angle:{7,7:F1} Residual:{8,7:F1}",
-                            rtProtocol.GetRTPacket().Frame,
-                            bodySetting.Name,
-                            sixDofBody.Position.X, sixDofBody.Position.Y, sixDofBody.Position.Z,
-                            sixDofBody.Rotation.First, sixDofBody.Rotation.Second, sixDofBody.Rotation.Third,
-                            sixDofBody.Residual);
+                        if (bodySetting.Enabled)
+                        {
+                            Console.WriteLine("Frame:{0:D5} Body:{1,20} X:{2,7:F1} Y:{3,7:F1} Z:{4,7:F1} First Angle:{5,7:F1} Second Angle:{6,7:F1} Third Angle:{7,7:F1} Residual:{8,7:F1}",
+                                rtProtocol.GetRTPacket().Frame,
+                                bodySetting.Name,
+                                sixDofBody.Position.X, sixDofBody.Position.Y, sixDofBody.Position.Z,
+                                sixDofBody.Rotation.First, sixDofBody.Rotation.Second, sixDofBody.Rotation.Third,
+                                sixDofBody.Residual);
+                        }
                     }
                 }
             }
