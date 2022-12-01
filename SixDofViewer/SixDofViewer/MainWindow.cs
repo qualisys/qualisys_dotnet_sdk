@@ -94,7 +94,7 @@ namespace SixDofViewer
 
                 if (sixDofBodyNameToUse.Length > 0)
                 {
-                    for (int bodyIndex = 0; bodyIndex < rtProtocol.Settings6DOF.BodyCount; bodyIndex++)
+                    for (int bodyIndex = 0; bodyIndex < rtProtocol.Settings6DOF.Bodies.Count; bodyIndex++)
                     {
                         if (string.Equals(rtProtocol.Settings6DOF.Bodies[bodyIndex].Name, sixDofBodyNameToUse, StringComparison.OrdinalIgnoreCase))
                         {
@@ -105,7 +105,7 @@ namespace SixDofViewer
                 }
                 else
                 {
-                    if (rtProtocol.Settings6DOF.BodyCount > 0)
+                    if (rtProtocol.Settings6DOF.Bodies.Count > 0)
                     {
                         sixDofBodyNameToUse = rtProtocol.Settings6DOF.Bodies[0].Name;
                         bodyIndexToUse = 0;

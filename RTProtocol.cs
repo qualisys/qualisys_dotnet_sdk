@@ -929,38 +929,7 @@ namespace QTMRealTimeSDK
         /// <returns>Returns true if settings was retrieved</returns>
         public bool Get6dSettings()
         {
-            if (mMajorVersion > 1 || mMinorVersion > 20)
-            {
-                Settings6D_V2 settings6D_v2;
-                if (GetSettings("6D", "The_6D", out settings6D_v2))
-                {
-                    m6DOFSettings = Settings6D_V2.ConvertToSettings6DOF(settings6D_v2);
-                    return true;
-                }
-            }
-            else
-            {
-                Settings6D_V1 settings6D_v1;
-                if (GetSettings("6D", "The_6D", out settings6D_v1))
-                {
-                    m6DOFSettings = Settings6D_V1.ConvertToSettings6DOF(settings6D_v1);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>Get 6DOF settings from XML string</summary>
-        /// <returns>Returns true if settings was retrieved</returns>
-        public static bool Get6dSettings(string xmlData, out Settings6D settings, out string error)
-        {
-            xmlData = xmlData.Replace("QTM_Body_File_Ver_1.00", "The_6D");
-            settings = Settings6D_V2.ConvertToSettings6DOF(RTProtocol.ReadSettings<Settings6D_V2>("The_6D", xmlData, out error));
-            if (settings != null)
-            {
-                return true;
-            }
-            return false;
+            return GetSettings("6D", "The_6D", out m6DOFSettings);
         }
 
         /// <summary>Get Analog settings from QTM Server</summary>
@@ -1134,28 +1103,7 @@ namespace QTMRealTimeSDK
 
         public bool Set6DSettings(Settings6D settings)
         {
-            if (mMajorVersion > 1 || mMinorVersion > 20)
-            {
-                Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
-                return SetSettings("6D", "The_6D", settings6D_v2);
-            }
-            mErrorString = "Can not set 6D settings in protocol versions prior to 1.21";
-            return false;
-        }
-
-        public static bool Set6DSettings(Settings6D settings, out string xmlData, out string error)
-        {
-            Settings6D_V2 settings6D_v2 = new Settings6D_V2(settings);
-
-            xmlData = RTProtocol.CreateSettingsXml(settings6D_v2, out error);
-            if (xmlData != string.Empty)
-            {
-                xmlData = xmlData.Replace("</QTM_Settings>", "");
-                xmlData = xmlData.Replace("<QTM_Settings>", "");
-                xmlData = xmlData.Replace("The_6D", "QTM_Body_File_Ver_1.00");
-                return true;
-            }
-            return false;
+            return SetSettings("6D", "The_6D", settings);
         }
 
         public bool SetForceSettings(SettingsForce settings)
