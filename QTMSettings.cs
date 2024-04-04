@@ -1416,6 +1416,8 @@ namespace QTMRealTimeSDK.Settings
         ModelArqusA12,
         [XmlEnum("Arqus A26")]
         ModelArqusA26,
+        [XmlEnum("Miqus Video Color Plus")]
+        ModelMiqusVideoColorPlus,
     }
 
     /// <summary>Camera modes</summary>
@@ -1538,8 +1540,10 @@ namespace QTMRealTimeSDK.Settings
     {
         [XmlEnum("Unknown SettingsVideoResolution")]
         Unknown = -1,
+        [XmlEnum("1440p")]
+        VideoResolution_1440p = 0,
         [XmlEnum("1080p")]
-        VideoResolution_1080p = 0,
+        VideoResolution_1080p,
         [XmlEnum("720p")]
         VideoResolution_720p,
         [XmlEnum("540p")]
