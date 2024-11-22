@@ -1449,7 +1449,9 @@ namespace QTMRealTimeSDK.Settings
         [XmlEnum("Measurement time")]
         ModeActualMeasurementTime,
         [XmlEnum("Continuous 100Hz")]
-        ModeFixed100Hz
+        ModeFixed100Hz,
+        [XmlEnum("System Live Time")]
+        ModeSystemLiveTime
     }
 
     /// <summary>Signal sources</summary>
